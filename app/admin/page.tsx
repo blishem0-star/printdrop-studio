@@ -1,23 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import { STATUS_COLOR, STATUS_BG, STATUS_LABEL, type OrderStatus } from '@/lib/types';
 import Link from 'next/link';
-
-const STATUS_COLOR: Record<string, string> = {
-  DRAFT:         'rgba(255,255,255,0.25)',
-  PAID:          '#3B82F6',
-  IN_PRODUCTION: '#F59E0B',
-  SHIPPED:       '#8B5CF6',
-  DELIVERED:     '#10B981',
-  CANCELLED:     '#EF4444',
-};
-
-const STATUS_BG: Record<string, string> = {
-  DRAFT:         'rgba(255,255,255,0.04)',
-  PAID:          'rgba(59,130,246,0.1)',
-  IN_PRODUCTION: 'rgba(245,158,11,0.1)',
-  SHIPPED:       'rgba(139,92,246,0.1)',
-  DELIVERED:     'rgba(16,185,129,0.1)',
-  CANCELLED:     'rgba(239,68,68,0.1)',
-};
 
 export const dynamic = 'force-dynamic';
 
@@ -109,7 +92,7 @@ export default async function AdminOrdersPage() {
                         color: STATUS_COLOR[order.status], background: STATUS_BG[order.status],
                         border: `1px solid ${STATUS_COLOR[order.status]}33`,
                       }}>
-                        {order.status.replace('_', ' ')}
+                        {STATUS_LABEL[order.status as OrderStatus]}
                       </span>
                     </td>
                     <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>

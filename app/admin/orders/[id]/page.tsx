@@ -4,47 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-type OrderStatus = 'DRAFT' | 'PAID' | 'IN_PRODUCTION' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-
-type Order = {
-  id: string;
-  status: OrderStatus;
-  total: number;
-  shippingName: string;
-  shippingAddr: string;
-  shippingCity: string;
-  shippingZip: string;
-  shippingState: string;
-  createdAt: string;
-  customer: { name: string; email: string };
-  items: {
-    id: string;
-    qty: number;
-    unitPrice: number;
-    designAsset: {
-      id: string;
-      title: string;
-      emoji: string | null;
-      colorHex: string;
-      colorName: string;
-      size: string;
-      customText: string | null;
-      filePath: string | null;
-      svgDataUrl: string | null;
-    };
-  }[];
-};
-
-const STATUSES: OrderStatus[] = ['DRAFT', 'PAID', 'IN_PRODUCTION', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  DRAFT: 'rgba(255,255,255,0.3)',
-  PAID: '#3B82F6',
-  IN_PRODUCTION: '#F59E0B',
-  SHIPPED: '#8B5CF6',
-  DELIVERED: '#10B981',
-  CANCELLED: '#EF4444',
-};
+import { type Order, type OrderStatus, ORDER_STATUSES, STATUS_COLOR } from '@/lib/types';
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -144,7 +104,7 @@ export default function OrderDetailPage() {
           <div style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.08)', padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem' }}>Status</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {STATUSES.map(s => {
+              {ORDER_STATUSES.map(s => {
                 const active = order.status === s;
                 return (
                   <button key={s} onClick={() => updateStatus(s)} disabled={updating || active}

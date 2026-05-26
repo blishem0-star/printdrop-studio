@@ -14,6 +14,7 @@ import StepShell from '@/components/studio/StepShell';
 import { Field, LabeledField, Checkmark } from '@/components/studio/FormFields';
 import SizeGuideModal from '@/components/SizeGuideModal';
 import { buildDesignSvg, saveDesignFile, submitOrder } from '@/lib/exportDesign';
+import Toast from '@/components/Toast';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
@@ -43,6 +44,7 @@ function DesignStudio() {
   const [wishlist,     setWishlist]     = useState<string[]>([]);
   const [submitting,   setSubmitting]   = useState(false);
   const [orderId,      setOrderId]      = useState<string | null>(null);
+  const [toast,        setToast]        = useState<{ msg: string; type: 'error'|'success'|'info' } | null>(null);
 
   // Shipping
   const [shipName,   setShipName]   = useState('');
@@ -71,18 +73,34 @@ function DesignStudio() {
   const step4Done = payMethod !== 'card' ||
     (cardNum.replace(/\s/g,'').length >= 12 && cardExp.length >= 4 && cardCvv.length >= 3);
 
-  // Load wishlist from sessionStorage
+  // Restore studio state + wishlist from localStorage
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem('pd_wishlist');
-      if (saved) setWishlist(JSON.parse(saved)); // eslint-disable-line react-hooks/set-state-in-effect
+      const wl = localStorage.getItem('pd_wishlist');
+      if (wl) setWishlist(JSON.parse(wl)); // eslint-disable-line react-hooks/set-state-in-effect
+      const studio = localStorage.getItem('pd_studio');
+      if (studio) {
+        const s = JSON.parse(studio);
+        /* eslint-disable react-hooks/set-state-in-effect */
+        if (s.colorId)   setColor(SHIRT_COLORS.find(c => c.id === s.colorId) ?? null);
+        if (s.size)      setSize(s.size);
+        if (s.designId)  setDesign(DESIGNS.find(d => d.id === s.designId) ?? null);
+        if (s.customText) setCustomText(s.customText);
+        /* eslint-enable react-hooks/set-state-in-effect */
+      }
     } catch { /* ignore */ }
   }, []);
+
+  // Persist studio selections
+  useEffect(() => {
+    try { localStorage.setItem('pd_studio', JSON.stringify({ colorId: color?.id, size, designId: design?.id, customText })); }
+    catch { /* ignore */ }
+  }, [color, size, design, customText]);
 
   function toggleWishlist(id: string) {
     setWishlist(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      try { sessionStorage.setItem('pd_wishlist', JSON.stringify(next)); } catch { /* ignore */ }
+      try { localStorage.setItem('pd_wishlist', JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
   }
@@ -114,24 +132,35 @@ function DesignStudio() {
   async function handleOrder() {
     if (!design || !color || !size) return;
     setSubmitting(true);
-    const svgDataUrl = buildDesignSvg({
-      colorHex: color.hex, textColor: color.textColor,
-      emoji: design.emoji, label: design.title, customText: customText || undefined,
-    });
-    const filePath = await saveDesignFile(svgDataUrl);
-    const result = await submitOrder({
-      customerName: shipName, customerEmail: shipEmail,
-      shippingName: shipName, shippingAddr: shipStreet,
-      shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState,
-      total,
-      design: {
-        title: design.title, emoji: design.emoji, customText: customText || undefined,
-        colorHex: color.hex, colorName: color.name, size, price: design.price,
-        svgDataUrl, filePath: filePath ?? undefined,
-      },
-    });
-    setSubmitting(false);
-    if (result) { setOrderId(result.id); setOrdered(true); }
+    try {
+      const svgDataUrl = buildDesignSvg({
+        colorHex: color.hex, textColor: color.textColor,
+        emoji: design.emoji, label: design.title, customText: customText || undefined,
+      });
+      const filePath = await saveDesignFile(svgDataUrl);
+      const result = await submitOrder({
+        customerName: shipName, customerEmail: shipEmail,
+        shippingName: shipName, shippingAddr: shipStreet,
+        shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState,
+        total,
+        design: {
+          title: design.title, emoji: design.emoji, customText: customText || undefined,
+          colorHex: color.hex, colorName: color.name, size, price: design.price,
+          svgDataUrl, filePath: filePath ?? undefined,
+        },
+      });
+      if (result) {
+        setOrderId(result.id);
+        setOrdered(true);
+        try { localStorage.removeItem('pd_studio'); } catch { /* ignore */ }
+      } else {
+        setToast({ msg: 'Failed to save order. Please try again.', type: 'error' });
+      }
+    } catch {
+      setToast({ msg: 'Unexpected error. Please try again.', type: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function resetStudio() {
@@ -181,6 +210,7 @@ function DesignStudio() {
     <main style={{ paddingTop: 60, minHeight: '100vh' }}>
       {showGroup && <GroupOrderModal onClose={() => setShowGroup(false)} />}
       {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} selected={size} />}
+      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem 1rem' }}>
         <h1 style={{ fontSize: '1.35rem', fontWeight: 900, letterSpacing: '-0.03em' }}>Design Studio</h1>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { DESIGNS, CATEGORIES } from '@/lib/mockData';
 import DesignCard from '@/components/DesignCard';
 import Footer from '@/components/Footer';
+import VibeMode from '@/components/VibeMode';
 
 export default function CatalogPage() {
   const [cat, setCat] = useState('All');
@@ -31,6 +32,8 @@ export default function CatalogPage() {
           <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.8rem' }}>{results.length} results</span>
         </div>
       </div>
+
+      <VibeMode />
 
       {/* Filter bar */}
       <div style={{ padding: '0 1.5rem 1.5rem', maxWidth: 1280, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>

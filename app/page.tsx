@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import TShirtMockup from '@/components/TShirtMockup';
 import Footer from '@/components/Footer';
+import FeaturedDesigns from '@/components/FeaturedDesigns';
+import Testimonials from '@/components/Testimonials';
 
 const STEPS = [
   { n: '01', icon: '👕', title: 'Pick your shirt', body: 'Choose color, size, and fit. 8 premium colors, 100% cotton.' },
@@ -91,6 +93,8 @@ export default function Home() {
         </div>
       </section>
 
+      <FeaturedDesigns />
+
       {/* ── How it works ── */}
       <section id="how" style={{ padding: '6rem 1.5rem', maxWidth: 1080, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
@@ -124,6 +128,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <Testimonials />
 
       {/* ── FAQ ── */}
       <section style={{ padding: '4rem 1.5rem', maxWidth: 720, margin: '0 auto' }}>

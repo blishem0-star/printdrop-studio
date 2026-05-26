@@ -10,7 +10,7 @@ export default function Testimonials() {
     }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div className="section-tag" style={{ margin: '0 auto 1rem' }}>Reviews</div>
+          <div className="tag" style={{ margin: '0 auto 1rem' }}>Reviews</div>
           <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
             People love PrintDrop
           </h2>

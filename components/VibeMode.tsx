@@ -23,9 +23,9 @@ export default function VibeMode() {
   return (
     <section style={{ padding: '5rem 1.5rem', maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <div className="section-tag" style={{ margin: '0 auto 1rem' }}>Vibe Mode ✦ New</div>
+        <div className="tag" style={{ margin: '0 auto 1rem' }}>Vibe Mode ✦ New</div>
         <h2 style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>
-          Find designs by <span className="gradient-text">your energy</span>
+          Find designs by <span className="g-text">your energy</span>
         </h2>
         <p style={{ color: '#666', fontSize: '0.9rem', maxWidth: 420, margin: '0 auto' }}>
           Skip the search. Pick a mood and we&apos;ll curate the perfect designs for you.
