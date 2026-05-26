@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 
 const NAV = [
   { label: 'Studio', href: '/design' },
@@ -11,7 +10,6 @@ const NAV = [
 
 export default function Navbar() {
   const path = usePathname();
-  const [open, setOpen] = useState(false);
 
   return (
     <header style={{

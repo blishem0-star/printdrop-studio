@@ -3,7 +3,8 @@ import Link from 'next/link';
 import TShirtMockup from './TShirtMockup';
 import { STATS } from '@/lib/mockData';
 
-const FLOATING_SHIRTS = [
+type FloatingShirt = { color: string; emoji: string; delay: string; top: string; rotate: string; left?: string; right?: string };
+const FLOATING_SHIRTS: FloatingShirt[] = [
   { color: '#0d0d0d', emoji: '🌌', delay: '0s', top: '10%', left: '5%', rotate: '-8deg' },
   { color: '#1a2744', emoji: '🏙️', delay: '1.5s', top: '60%', left: '2%', rotate: '5deg' },
   { color: '#1e3a2f', emoji: '🌿', delay: '0.8s', top: '20%', right: '4%', rotate: '10deg' },
@@ -34,7 +35,7 @@ export default function Hero() {
       {FLOATING_SHIRTS.map((s, i) => (
         <div key={i} className="hidden lg:block" style={{
           position: 'absolute',
-          top: s.top, left: s.left, right: (s as any).right,
+          top: s.top, left: s.left, right: s.right,
           transform: `rotate(${s.rotate})`,
           animation: `float 5s ease-in-out ${s.delay} infinite`,
           opacity: 0.6, zIndex: 1, pointerEvents: 'none',

@@ -16,9 +16,9 @@ export default function CheckoutPage() {
       <main style={{ paddingTop: 80, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 1.5rem' }}>
         <div style={{ textAlign: 'center', maxWidth: 480 }}>
           <div style={{ fontSize: 72, marginBottom: 24 }}>✅</div>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 12 }}>You're all set!</h1>
+          <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 12 }}>You&apos;re all set!</h1>
           <p style={{ color: '#777', lineHeight: 1.7, marginBottom: 32 }}>
-            Order confirmed. You'll get a shipping notification within 24 hours.
+            Order confirmed. You&apos;ll get a shipping notification within 24 hours.
             Expected delivery: <strong style={{ color: '#10B981' }}>72 hours</strong>.
           </p>
           <Link href="/" className="btn-primary">Back to Home</Link>
@@ -46,7 +46,7 @@ export default function CheckoutPage() {
                   { name: 'zip', placeholder: 'ZIP Code', colSpan: 1 },
                 ].map(f => (
                   <input key={f.name} name={f.name} placeholder={f.placeholder}
-                    value={(form as any)[f.name]} onChange={handleChange} required
+                    value={form[f.name as keyof typeof form]} onChange={handleChange} required
                     style={{
                       gridColumn: `span ${f.colSpan}`,
                       background: '#0d0d0d', border: '1px solid #222', borderRadius: 10,

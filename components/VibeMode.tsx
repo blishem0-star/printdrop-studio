@@ -28,7 +28,7 @@ export default function VibeMode() {
           Find designs by <span className="gradient-text">your energy</span>
         </h2>
         <p style={{ color: '#666', fontSize: '0.9rem', maxWidth: 420, margin: '0 auto' }}>
-          Skip the search. Pick a mood and we'll curate the perfect designs for you.
+          Skip the search. Pick a mood and we&apos;ll curate the perfect designs for you.
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export default function VibeMode() {
             {filteredDesigns.length} designs curated for <strong style={{ color: '#fff' }}>{vibe?.label}</strong>
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px,1fr))', gap: '1.25rem', animation: 'fadeIn 0.3s ease' }}>
-            {filteredDesigns.map((d: any) => <DesignCard key={d.id} design={d} />)}
+            {filteredDesigns.map(d => <DesignCard key={d.id} design={d} />)}
           </div>
         </div>
       )}

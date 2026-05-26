@@ -36,7 +36,7 @@ export default function GroupOrderModal({ onClose }: { onClose: () => void }) {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem', background: '#0d0d0d', borderRadius: 10, padding: 4 }}>
           {[['create', 'Create Group'], ['join', 'Join Group']].map(([id, label]) => (
-            <button key={id} onClick={() => setStep(id as any)} style={{
+            <button key={id} onClick={() => setStep(id as 'create' | 'join')} style={{
               flex: 1, padding: '0.5rem', borderRadius: 8, border: 'none',
               background: step === id ? '#1e1e1e' : 'transparent',
               color: step === id ? '#fff' : '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer',

@@ -8,7 +8,8 @@ const STEPS = [
   { n: '03', icon: '🚀', title: 'We print & ship', body: 'DTG premium printing. At your door in 72 hours.' },
 ];
 
-const PREVIEWS = [
+type Preview = { color: string; emoji: string; rotate: string; top: string; left?: string; right?: string };
+const PREVIEWS: Preview[] = [
   { color: '#0d0d0d', emoji: '🌌', rotate: '-6deg', top: '8%', left: '2%' },
   { color: '#1a2744', emoji: '🏙️', rotate: '8deg', top: '55%', right: '3%' },
   { color: '#1e3a2f', emoji: '🌿', rotate: '4deg', top: '12%', right: '4%' },
@@ -41,7 +42,7 @@ export default function Home() {
         {/* Floating shirts — decorative */}
         {PREVIEWS.map((p, i) => (
           <div key={i} className="hidden lg:block" style={{
-            position: 'absolute', top: p.top, left: p.left, right: (p as any).right,
+            position: 'absolute', top: p.top, left: p.left, right: p.right,
             transform: `rotate(${p.rotate})`,
             animation: `float-y ${4.5 + i * 0.6}s ease-in-out ${i * 0.8}s infinite`,
             opacity: 0.45, pointerEvents: 'none',
@@ -119,7 +120,7 @@ export default function Home() {
 
         <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
           <Link href="/design" className="btn btn-primary">
-            Start now — it's free to design
+            Start now — it&apos;s free to design
           </Link>
         </div>
       </section>

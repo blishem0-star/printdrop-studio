@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import TShirtMockup from './TShirtMockup';
 
 type Props = {
@@ -33,6 +33,13 @@ export default function ShirtViewer3D({ color, textColor, emoji, label }: Props)
     if (spinRef.current) cancelAnimationFrame(spinRef.current);
   }, []);
 
+  // Start auto-spin on mount and when autoSpin toggles on
+  useEffect(() => {
+    if (autoSpin) startSpin();
+    else stopSpin();
+    return () => stopSpin();
+  }, [autoSpin, startSpin, stopSpin]);
+
   // Drag handlers
   const onMouseDown = (e: React.MouseEvent) => {
     setDragging(true);
@@ -63,8 +70,6 @@ export default function ShirtViewer3D({ color, textColor, emoji, label }: Props)
     setRotX(r => Math.max(-25, Math.min(25, r - dy * 0.4)));
     lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   };
-
-  const isBack = Math.abs(((rotY % 360) + 360) % 360 - 180) < 90;
 
   return (
     <div style={{ userSelect: 'none' }}>

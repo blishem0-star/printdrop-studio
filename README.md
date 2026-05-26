@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PrintDrop Studio
 
-## Getting Started
+Premium custom t-shirt design and drop-shipping platform. Design online, we print and ship in 72 hours.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **Tailwind CSS** + custom glass-morphism design system
+- **Prisma** (schema ready, no DB connected yet)
+- Deployed on Vercel
+
+## Features
+
+- 4-step design studio: color → size → design → checkout
+- Live 3D shirt preview with drag-to-rotate
+- AI-powered design suggestions
+- Photo-to-design upload
+- Group order flow
+- Vibe mode (mood-based design picker)
+
+## Local Dev
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  page.tsx          # Landing page
+  design/page.tsx   # Studio (4-step flow)
+  checkout/page.tsx # Checkout
+components/
+  studio/           # StepShell, FormFields
+  ShirtViewer3D     # 3D CSS viewer with drag + auto-spin
+  TShirtMockup      # SVG shirt mockup
+```
 
-## Learn More
+## Branch Strategy
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `main` — production
+- `develop` — active development

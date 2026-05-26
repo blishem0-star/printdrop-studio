@@ -28,7 +28,7 @@ export default function Testimonials() {
               <div style={{ color: '#F59E0B', fontSize: 14, marginBottom: 12 }}>★★★★★</div>
 
               <p style={{ color: '#bbb', lineHeight: 1.7, fontSize: '0.92rem', marginBottom: '1.25rem' }}>
-                "{t.text}"
+                &ldquo;{t.text}&rdquo;
               </p>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -46,7 +46,7 @@ export default function Testimonials() {
                     <div style={{ color: '#555', fontSize: 12 }}>{t.location}</div>
                   </div>
                 </div>
-                <div style={{ color: '#333', fontSize: 11, fontWeight: 600 }}>"{t.design}"</div>
+                <div style={{ color: '#333', fontSize: 11, fontWeight: 600 }}>&ldquo;{t.design}&rdquo;</div>
               </div>
             </div>
           ))}
