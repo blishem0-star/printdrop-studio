@@ -26,7 +26,7 @@ export default async function AdminDesignsPage() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-          {designs.map(d => {
+          {designs.map((d: (typeof designs)[number]) => {
             const order = d.orderItems[0]?.order;
             return (
               <div key={d.id} style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', overflow: 'hidden' }}>
