@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #060608;
+  --surface: rgba(255,255,255,0.03);
+  --surface-hover: rgba(255,255,255,0.055);
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --accent: #FF4D1C;
+  --accent-2: #8B5CF6;
+  --accent-glow: rgba(255,77,28,0.25);
+  --text: #FFFFFF;
+  --text-2: rgba(255,255,255,0.55);
+  --text-3: rgba(255,255,255,0.25);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+::selection { background: var(--accent); color: white; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Typography ── */
+.display { font-size: clamp(3rem, 7vw, 6rem); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; }
+.heading { font-size: clamp(1.75rem, 3.5vw, 2.75rem); font-weight: 800; letter-spacing: -0.03em; }
+.subheading { font-size: 1.1rem; color: var(--text-2); line-height: 1.65; }
+.label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+
+/* ── Gradient text ── */
+.g-text {
+  background: linear-gradient(135deg, #FF6B3D 0%, #FF9A00 40%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass surface ── */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.2s, background 0.2s, transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s;
+}
+.card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+}
+.card-selected {
+  border-color: var(--accent) !important;
+  background: rgba(255,77,28,0.07) !important;
+  box-shadow: 0 0 0 1px rgba(255,77,28,0.2), 0 0 30px rgba(255,77,28,0.1) !important;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-weight: 600; font-size: 0.9rem; border-radius: var(--radius-sm);
+  border: none; cursor: pointer; transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+  text-decoration: none; white-space: nowrap; padding: 0 1.5rem; height: 44px;
+}
+.btn-lg { height: 52px; padding: 0 2rem; font-size: 1rem; border-radius: var(--radius); }
+.btn-sm { height: 34px; padding: 0 1rem; font-size: 0.8rem; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF4D1C 0%, #FF7A00 100%);
+  color: white;
+  box-shadow: 0 2px 12px rgba(255,77,28,0.35);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,77,28,0.45); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border-strong);
+}
+.btn-outline:hover { background: var(--surface); color: var(--text); }
+
+/* ── Tags / pills ── */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  background: rgba(255,77,28,0.08); border: 1px solid rgba(255,77,28,0.2); color: #FF8C40;
+}
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); }
+
+/* ── Input ── */
+.input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  font-family: inherit;
+}
+.input:focus { border-color: rgba(255,77,28,0.5); background: rgba(255,255,255,0.05); }
+.input::placeholder { color: var(--text-3); }
+
+/* ── Animations ── */
+@keyframes float-y {
+  0%,100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-14px) rotate(1deg); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity:0.7; }
+  70% { transform: scale(1.1); opacity:0; }
+  100% { transform: scale(0.95); opacity:0; }
+}
+@keyframes gradient-move {
+  0%,100% { background-position: 0% 50%; }
+  50%     { background-position: 100% 50%; }
+}
+@keyframes fade-up {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+.float-y { animation: float-y 5s ease-in-out infinite; }
+.fade-up { animation: fade-up 0.4s ease both; }
+.spin-slow { animation: spin-slow 18s linear infinite; }
+
+/* ── Noise ── */
+.noise::after {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+/* ── Glow dot ── */
+.glow-dot {
+  position:absolute; border-radius:50%; pointer-events:none;
+  filter: blur(80px); opacity: 0.25;
+}
