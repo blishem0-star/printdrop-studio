@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import StepShell from '@/components/studio/StepShell';
 import { Field, LabeledField, Checkmark } from '@/components/studio/FormFields';
+import SizeGuideModal from '@/components/SizeGuideModal';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
@@ -27,15 +28,18 @@ function DesignStudio() {
     initId ? (DESIGNS.find(d => d.id === initId) ?? null) : null
   );
 
-  const [aiPrompt,   setAiPrompt]   = useState('');
-  const [aiLoading,  setAiLoading]  = useState(false);
-  const [designTab,  setDesignTab]  = useState<'catalog'|'ai'|'photo'>('catalog');
-  const [catFilter,  setCatFilter]  = useState('All');
-  const [remixItems, setRemixItems] = useState<Design[]|null>(null);
-  const [remixLoad,  setRemixLoad]  = useState(false);
-  const [showGroup,  setShowGroup]  = useState(false);
-  const [ordered,    setOrdered]    = useState(false);
-  const [activeStep, setActiveStep] = useState(1);
+  const [aiPrompt,     setAiPrompt]     = useState('');
+  const [aiLoading,    setAiLoading]    = useState(false);
+  const [designTab,    setDesignTab]    = useState<'catalog'|'ai'|'photo'>('catalog');
+  const [catFilter,    setCatFilter]    = useState('All');
+  const [remixItems,   setRemixItems]   = useState<Design[]|null>(null);
+  const [remixLoad,    setRemixLoad]    = useState(false);
+  const [showGroup,    setShowGroup]    = useState(false);
+  const [ordered,      setOrdered]      = useState(false);
+  const [activeStep,   setActiveStep]   = useState(1);
+  const [customText,   setCustomText]   = useState('');
+  const [showSizeGuide,setShowSizeGuide]= useState(false);
+  const [wishlist,     setWishlist]     = useState<string[]>([]);
 
   // Shipping
   const [shipName,   setShipName]   = useState('');
@@ -64,6 +68,22 @@ function DesignStudio() {
   const step4Done = payMethod !== 'card' ||
     (cardNum.replace(/\s/g,'').length >= 12 && cardExp.length >= 4 && cardCvv.length >= 3);
 
+  // Load wishlist from sessionStorage
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('pd_wishlist');
+      if (saved) setWishlist(JSON.parse(saved)); // eslint-disable-line react-hooks/set-state-in-effect
+    } catch { /* ignore */ }
+  }, []);
+
+  function toggleWishlist(id: string) {
+    setWishlist(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+      try { sessionStorage.setItem('pd_wishlist', JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
   // Auto-advance (step3 via effect; steps 1+2 via event handlers below)
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (step3Done) setActiveStep(s => s === 3 ? 4 : s); }, [step3Done]);
@@ -90,7 +110,7 @@ function DesignStudio() {
 
   function resetStudio() {
     setOrdered(false); setActiveStep(1);
-    setColor(null); setSize(null); setDesign(null);
+    setColor(null); setSize(null); setDesign(null); setCustomText('');
     setShipName(''); setShipEmail(''); setShipStreet('');
     setShipCity(''); setShipState(''); setShipZip('');
     setCardNum(''); setCardExp(''); setCardCvv(''); setCardName('');
@@ -129,6 +149,7 @@ function DesignStudio() {
   return (
     <main style={{ paddingTop: 60, minHeight: '100vh' }}>
       {showGroup && <GroupOrderModal onClose={() => setShowGroup(false)} />}
+      {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} selected={size} />}
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem 1rem' }}>
         <h1 style={{ fontSize: '1.35rem', fontWeight: 900, letterSpacing: '-0.03em' }}>Design Studio</h1>
@@ -169,9 +190,12 @@ function DesignStudio() {
             </div>
 
             <div>
-              <div className="label" style={{ marginBottom: 14 }}>
-                Select a size
-                {size && <span style={{ color: 'rgba(255,255,255,0.5)', textTransform: 'none', letterSpacing: 0, fontWeight: 500, marginLeft: 8 }}>— {size}</span>}
+              <div className="label" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>Select a size</span>
+                {size && <span style={{ color: 'rgba(255,255,255,0.5)', textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>— {size}</span>}
+                <button onClick={() => setShowSizeGuide(true)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '2px 9px', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', textTransform: 'none', letterSpacing: 0 }}>
+                  📏 Size Guide
+                </button>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                 {SHIRT_SIZES.map(s => (
@@ -233,22 +257,45 @@ function DesignStudio() {
                     }}>{c}</button>
                   ))}
                 </div>
+                {wishlist.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>❤ Saved</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {DESIGNS.filter(d => wishlist.includes(d.id)).map(d => (
+                        <button key={d.id} onClick={() => { setDesign(d); if (activeStep === 2) setActiveStep(3); }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: design?.id === d.id ? 'rgba(255,77,28,0.12)' : 'rgba(255,255,255,0.04)', border: `1px solid ${design?.id === d.id ? 'rgba(255,77,28,0.4)' : 'rgba(255,255,255,0.08)'}`, cursor: 'pointer', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
+                          <span>{d.emoji}</span><span>{d.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(115px,1fr))', gap: '0.6rem' }}>
                   {DESIGNS.filter(d => catFilter === 'All' || d.category === catFilter).map(d => (
-                    <button key={d.id}
-                      onClick={() => { setDesign(d); if (activeStep === 2) setActiveStep(3); }}
-                      style={{
-                        borderRadius: 14, padding: '1rem 0.5rem', cursor: 'pointer', textAlign: 'center',
-                        border: `1.5px solid ${design?.id === d.id ? '#FF4D1C' : 'rgba(255,255,255,0.06)'}`,
-                        background: design?.id === d.id ? 'rgba(255,77,28,0.09)' : 'rgba(255,255,255,0.02)',
+                    <div key={d.id} style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => { setDesign(d); if (activeStep === 2) setActiveStep(3); }}
+                        style={{
+                          width: '100%', borderRadius: 14, padding: '1rem 0.5rem', cursor: 'pointer', textAlign: 'center',
+                          border: `1.5px solid ${design?.id === d.id ? '#FF4D1C' : 'rgba(255,255,255,0.06)'}`,
+                          background: design?.id === d.id ? 'rgba(255,77,28,0.09)' : 'rgba(255,255,255,0.02)',
+                          transition: 'all 0.15s',
+                          boxShadow: design?.id === d.id ? '0 0 20px rgba(255,77,28,0.2)' : 'none',
+                          transform: design?.id === d.id ? 'scale(1.03)' : 'scale(1)',
+                        }}>
+                        <div style={{ fontSize: 34, marginBottom: 6 }}>{d.emoji}</div>
+                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{d.title}</div>
+                        <div style={{ color: '#FF5C28', fontSize: '0.75rem', fontWeight: 800 }}>${d.price}</div>
+                      </button>
+                      <button onClick={() => toggleWishlist(d.id)} style={{
+                        position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%',
+                        background: wishlist.includes(d.id) ? 'rgba(255,77,28,0.2)' : 'rgba(0,0,0,0.5)',
+                        border: `1px solid ${wishlist.includes(d.id) ? 'rgba(255,77,28,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                        color: wishlist.includes(d.id) ? '#FF6B3D' : 'rgba(255,255,255,0.3)',
+                        fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all 0.15s',
-                        boxShadow: design?.id === d.id ? '0 0 20px rgba(255,77,28,0.2)' : 'none',
-                        transform: design?.id === d.id ? 'scale(1.03)' : 'scale(1)',
-                      }}>
-                      <div style={{ fontSize: 34, marginBottom: 6 }}>{d.emoji}</div>
-                      <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{d.title}</div>
-                      <div style={{ color: '#FF5C28', fontSize: '0.75rem', fontWeight: 800 }}>${d.price}</div>
-                    </button>
+                      }}>♥</button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -283,6 +330,20 @@ function DesignStudio() {
                 if (activeStep === 2) setActiveStep(3);
               }} />
             )}
+
+            {/* Custom text on shirt */}
+            <div style={{ marginTop: '1.25rem', borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>✏ Custom text on shirt (optional)</div>
+              <div style={{ position: 'relative' }}>
+                <input className="input" value={customText} onChange={e => setCustomText(e.target.value)} maxLength={22}
+                  placeholder="e.g. YOUR NAME, EST. 2025..."
+                  style={{ paddingRight: customText ? 48 : 14, background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: '0.85rem' }} />
+                {customText && (
+                  <button onClick={() => setCustomText('')} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, padding: 2 }}>×</button>
+                )}
+              </div>
+              {customText && <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>Appears on the shirt — visible in the 3D preview</p>}
+            </div>
 
             {design && (
               <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '1rem' }}>
@@ -339,7 +400,7 @@ function DesignStudio() {
                     <div style={{ marginLeft: 'auto', width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg,#10B981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'white', fontWeight: 800 }}>✓</div>
                   )}
                 </div>
-                <div style={{ padding: '1.125rem 1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="studio-2col" style={{ padding: '1.125rem 1.25rem' }}>
                   <LabeledField label="Full Name" value={shipName} onChange={setShipName} valid={shipName.trim().length > 1} placeholder="Jane Smith" />
                   <LabeledField label="Email Address" type="email" value={shipEmail} onChange={setShipEmail} valid={shipEmail.includes('@') && shipEmail.includes('.')} placeholder="you@example.com" />
                 </div>
@@ -360,7 +421,7 @@ function DesignStudio() {
                 </div>
                 <div style={{ padding: '1.125rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <LabeledField label="Street Address" value={shipStreet} onChange={setShipStreet} valid={shipStreet.trim().length > 3} placeholder="123 Main St, Apt 4B" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 88px 88px', gap: 10 }}>
+                  <div className="studio-3col">
                     <LabeledField label="City" value={shipCity} onChange={setShipCity} valid={shipCity.trim().length > 1} placeholder="New York" />
                     <div>
                       <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>State</div>
@@ -406,7 +467,7 @@ function DesignStudio() {
             summary={step4Done ? (payMethod === 'card' ? `Card ···· ${cardNum.replace(/\s/g,'').slice(-4)}` : payMethod) : undefined}
             onEdit={() => { if (step3Done) setActiveStep(4); }}>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: '1.75rem' }}>
+            <div className="studio-4col" style={{ marginBottom: '1.75rem' }}>
               {([
                 { id: 'card',   bg: 'linear-gradient(135deg,#1a1a2e,#16213e)', accent: '#6C63FF', icon: '💳', label: 'Card' },
                 { id: 'apple',  bg: 'linear-gradient(135deg,#1a1a1a,#2d2d2d)', accent: '#fff',    icon: '',    label: 'Apple Pay' },
@@ -487,7 +548,7 @@ function DesignStudio() {
             {/* 3D viewer */}
             <div style={{ background: 'rgba(0,0,0,0.45)', padding: '2rem 1.5rem 1.5rem', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {color ? (
-                <ShirtViewer3D color={color.hex} textColor={color.textColor} emoji={design?.emoji} label={design?.title} />
+                <ShirtViewer3D color={color.hex} textColor={color.textColor} emoji={design?.emoji} label={design?.title} customText={customText || undefined} />
               ) : (
                 <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
                   <div style={{ fontSize: 56, marginBottom: 12 }}>👕</div>

@@ -183,3 +183,24 @@ body {
   position:absolute; border-radius:50%; pointer-events:none;
   filter: blur(80px); opacity: 0.25;
 }
+
+/* ── Studio responsive grids ── */
+.studio-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.studio-3col { display: grid; grid-template-columns: 1fr 88px 88px; gap: 10px; }
+.studio-4col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+@media (max-width: 640px) {
+  .studio-2col { grid-template-columns: 1fr; }
+  .studio-3col { grid-template-columns: 1fr; }
+  .studio-4col { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── FAQ ── */
+details summary::-webkit-details-marker { display: none; }
+details[open] summary span { transform: rotate(45deg); display: inline-block; transition: transform 0.2s; }
+
+/* ── Mobile utility ── */
+@media (max-width: 480px) {
+  .display { font-size: clamp(2.25rem, 10vw, 3.5rem); }
+  .heading { font-size: clamp(1.5rem, 6vw, 2rem); }
+}

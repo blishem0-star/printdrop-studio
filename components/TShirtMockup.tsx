@@ -5,10 +5,11 @@ type Props = {
   textColor?: string;
   label?: string;
   emoji?: string;
+  customText?: string;
   size?: 'sm' | 'md' | 'lg';
 };
 
-export default function TShirtMockup({ color = '#0d0d0d', textColor = '#fff', label, emoji, size = 'md' }: Props) {
+export default function TShirtMockup({ color = '#0d0d0d', textColor = '#fff', label, emoji, customText, size = 'md' }: Props) {
   const dims = { sm: 140, md: 200, lg: 280 };
   const w = dims[size];
   const h = w * 1.15;
@@ -60,6 +61,13 @@ export default function TShirtMockup({ color = '#0d0d0d', textColor = '#fff', la
           fill={textColor} fontFamily="system-ui, sans-serif" fontWeight="700"
           letterSpacing="1" dominantBaseline="middle" opacity="0.9">
           {label.toUpperCase()}
+        </text>
+      )}
+      {customText && (
+        <text x="100" y={emoji || label ? 192 : 145} textAnchor="middle" fontSize="9"
+          fill={textColor} fontFamily="system-ui, sans-serif" fontWeight="800"
+          letterSpacing="2" dominantBaseline="middle" opacity="0.65">
+          {customText.toUpperCase().slice(0, 22)}
         </text>
       )}
     </svg>

@@ -125,6 +125,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── FAQ ── */}
+      <section style={{ padding: '4rem 1.5rem', maxWidth: 720, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div className="tag" style={{ marginBottom: 14 }}>FAQ</div>
+          <h2 className="heading">Common questions</h2>
+        </div>
+        {[
+          {
+            q: 'How long does delivery take?',
+            a: 'Your shirt ships within 24 hours of placing your order. Standard delivery is 2–3 business days (72 hours total). Express 1-day shipping is available at checkout.',
+          },
+          {
+            q: 'How good is the print quality?',
+            a: 'We use Direct-to-Garment (DTG) printing at 300 DPI. Colors are vivid, wash-resistant, and tested to last 50+ machine washes without fading.',
+          },
+          {
+            q: "What's your return policy?",
+            a: 'If your shirt arrives with a printing defect or is not what you ordered, we\'ll reprint it or give you a full refund — no questions asked. Contact us within 30 days of delivery.',
+          },
+        ].map(({ q, a }) => (
+          <details key={q} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '1.25rem 0' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+              {q}
+              <span style={{ color: 'rgba(255,77,28,0.7)', fontSize: 18, fontWeight: 400, flexShrink: 0, marginLeft: 16 }}>+</span>
+            </summary>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.88rem', lineHeight: 1.7, marginTop: '0.875rem', paddingRight: '2rem' }}>{a}</p>
+          </details>
+        ))}
+      </section>
+
       {/* ── CTA ── */}
       <section style={{ padding: '4rem 1.5rem 6rem' }}>
         <div style={{

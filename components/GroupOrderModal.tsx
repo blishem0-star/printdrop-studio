@@ -25,12 +25,28 @@ export default function GroupOrderModal({ onClose }: { onClose: () => void }) {
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: '#111', border: '1px solid #222', borderRadius: 24, padding: '2rem', maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div>
             <h2 style={{ fontWeight: 800, fontSize: '1.2rem' }}>👥 Group Order</h2>
             <p style={{ color: '#555', fontSize: 12, marginTop: 4 }}>Everyone picks their size, one person pays</p>
           </div>
           <button onClick={onClose} style={{ background: '#1e1e1e', border: 'none', color: '#888', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 18 }}>×</button>
+        </div>
+
+        {/* Bulk pricing tiers */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: '1.5rem' }}>
+          {[
+            { qty: '1–4', price: '$29.99', label: 'Standard', color: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.08)', tag: null },
+            { qty: '5–9', price: '$24.99', label: '−17%', color: 'rgba(139,92,246,0.07)', border: 'rgba(139,92,246,0.2)', tag: 'POPULAR' },
+            { qty: '10+', price: '$19.99', label: '−33%', color: 'rgba(16,185,129,0.07)', border: 'rgba(16,185,129,0.2)', tag: 'BEST' },
+          ].map(tier => (
+            <div key={tier.qty} style={{ borderRadius: 12, padding: '0.75rem', textAlign: 'center', background: tier.color, border: `1px solid ${tier.border}`, position: 'relative' }}>
+              {tier.tag && <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', background: tier.qty === '10+' ? '#10B981' : '#8B5CF6', color: 'white', fontSize: '0.55rem', fontWeight: 800, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{tier.tag}</div>}
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontWeight: 600, marginBottom: 4 }}>{tier.qty} shirts</div>
+              <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'white' }}>{tier.price}</div>
+              <div style={{ fontSize: '0.6rem', color: tier.label.startsWith('−') ? '#10B981' : 'rgba(255,255,255,0.25)', fontWeight: 700, marginTop: 2 }}>{tier.label}</div>
+            </div>
+          ))}
         </div>
 
         {/* Tabs */}
@@ -82,7 +98,11 @@ export default function GroupOrderModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <button className="btn-primary" onClick={onClose} style={{ width: '100%', justifyContent: 'center' }}>
-              Place Order for Group — ${(29.99 * members.length).toFixed(2)}
+              {(() => {
+                const n = members.length;
+                const price = n >= 10 ? 19.99 : n >= 5 ? 24.99 : 29.99;
+                return `Place Order for ${n} — $${(price * n).toFixed(2)}`;
+              })()}
             </button>
           </div>
         )}

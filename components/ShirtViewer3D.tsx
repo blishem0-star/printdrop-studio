@@ -7,9 +7,10 @@ type Props = {
   textColor: string;
   emoji?: string;
   label?: string;
+  customText?: string;
 };
 
-export default function ShirtViewer3D({ color, textColor, emoji, label }: Props) {
+export default function ShirtViewer3D({ color, textColor, emoji, label, customText }: Props) {
   const [rotY, setRotY] = useState(0);
   const [rotX, setRotX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -96,7 +97,7 @@ export default function ShirtViewer3D({ color, textColor, emoji, label }: Props)
         }}>
           {/* Front */}
           <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <TShirtMockup color={color} textColor={textColor} emoji={emoji} label={label} size="lg" />
+            <TShirtMockup color={color} textColor={textColor} emoji={emoji} label={label} customText={customText} size="lg" />
           </div>
           {/* Back */}
           <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
