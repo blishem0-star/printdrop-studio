@@ -13,6 +13,7 @@ import Link from 'next/link';
 import StepShell from '@/components/studio/StepShell';
 import { Field, LabeledField, Checkmark } from '@/components/studio/FormFields';
 import SizeGuideModal from '@/components/SizeGuideModal';
+import { buildDesignSvg, saveDesignFile, submitOrder } from '@/lib/exportDesign';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
@@ -40,6 +41,8 @@ function DesignStudio() {
   const [customText,   setCustomText]   = useState('');
   const [showSizeGuide,setShowSizeGuide]= useState(false);
   const [wishlist,     setWishlist]     = useState<string[]>([]);
+  const [submitting,   setSubmitting]   = useState(false);
+  const [orderId,      setOrderId]      = useState<string | null>(null);
 
   // Shipping
   const [shipName,   setShipName]   = useState('');
@@ -108,6 +111,29 @@ function DesignStudio() {
     }, 1500);
   }
 
+  async function handleOrder() {
+    if (!design || !color || !size) return;
+    setSubmitting(true);
+    const svgDataUrl = buildDesignSvg({
+      colorHex: color.hex, textColor: color.textColor,
+      emoji: design.emoji, label: design.title, customText: customText || undefined,
+    });
+    const filePath = await saveDesignFile(svgDataUrl);
+    const result = await submitOrder({
+      customerName: shipName, customerEmail: shipEmail,
+      shippingName: shipName, shippingAddr: shipStreet,
+      shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState,
+      total,
+      design: {
+        title: design.title, emoji: design.emoji, customText: customText || undefined,
+        colorHex: color.hex, colorName: color.name, size, price: design.price,
+        svgDataUrl, filePath: filePath ?? undefined,
+      },
+    });
+    setSubmitting(false);
+    if (result) { setOrderId(result.id); setOrdered(true); }
+  }
+
   function resetStudio() {
     setOrdered(false); setActiveStep(1);
     setColor(null); setSize(null); setDesign(null); setCustomText('');
@@ -125,9 +151,14 @@ function DesignStudio() {
         <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 6 }}>
           <strong style={{ color: 'white' }}>{design?.title}</strong> · {color?.name} · Size {size}
         </p>
-        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginBottom: '2.5rem' }}>
+        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginBottom: orderId ? 8 : '2.5rem' }}>
           Delivery in <span style={{ color: '#10B981' }}>72 hours</span> · Confirmation sent to {shipEmail}
         </p>
+        {orderId && (
+          <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.7rem', fontFamily: 'monospace', marginBottom: '2.5rem' }}>
+            Order #{orderId.slice(0, 8).toUpperCase()}
+          </p>
+        )}
         <div style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 18, padding: '1.5rem', marginBottom: '2rem' }}>
           <p style={{ fontWeight: 700, marginBottom: 6, fontSize: '0.9rem' }}>📸 Earn 10% off your next order</p>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.78rem', marginBottom: 14 }}>
@@ -617,10 +648,11 @@ function DesignStudio() {
               )}
 
               <button className="btn btn-primary"
-                disabled={!step1Done || !step2Done || !step3Done || !step4Done}
-                onClick={() => setOrdered(true)}
-                style={{ width: '100%', height: 52, fontSize: '0.9rem', borderRadius: 14, justifyContent: 'center', opacity: step1Done && step2Done && step3Done && step4Done ? 1 : 0.3, pointerEvents: step1Done && step2Done && step3Done && step4Done ? 'auto' : 'none' }}>
-                {!step1Done ? 'Complete Step 1 first' :
+                disabled={!step1Done || !step2Done || !step3Done || !step4Done || submitting}
+                onClick={handleOrder}
+                style={{ width: '100%', height: 52, fontSize: '0.9rem', borderRadius: 14, justifyContent: 'center', opacity: step1Done && step2Done && step3Done && step4Done && !submitting ? 1 : 0.3, pointerEvents: step1Done && step2Done && step3Done && step4Done && !submitting ? 'auto' : 'none' }}>
+                {submitting ? '⏳ Saving order...' :
+                 !step1Done ? 'Complete Step 1 first' :
                  !step2Done ? 'Complete Step 2 first' :
                  !step3Done ? 'Add delivery details' :
                  !step4Done ? 'Add payment info' :

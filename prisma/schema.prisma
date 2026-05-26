@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ── Enums ──────────────────────────────────────────────────────
+
+enum OrderStatus {
+  DRAFT
+  PAID
+  IN_PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ── Models ─────────────────────────────────────────────────────
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model DesignAsset {
+  id         String      @id @default(cuid())
+  title      String
+  emoji      String?
+  customText String?
+  colorHex   String
+  colorName  String
+  size       String
+  filePath   String?
+  svgDataUrl String?
+  createdAt  DateTime    @default(now())
+  orderItems OrderItem[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  customer     Customer    @relation(fields: [customerId], references: [id])
+  customerId   String
+  status       OrderStatus @default(DRAFT)
+  total        Float
+  shippingName String
+  shippingAddr String
+  shippingCity String
+  shippingZip  String
+  shippingState String
+  notes        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id            String      @id @default(cuid())
+  order         Order       @relation(fields: [orderId], references: [id])
+  orderId       String
+  designAsset   DesignAsset @relation(fields: [designAssetId], references: [id])
+  designAssetId String
+  qty           Int         @default(1)
+  unitPrice     Float
+}
