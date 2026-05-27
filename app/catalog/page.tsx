@@ -95,6 +95,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
   return (
     <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s', position: 'relative', border: `1.5px solid ${selected ? '#6366F1' : hover ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(99,102,241,0.06)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 24px rgba(99,102,241,0.2)' : hover ? '0 8px 32px rgba(0,0,0,0.3)' : 'none', transform: hover ? 'translateY(-3px)' : 'none' }}>
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
+      {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 30 : 10, left: 10, zIndex: 2, fontSize: '0.48rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(139,92,246,0.85)', color: '#fff', letterSpacing: '0.04em' }}>🎨 {design.artistName}</div>}
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff' }}>✓</div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
@@ -120,6 +121,7 @@ export default function CatalogPage() {
   const [catFilter, setCatFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<CatalogDesign | null>(null);
+  const [artistDesigns, setArtistDesigns] = useState<CatalogDesign[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const [color, setColor] = useState<TShirtColor | null>(null);
@@ -158,6 +160,13 @@ export default function CatalogPage() {
   }, [router]);
 
   useEffect(() => {
+    fetch('/api/catalog/artist-designs')
+      .then(r => r.json())
+      .then(setArtistDesigns)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     function handle(e: MouseEvent) {
       if (selected && drawerRef.current && !drawerRef.current.contains(e.target as Node)) closeDrawer();
     }
@@ -172,7 +181,8 @@ export default function CatalogPage() {
   }
   function closeDrawer() { setSelected(null); }
 
-  const filtered = CATALOG_DESIGNS
+  const allDesigns = [...CATALOG_DESIGNS, ...artistDesigns];
+  const filtered = allDesigns
     .filter(d => catFilter === 'All' || d.category === catFilter)
     .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
 
@@ -189,7 +199,12 @@ export default function CatalogPage() {
         customerName: shipName, customerEmail: shipEmail,
         shippingName: shipName, shippingAddr: shipStreet,
         shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState, total,
-        design: { title: selected.title, emoji: '🎨', customText: [frontText, backText].filter(Boolean).join(' | ') || undefined, colorHex: color.hex, colorName: color.name, size, price: selected.price, svgDataUrl },
+        design: {
+          title: selected.title, emoji: '🎨',
+          customText: [frontText, backText].filter(Boolean).join(' | ') || undefined,
+          colorHex: color.hex, colorName: color.name, size, price: selected.price, svgDataUrl,
+          artistDesignId: selected.originalId ?? undefined,
+        },
       });
       if (result) {
         if (saveAddress) {
@@ -214,7 +229,7 @@ export default function CatalogPage() {
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
         <span style={{ fontSize: 18 }}>🎨</span>
         <span style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '-0.03em' }}>Catalog</span>
-        <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{CATALOG_DESIGNS.length} designs</span>
+        <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{allDesigns.length} designs</span>
         <div style={{ flex: 1 }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
       </header>

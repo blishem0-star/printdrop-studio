@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     shippingName: string; shippingAddr: string; shippingCity: string;
     shippingZip: string; shippingState: string;
     total: number;
-    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price: number; svgDataUrl?: string; filePath?: string };
+    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
   };
 
   const customer = await prisma.customer.upsert({
@@ -70,8 +70,17 @@ export async function POST(req: NextRequest) {
       size: design.size,
       svgDataUrl: design.svgDataUrl ?? null,
       filePath: design.filePath ?? null,
+      artistDesignId: design.artistDesignId ?? null,
     },
   });
+
+  // Credit artist 50% when their design is sold
+  if (design.artistDesignId) {
+    await prisma.artistDesign.update({
+      where: { id: design.artistDesignId },
+      data: { salesCount: { increment: 1 }, totalEarned: { increment: design.price * 0.5 } },
+    }).catch(() => null);
+  }
 
   const order = await prisma.order.create({
     data: {

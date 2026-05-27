@@ -14,5 +14,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   }
 
-  return NextResponse.json({ id: customer.id, name: customer.name, email: customer.email });
+  return NextResponse.json({ id: customer.id, name: customer.name, email: customer.email, role: customer.role });
 }

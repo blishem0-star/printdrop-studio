@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 type Mode = 'welcome' | 'login' | 'register';
+type RegisterRole = 'USER' | 'ARTIST';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function AuthPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [registerRole, setRegisterRole] = useState<RegisterRole>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,9 +48,9 @@ export default function AuthPage() {
         setError((d as { error?: string }).error ?? 'Login failed');
         return;
       }
-      const user = await res.json() as { id: string; name: string; email: string };
-      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email }));
-      router.push('/home');
+      const user = await res.json() as { id: string; name: string; email: string; role: string };
+      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email, role: user.role }));
+      router.push(user.role === 'ARTIST' ? '/artist' : '/home');
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -65,16 +67,16 @@ export default function AuthPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role: registerRole }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         setError((d as { error?: string }).error ?? 'Registration failed');
         return;
       }
-      const user = await res.json() as { id: string; name: string; email: string };
-      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email }));
-      router.push('/home');
+      const user = await res.json() as { id: string; name: string; email: string; role: string };
+      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email, role: user.role }));
+      router.push(user.role === 'ARTIST' ? '/artist' : '/home');
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -253,6 +255,15 @@ export default function AuthPage() {
                     fontSize: '0.78rem', color: '#F87171', marginBottom: '1rem',
                   }}>{error}</div>
                 )}
+                {/* Account type */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: '1.25rem' }}>
+                  {([['USER', '🛒 Customer', 'Order custom shirts'] , ['ARTIST', '🎨 Artist', 'Upload & earn 50%']] as [RegisterRole, string, string][]).map(([r, label, desc]) => (
+                    <button key={r} type="button" onClick={() => setRegisterRole(r)} style={{ padding: '0.75rem', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${registerRole === r ? (r === 'ARTIST' ? 'rgba(139,92,246,0.5)' : 'rgba(255,77,28,0.4)') : 'rgba(255,255,255,0.07)'}`, background: registerRole === r ? (r === 'ARTIST' ? 'rgba(139,92,246,0.07)' : 'rgba(255,77,28,0.06)') : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: registerRole === r ? (r === 'ARTIST' ? '#A78BFA' : '#FF8C40') : 'rgba(255,255,255,0.55)', marginBottom: 2 }}>{label}</div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>{desc}</div>
+                    </button>
+                  ))}
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginBottom: '1.25rem' }}>
                   <div>
                     <label style={labelStyle}>Full Name</label>

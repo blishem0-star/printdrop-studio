@@ -70,6 +70,7 @@ export async function submitOrder(payload: {
     price: number;
     svgDataUrl?: string;
     filePath?: string;
+    artistDesignId?: string;
   };
 }): Promise<{ id: string } | null> {
   try {

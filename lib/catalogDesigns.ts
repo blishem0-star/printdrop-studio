@@ -5,6 +5,9 @@ export type CatalogDesign = {
   price: number;
   badge?: 'bestseller' | 'new' | 'trending';
   svg: string;
+  artistId?: string;
+  artistName?: string;
+  originalId?: string;
 };
 
 export const CATALOG_CATEGORIES = ['All', 'Nature', 'Urban', 'Abstract', 'Minimal', 'Vintage'];

@@ -9,6 +9,18 @@ datasource db {
 
 // ── Enums ──────────────────────────────────────────────────────
 
+enum Role {
+  OWNER
+  USER
+  ARTIST
+}
+
+enum DesignStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum OrderStatus {
   DRAFT
   PAID
@@ -21,43 +33,76 @@ enum OrderStatus {
 // ── Models ─────────────────────────────────────────────────────
 
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String?
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String?
+  role        Role     @default(USER)
+
+  // Saved shipping address
+  shipStreet  String?
+  shipCity    String?
+  shipState   String?
+  shipZip     String?
+
+  // AI-generated style profile (JSON string, populated after 3+ orders)
+  aiProfile   String?
+
+  createdAt     DateTime       @default(now())
+  orders        Order[]
+  artistDesigns ArtistDesign[]
+}
+
+model ArtistDesign {
+  id         String       @id @default(cuid())
+  artistId   String
+  artist     Customer     @relation(fields: [artistId], references: [id])
+
+  title      String
+  category   String
+  price      Float        @default(29.99)
+  svg        String
+  badge      String?
+
+  status     DesignStatus @default(PENDING)
+
+  salesCount  Int   @default(0)
+  totalEarned Float @default(0)
+
   createdAt DateTime @default(now())
-  orders    Order[]
+  updatedAt DateTime @updatedAt
 }
 
 model DesignAsset {
-  id         String      @id @default(cuid())
-  title      String
-  emoji      String?
-  customText String?
-  colorHex   String
-  colorName  String
-  size       String
-  filePath   String?
-  svgDataUrl String?
-  createdAt  DateTime    @default(now())
-  orderItems OrderItem[]
+  id             String      @id @default(cuid())
+  title          String
+  emoji          String?
+  customText     String?
+  colorHex       String
+  colorName      String
+  size           String
+  filePath       String?
+  svgDataUrl     String?
+  artistDesignId String?
+  createdAt      DateTime    @default(now())
+  orderItems     OrderItem[]
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  customer     Customer    @relation(fields: [customerId], references: [id])
-  customerId   String
-  status       OrderStatus @default(DRAFT)
-  total        Float
-  shippingName String
-  shippingAddr String
-  shippingCity String
-  shippingZip  String
+  id            String      @id @default(cuid())
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  customerId    String
+  status        OrderStatus @default(DRAFT)
+  total         Float
+  shippingName  String
+  shippingAddr  String
+  shippingCity  String
+  shippingZip   String
   shippingState String
-  notes        String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  items        OrderItem[]
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
 }
 
 model OrderItem {

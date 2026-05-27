@@ -1,0 +1,56 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(req: NextRequest) {
+  const customerId = req.nextUrl.searchParams.get('customerId');
+  if (!customerId) return NextResponse.json({ error: 'Missing customerId' }, { status: 400 });
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: {
+      id: true, name: true, email: true, role: true,
+      shipStreet: true, shipCity: true, shipState: true, shipZip: true,
+      aiProfile: true, createdAt: true,
+      orders: {
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true, status: true, total: true, createdAt: true,
+          items: { select: { designAsset: { select: { title: true, colorHex: true, size: true } }, unitPrice: true } },
+        },
+      },
+      _count: { select: { orders: true } },
+    },
+  });
+
+  if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+  return NextResponse.json(customer);
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { customerId, name, email, shipStreet, shipCity, shipState, shipZip } = await req.json();
+    if (!customerId) return NextResponse.json({ error: 'Missing customerId' }, { status: 400 });
+
+    if (email) {
+      const existing = await prisma.customer.findFirst({ where: { email, NOT: { id: customerId } } });
+      if (existing) return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
+    }
+
+    const updated = await prisma.customer.update({
+      where: { id: customerId },
+      data: {
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(shipStreet !== undefined && { shipStreet }),
+        ...(shipCity !== undefined && { shipCity }),
+        ...(shipState !== undefined && { shipState }),
+        ...(shipZip !== undefined && { shipZip }),
+      },
+      select: { id: true, name: true, email: true, role: true, shipStreet: true, shipCity: true, shipState: true, shipZip: true },
+    });
+    return NextResponse.json(updated);
+  } catch {
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+}
