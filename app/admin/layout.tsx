@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { OWNER_EMAIL } from '@/lib/owner';
 
 const NAV = [
   { href: '/admin',             label: 'Overview',   icon: '📊' },
@@ -11,6 +13,26 @@ const NAV = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const router = useRouter();
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pd_session');
+      if (!raw) { router.replace('/'); return; }
+      const sess = JSON.parse(raw);
+      if (sess.email !== OWNER_EMAIL) { router.replace('/studio'); return; }
+      setAllowed(true);
+    } catch {
+      router.replace('/');
+    }
+  }, [router]);
+
+  if (!allowed) return (
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}>
+      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>Checking access...</div>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: '#080808', display: 'flex' }}>

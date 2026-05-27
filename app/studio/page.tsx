@@ -9,6 +9,7 @@ import {
   DESIGNS, SHIRT_COLORS, SHIRT_SIZES, CATEGORIES,
   SHIPPING_PRICE,
 } from '@/lib/mockData';
+import { OWNER_EMAIL } from '@/lib/owner';
 import type { Design, TShirtColor, TShirtSize } from '@/lib/mockData';
 import { buildDesignSvg, saveDesignFile, submitOrder } from '@/lib/exportDesign';
 
@@ -235,6 +236,15 @@ export default function StudioPage() {
           }}>Guest</span>
         )}
         <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>{session.name}</span>
+        {session.email === OWNER_EMAIL && (
+          <a href="/admin" style={{
+            fontSize: '0.68rem', fontWeight: 700,
+            background: 'rgba(255,77,28,0.08)', border: '1px solid rgba(255,77,28,0.22)',
+            borderRadius: 6, padding: '4px 10px', color: 'rgba(255,140,64,0.85)',
+            cursor: 'pointer', textDecoration: 'none', transition: 'all 0.15s',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>⚙ Admin</a>
+        )}
         <button onClick={signOut} style={{
           fontSize: '0.68rem', fontWeight: 600,
           background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.09)',
