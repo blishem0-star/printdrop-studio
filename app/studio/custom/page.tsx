@@ -225,7 +225,7 @@ export default function StudioPage() {
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         background: 'rgba(8,8,8,0.97)',
       }}>
-        <button onClick={() => router.push('/studio')} style={{
+        <button onClick={() => router.push('/home')} style={{
           background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
           fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
         }}>← Back</button>

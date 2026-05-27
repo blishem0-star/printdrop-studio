@@ -15,7 +15,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem('pd_session')) router.replace('/studio');
+      if (localStorage.getItem('pd_session')) router.replace('/home');
     } catch { /* ignore */ }
   }, [router]);
 
@@ -28,7 +28,7 @@ export default function AuthPage() {
     try {
       localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' }));
     } catch { /* ignore */ }
-    router.push('/studio');
+    router.push('/home');
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -48,7 +48,7 @@ export default function AuthPage() {
       }
       const user = await res.json() as { id: string; name: string; email: string };
       localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email }));
-      router.push('/studio');
+      router.push('/home');
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -74,7 +74,7 @@ export default function AuthPage() {
       }
       const user = await res.json() as { id: string; name: string; email: string };
       localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email }));
-      router.push('/studio');
+      router.push('/home');
     } catch {
       setError('Network error. Please try again.');
     } finally {

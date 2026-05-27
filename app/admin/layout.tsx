@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         })}
 
         <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          <Link href="/studio" style={{
+          <Link href="/home" style={{
             fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textDecoration: 'none',
             display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 0.75rem',
           }}>← Back to studio</Link>
