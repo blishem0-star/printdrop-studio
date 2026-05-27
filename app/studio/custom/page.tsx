@@ -36,11 +36,11 @@ function StepDot({ n, label, active, done }: { n: number; label: string; active:
 }
 
 function ShirtPreview({
-  color, designSvg, designColor,
+  color, designSvg, designColor, uploadedImg,
   frontText, backText, frontPos, backPos, frontFont, backFont,
   showBack,
 }: {
-  color: TShirtColor | null; designSvg?: string | null; designColor?: string;
+  color: TShirtColor | null; designSvg?: string | null; designColor?: string; uploadedImg?: string | null;
   frontText: string; backText: string;
   frontPos: TextPos; backPos: TextPos;
   frontFont: FontStyle; backFont: FontStyle;
@@ -62,7 +62,13 @@ function ShirtPreview({
         <path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill={bg} stroke="rgba(255,255,255,0.12)" strokeWidth="1.5"/>
       </svg>
 
-      {!showBack && designSvg && (
+      {!showBack && uploadedImg && (
+        <div style={{ position: 'absolute', top: '42%', left: '50%', transform: 'translate(-50%,-50%)', width: 72, height: 72, borderRadius: 6, overflow: 'hidden', opacity: 0.92 }}>
+          <img src={uploadedImg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )}
+
+      {!showBack && !uploadedImg && designSvg && (
         <div style={{ position: 'absolute', top: designY, left: '50%', transform: 'translate(-50%,-50%)' }}>
           <div style={{ width: 60, height: 60 }} dangerouslySetInnerHTML={{ __html: designSvg.replace(/currentColor/g, designColor ?? tc).replace('<svg ', '<svg width="60" height="60" ') }} />
         </div>
@@ -122,6 +128,7 @@ export default function CustomPage() {
   const [addressConfirmed, setAddressConfirmed] = useState(false);
 
   // Step 4
+  const [saveAddress, setSaveAddress] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [ordered, setOrdered] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -195,7 +202,7 @@ export default function CustomPage() {
         },
       });
       if (result) {
-        try { localStorage.setItem('pd_shipping', JSON.stringify({ street: shipStreet, city: shipCity, zip: shipZip, state: shipState })); } catch { /* ignore */ }
+        if (saveAddress) { try { localStorage.setItem('pd_shipping', JSON.stringify({ street: shipStreet, city: shipCity, zip: shipZip, state: shipState })); } catch { /* ignore */ } }
         setOrderId(result.id); setOrdered(true);
       }
     } catch { /* ignore */ }
@@ -398,9 +405,23 @@ export default function CustomPage() {
                 <div><div style={lbl}>Street Address</div><input style={inp} value={shipStreet} onChange={e => setShipStreet(e.target.value)} placeholder="123 Main St, Apt 4B" /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px', gap: 12 }}>
                   <div><div style={lbl}>City</div><input style={inp} value={shipCity} onChange={e => setShipCity(e.target.value)} placeholder="New York" /></div>
-                  <div><div style={lbl}>State</div><select value={shipState} onChange={e => setShipState(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: shipState ? '#fff' : 'rgba(255,255,255,0.25)' }}><option value="">ST</option>{US_STATES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+                  <div>
+                    <div style={lbl}>State</div>
+                    <select value={shipState} onChange={e => setShipState(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: shipState ? '#fff' : 'rgba(255,255,255,0.25)' }}>
+                      <option value="" style={{ background: '#1a1a1a', color: 'rgba(255,255,255,0.4)' }}>ST</option>
+                      {US_STATES.map(s => <option key={s} value={s} style={{ background: '#1a1a1a', color: '#fff' }}>{s}</option>)}
+                    </select>
+                  </div>
                   <div><div style={lbl}>ZIP</div><input style={{ ...inp, fontFamily: 'monospace' }} value={shipZip} onChange={e => setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
                 </div>
+                {session.type === 'user' && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginTop: 4 }}>
+                    <div onClick={() => setSaveAddress((v: boolean) => !v)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#FF4D1C' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#FF4D1C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer' }}>
+                      {saveAddress && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>Save delivery details for next time</span>
+                  </label>
+                )}
               </div>
             </div>
           )}
@@ -447,7 +468,8 @@ export default function CustomPage() {
           <div style={{ background: 'rgba(0,0,0,0.4)', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0, gap: 12 }}>
             <ShirtPreview
               color={color} showBack={showBack && step === 2}
-              designSvg={generatedSvg ?? null}
+              designSvg={mode === 'ai' ? (generatedSvg ?? null) : null}
+              uploadedImg={mode === 'upload' ? uploadedImage : null}
               frontText={frontText} backText={backText}
               frontPos={frontPos} backPos={backPos}
               frontFont={frontFont} backFont={backFont}
