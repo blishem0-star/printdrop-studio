@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
@@ -16,6 +16,31 @@ const FONT_CSS: Record<FontStyle, React.CSSProperties> = {
   script:  { fontWeight: 600, fontStyle: 'italic', letterSpacing: '0.01em' },
   minimal: { fontWeight: 300, fontStyle: 'normal', letterSpacing: '0.18em' },
 };
+
+function ColorSwatch({ c, selected, onClick }: { c: TShirtColor; selected: boolean; onClick: () => void }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      title={c.name}
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        width: 40, height: 40, borderRadius: '50%', background: c.hex, border: 'none', cursor: 'pointer', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: selected
+          ? `0 0 0 2.5px #fff, 0 0 0 5px ${c.hex}, 0 6px 18px ${c.hex}88`
+          : hover
+          ? `0 0 0 2px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.4)`
+          : `0 2px 8px rgba(0,0,0,0.35)`,
+        transform: selected ? 'scale(1.18)' : hover ? 'scale(1.08)' : 'scale(1)',
+        transition: 'all 0.18s cubic-bezier(0.34,1.56,0.64,1)',
+      }}
+    >
+      {selected && <span style={{ color: c.textColor, fontSize: 15, lineHeight: 1 }}>✓</span>}
+    </button>
+  );
+}
 
 function SvgPreview({ svg, color, size = 56 }: { svg: string; color: string; size?: number }) {
   const colored = svg.replace(/currentColor/g, color);
@@ -247,8 +272,8 @@ export default function CatalogPage() {
                   {/* Color */}
                   <div style={{ marginBottom: '1.15rem' }}>
                     <div style={lbl}>Shirt Color {color && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {color.name}</span>}</div>
-                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                      {SHIRT_COLORS.map(c => <button key={c.id} title={c.name} onClick={() => setColor(c)} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: c.hex, cursor: 'pointer', outline: color?.id === c.id ? '3px solid #6366F1' : '2px solid rgba(255,255,255,0.07)', outlineOffset: 3, transition: 'all 0.15s', transform: color?.id === c.id ? 'scale(1.2)' : 'scale(1)' }} />)}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingBottom: 4 }}>
+                      {SHIRT_COLORS.map(c => <ColorSwatch key={c.id} c={c} selected={color?.id === c.id} onClick={() => setColor(c)} />)}
                     </div>
                   </div>
                   {/* Size */}
