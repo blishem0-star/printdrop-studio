@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
+import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
+import type { ProductType } from '@/lib/productTypes';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
@@ -56,12 +58,12 @@ function StateSelect({ value, onChange, style }: { value: string; onChange: (v: 
   );
 }
 
-function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, frontFont, backFont, showBack }: {
+function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, frontFont, backFont, showBack, productType }: {
   design: CatalogDesign; color: TShirtColor | null;
   frontText: string; backText: string;
   frontPos: TextPos; backPos: TextPos;
   frontFont: FontStyle; backFont: FontStyle;
-  showBack: boolean;
+  showBack: boolean; productType: ProductType;
 }) {
   const bg = color?.hex ?? '#2a2a2a';
   const tc = color?.textColor ?? 'rgba(255,255,255,0.6)';
@@ -69,18 +71,28 @@ function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, fr
   const activeText = showBack ? backText : frontText;
   const activePos = showBack ? backPos : frontPos;
   const activeFont = showBack ? backFont : frontFont;
+  const p = PRODUCT_PATHS[productType];
+  const isSocks = productType === 'SOCKS';
 
   return (
     <div style={{ position: 'relative', width: 130, height: 130 }}>
       <svg width="130" height="130" viewBox="0 0 200 200" fill="none">
-        <path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill={bg} stroke="rgba(255,255,255,0.1)" strokeWidth="2"/>
+        <path d={p.body} fill={bg} stroke="rgba(255,255,255,0.1)" strokeWidth="1.5"/>
+        {p.shadeLeft  && <path d={p.shadeLeft}  fill="rgba(0,0,0,0.07)"/>}
+        {p.shadeRight && <path d={p.shadeRight} fill="rgba(0,0,0,0.05)"/>}
+        {p.detail     && <path d={p.detail} fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1.5" strokeLinecap="round"/>}
       </svg>
-      {!showBack && (
+      {!showBack && !isSocks && (
         <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%,-50%)' }}>
           <SvgPreview svg={design.svg} color={tc} size={50} />
         </div>
       )}
-      {activeText && (
+      {isSocks && !showBack && (
+        <div style={{ position: 'absolute', top: '55%', left: '48%', transform: 'translate(-50%,-50%)' }}>
+          <SvgPreview svg={design.svg} color={tc} size={36} />
+        </div>
+      )}
+      {activeText && !isSocks && (
         <div style={{ position: 'absolute', top: textY(activePos), left: '50%', transform: 'translateX(-50%)', fontSize: '7.5px', color: tc, maxWidth: 90, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', ...FONT_CSS[activeFont] }}>
           {activeText}
         </div>
@@ -119,6 +131,8 @@ export default function CatalogPage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [catFilter, setCatFilter] = useState('All');
+  const [productFilter, setProductFilter] = useState<ProductType | 'ALL'>('ALL');
+  const [drawerProductType, setDrawerProductType] = useState<ProductType>('TSHIRT');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<CatalogDesign | null>(null);
   const [artistDesigns, setArtistDesigns] = useState<CatalogDesign[]>([]);
@@ -178,6 +192,7 @@ export default function CatalogPage() {
     setSelected(d); setColor(null); setSize(null);
     setFrontText(''); setBackText(''); setShowBack(false);
     setDrawerStep('customize'); setOrdered(false);
+    setDrawerProductType('TSHIRT');
   }
   function closeDrawer() { setSelected(null); }
 
@@ -186,7 +201,7 @@ export default function CatalogPage() {
     .filter(d => catFilter === 'All' || d.category === catFilter)
     .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
 
-  const total = (selected?.price ?? 0) + SHIPPING_PRICE;
+  const total = PRODUCT_BASE_PRICE[drawerProductType] + SHIPPING_PRICE;
   const customizeDone = color !== null && size !== null;
   const deliveryDone = shipName.trim().length > 1 && shipEmail.includes('@') && shipStreet.trim().length > 3 && shipCity.trim().length > 1 && shipZip.length === 5 && shipState !== '';
 
@@ -234,10 +249,21 @@ export default function CatalogPage() {
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
       </header>
 
-      <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(8,8,8,0.9)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem 2rem', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {CATALOG_CATEGORIES.map(c => (
-          <button key={c} onClick={() => setCatFilter(c)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: catFilter === c ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)', background: catFilter === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: catFilter === c ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>{c}</button>
-        ))}
+      <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(8,8,8,0.9)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        {/* Product type strip */}
+        <div style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
+            <button key={pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(255,77,28,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(255,77,28,0.09)' : 'transparent', color: productFilter === pt ? '#FF8C40' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {pt === 'ALL' ? '✦ All Types' : `${PRODUCT_TYPE_EMOJI[pt]} ${PRODUCT_TYPE_LABELS[pt]}`}
+            </button>
+          ))}
+        </div>
+        {/* Category filter */}
+        <div style={{ padding: '0.625rem 2rem 0.75rem', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {CATALOG_CATEGORIES.map(c => (
+            <button key={c} onClick={() => setCatFilter(c)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: catFilter === c ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)', background: catFilter === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: catFilter === c ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>{c}</button>
+          ))}
+        </div>
       </div>
 
       <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem' }}>
@@ -271,7 +297,7 @@ export default function CatalogPage() {
                 {/* Preview + front/back toggle */}
                 <div style={{ background: 'rgba(0,0,0,0.35)', padding: '1.25rem 1rem 0.875rem', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                    <DrawerShirt design={selected} color={color} frontText={frontText} backText={backText} frontPos={frontPos} backPos={backPos} frontFont={frontFont} backFont={backFont} showBack={showBack} />
+                    <DrawerShirt design={selected} color={color} frontText={frontText} backText={backText} frontPos={frontPos} backPos={backPos} frontFont={frontFont} backFont={backFont} showBack={showBack} productType={drawerProductType} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(['front', 'back'] as const).map(side => (
                         <button key={side} onClick={() => setShowBack(side === 'back')} style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid', borderColor: (showBack ? side === 'back' : side === 'front') ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.07)', background: (showBack ? side === 'back' : side === 'front') ? 'rgba(99,102,241,0.08)' : 'transparent', color: (showBack ? side === 'back' : side === 'front') ? '#818CF8' : 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -284,6 +310,18 @@ export default function CatalogPage() {
                 </div>
 
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
+                  {/* Product type */}
+                  <div style={{ marginBottom: '1.15rem' }}>
+                    <div style={lbl}>Product Type</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {(['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
+                        <button key={pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(255,77,28,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(255,77,28,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {PRODUCT_TYPE_EMOJI[pt]} {PRODUCT_TYPE_LABELS[pt]}
+                          {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#FF8C40', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   {/* Color */}
                   <div style={{ marginBottom: '1.15rem' }}>
                     <div style={lbl}>Shirt Color {color && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {color.name}</span>}</div>
