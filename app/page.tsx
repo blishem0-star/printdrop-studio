@@ -12,445 +12,513 @@ const PROMPT_EXAMPLES = [
   'Abstract geometric wolf, neon colors',
   'Space astronaut floating in galaxy',
   'Vintage band tee with distressed texture',
-  'Lo-fi city night scene, warm tones',
 ];
 
-const MOCK_SHIRTS = [
-  { id: 'a', shirtColor: '#0a0a0d', shirtColor2: '#12121a', label: 'Dark Geo',   style: 'geo',  accent: '#00E5C8' },
-  { id: 'b', shirtColor: '#f2f0eb', shirtColor2: '#e5e3de', label: 'Ivory Type', style: 'type', accent: '#0066FF' },
-  { id: 'c', shirtColor: '#0f172a', shirtColor2: '#1e293b', label: 'Night Wave', style: 'wave', accent: '#7B61FF' },
+const SHIRTS = [
+  { id: 'a', base: '#0c0c12', dark: '#06060a', accent: '#00E5C8', label: 'Dark Geo',   style: 'geo'  },
+  { id: 'b', base: '#f0ede6', dark: '#d8d5ce', accent: '#1a4fff', label: 'Ivory Type', style: 'type' },
+  { id: 'c', base: '#0e1929', dark: '#090f18', accent: '#8b5cf6', label: 'Night Wave', style: 'wave' },
 ];
 
-const CARD_MESSAGES = [
-  ['Initializing model…', 'Neural synthesis…',  'Style transfer…',   'Color grading…',   'Rendering…'],
-  ['Loading weights…',   'Prompt encoding…',    'Visual pass 1/3…',  'Detail pass 2/3…', 'Finalizing…'],
-  ['Analyzing mood…',    'Texture mapping…',    'Compositing…',      'Sharpening…',      'Rendering…'],
+const CARD_MSGS = [
+  ['Initializing…', 'Neural synthesis…', 'Style transfer…', 'Color grading…', 'Rendering…'],
+  ['Loading weights…', 'Prompt encoding…', 'Visual pass 1/3…', 'Detail pass 2/3…', 'Finalizing…'],
+  ['Analyzing mood…', 'Texture mapping…', 'Compositing…', 'Sharpening…', 'Rendering…'],
 ];
 
-const MAIN_STAGES = [
-  { at: 0,  msg: 'Analyzing prompt…' },
-  { at: 18, msg: 'Loading style model…' },
-  { at: 42, msg: 'Rendering design layers…' },
-  { at: 68, msg: 'Applying textures…' },
-  { at: 88, msg: 'Finalizing artwork…' },
-];
+const MAIN_MSGS = ['Analyzing prompt…','Loading model…','Rendering layers…','Applying textures…','Finalizing…'];
 
-// Easing: fast start, slow crawl to 99
-function easeProgress(elapsed: number, total: number): number {
+function eased(elapsed: number, total: number) {
   const t = Math.min(elapsed / total, 1);
-  const p = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  return Math.min(p * 99, 99);
+  return Math.min((1 - Math.pow(1 - t, 3)) * 99, 99);
 }
 
-function ShirtMockup({ shirt, prompt }: { shirt: typeof MOCK_SHIRTS[0]; prompt: string }) {
-  const isDark = shirt.shirtColor.startsWith('#0') || shirt.shirtColor.startsWith('#1');
-  const ink = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.85)';
-  const inkDim = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.18)';
-  const ac = shirt.accent;
-  const words = prompt.trim().split(' ');
+/* ── Realistic shirt SVG ────────────────────────────────────────── */
+function ShirtSVG({ shirt, prompt }: { shirt: typeof SHIRTS[0]; prompt: string }) {
+  const isDark = shirt.base.startsWith('#0') || shirt.base.startsWith('#1');
+  const ink   = isDark ? 'rgba(255,255,255,0.88)' : 'rgba(0,0,0,0.82)';
+  const inkDim = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)';
+  const ac   = shirt.accent;
+  const words = prompt.trim().split(/\s+/);
+
+  // Shirt path: proper flat-lay T silhouette
+  const shirtPath = 'M 122,14 C 107,30 88,60 80,82 L 8,56 L 0,86 L 0,168 L 80,152 L 80,432 L 280,432 L 280,152 L 360,168 L 360,86 L 352,56 L 280,82 C 272,60 253,30 238,14 Q 222,54 200,68 Q 178,54 162,34 Q 145,18 122,14 Z';
 
   return (
-    <svg viewBox="0 0 220 260" width="100%" style={{ display: 'block' }}>
+    <svg viewBox="0 0 360 445" width="100%" style={{ display: 'block', filter: 'drop-shadow(0 18px 32px rgba(0,0,0,0.55))' }}>
       <defs>
-        <linearGradient id={`sg${shirt.id}`} x1="0%" y1="0%" x2="55%" y2="100%">
-          <stop offset="0%" stopColor={shirt.shirtColor} />
-          <stop offset="100%" stopColor={shirt.shirtColor2} />
+        {/* Side-to-side gradient for 3D depth */}
+        <linearGradient id={`sf${shirt.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor={shirt.dark} />
+          <stop offset="18%"  stopColor={shirt.base} />
+          <stop offset="82%"  stopColor={shirt.base} />
+          <stop offset="100%" stopColor={shirt.dark} />
         </linearGradient>
-        <filter id={`sd${shirt.id}`}>
-          <feDropShadow dx="0" dy="10" stdDeviation="16" floodColor="#000" floodOpacity="0.55" />
-        </filter>
-        <clipPath id={`sc${shirt.id}`}>
-          <path d="M40 65 L8 92 L30 106 L26 242 L194 242 L190 106 L212 92 L180 65 C168 71 150 75 110 75 C70 75 52 71 40 65 Z" />
+        {/* Top-bottom gradient (shirt is lighter at chest, darker at hem) */}
+        <linearGradient id={`sv${shirt.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"   stopColor="rgba(255,255,255,0.05)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.08)" />
+        </linearGradient>
+        <clipPath id={`cp${shirt.id}`}>
+          <rect x="108" y="118" width="144" height="180" rx="2" />
         </clipPath>
       </defs>
-      <path d="M40 65 L8 92 L30 106 L26 242 L194 242 L190 106 L212 92 L180 65 C168 71 150 75 110 75 C70 75 52 71 40 65 Z"
-        fill={`url(#sg${shirt.id})`} filter={`url(#sd${shirt.id})`} />
-      <path d="M76 65 C80 88 95 102 110 102 C125 102 140 88 144 65" fill="none"
-        stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} strokeWidth="1.5" />
-      <path d="M40 65 L8 92 L30 120" fill="none"
-        stroke={isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)'} strokeWidth="7" />
 
-      {shirt.style === 'geo' && (
-        <g clipPath={`url(#sc${shirt.id})`}>
-          <polygon points="110,107 130,118 130,140 110,151 90,140 90,118" fill="none" stroke={ac} strokeWidth="1.8" opacity="0.95" />
-          <polygon points="110,94 137,110 137,148 110,164 83,148 83,110" fill="none" stroke={ac} strokeWidth="0.9" opacity="0.4" />
-          <polygon points="110,82 144,102 144,156 110,177 76,156 76,102" fill="none" stroke={ac} strokeWidth="0.5" opacity="0.18" />
-          <circle cx="110" cy="129" r="4.5" fill={ac} opacity="0.9" />
-          <circle cx="110" cy="129" r="9" fill="none" stroke={ac} strokeWidth="0.8" opacity="0.35" />
-          <line x1="90" y1="118" x2="73" y2="104" stroke={ac} strokeWidth="0.7" opacity="0.3" />
-          <line x1="130" y1="118" x2="147" y2="104" stroke={ac} strokeWidth="0.7" opacity="0.3" />
-          <line x1="90" y1="140" x2="73" y2="154" stroke={ac} strokeWidth="0.7" opacity="0.3" />
-          <line x1="130" y1="140" x2="147" y2="154" stroke={ac} strokeWidth="0.7" opacity="0.3" />
-          <text x="110" y="190" textAnchor="middle" fill={inkDim} fontSize="5.5" fontFamily="system-ui" fontWeight="800" letterSpacing="2.5">
-            {words[0]?.toUpperCase().slice(0,8) ?? 'DESIGN'}
-          </text>
-        </g>
-      )}
+      {/* Main shirt */}
+      <path d={shirtPath} fill={`url(#sf${shirt.id})`} />
+      {/* Depth overlay */}
+      <path d={shirtPath} fill={`url(#sv${shirt.id})`} />
 
-      {shirt.style === 'type' && (
-        <g clipPath={`url(#sc${shirt.id})`}>
-          <text x="110" y="120" textAnchor="middle" fill={ink} fontSize="24" fontFamily="Georgia,serif" fontWeight="900" letterSpacing="-1">
-            {words[0]?.toUpperCase().slice(0, 6) ?? 'STYLE'}
-          </text>
-          <line x1="70" y1="127" x2="150" y2="127" stroke={ac} strokeWidth="1.8" />
-          <text x="110" y="140" textAnchor="middle" fill={inkDim} fontSize="7" fontFamily="system-ui" fontWeight="700" letterSpacing="3.5">
-            {words.slice(1, 3).join(' ').toUpperCase().slice(0, 14) || 'ORIGINAL DESIGN'}
-          </text>
-          <text x="110" y="158" textAnchor="middle" fill={inkDim} fontSize="5" fontFamily="system-ui" letterSpacing="1.5">STYLX.AI &mdash; 2026</text>
-        </g>
-      )}
+      {/* Sleeve inner shadows */}
+      <path d="M 0 86 L 80 152 L 80 168 L 0 168 Z" fill="rgba(0,0,0,0.18)" />
+      <path d="M 360 86 L 280 152 L 280 168 L 360 168 Z" fill="rgba(0,0,0,0.18)" />
 
-      {shirt.style === 'wave' && (
-        <g clipPath={`url(#sc${shirt.id})`}>
-          <path d="M70 108 Q87 95 104 108 Q121 121 138 108 Q155 95 165 108" fill="none" stroke={ac} strokeWidth="2.2" opacity="0.95" />
-          <path d="M70 120 Q87 107 104 120 Q121 133 138 120 Q155 107 165 120" fill="none" stroke={ac} strokeWidth="1.6" opacity="0.55" />
-          <path d="M70 132 Q87 119 104 132 Q121 145 138 132 Q155 119 165 132" fill="none" stroke={ac} strokeWidth="1" opacity="0.28" />
-          <path d="M70 144 Q87 131 104 144 Q121 157 138 144 Q155 131 165 144" fill="none" stroke={ac} strokeWidth="0.7" opacity="0.14" />
-          {[85, 100, 115, 130, 145].map(x =>
-            [162, 170, 178, 186].map(y => (
-              <circle key={`${x}${y}`} cx={x} cy={y} r="1.2" fill={inkDim} />
-            ))
-          )}
-        </g>
-      )}
+      {/* Collar inside shadow */}
+      <path d="M 122,14 Q 145,18 162,34 Q 178,54 200,68 Q 222,54 238,14 Q 225,42 218,58 Q 208,78 200,84 Q 192,78 182,58 Q 175,42 165,32 Q 148,20 136,20 Z" fill="rgba(0,0,0,0.2)" />
+
+      {/* Collar stitching */}
+      <path d="M 122,14 Q 145,18 162,34 Q 178,54 200,68 Q 222,54 238,14" fill="none" stroke={isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'} strokeWidth="2" />
+
+      {/* Fabric folds */}
+      <path d="M 168,180 Q 166,300 165,432" stroke="rgba(0,0,0,0.06)" strokeWidth="1" fill="none" />
+      <path d="M 195,175 Q 196,300 197,432" stroke="rgba(0,0,0,0.05)" strokeWidth="1" fill="none" />
+
+      {/* Center chest highlight */}
+      <path d="M 185,100 L 215,100 L 220,430 L 180,430 Z" fill="rgba(255,255,255,0.025)" />
+
+      {/* ── Print design ── */}
+      <g clipPath={`url(#cp${shirt.id})`}>
+        {shirt.style === 'geo' && (
+          <>
+            <polygon points="180,145 205,158 205,184 180,197 155,184 155,158" fill="none" stroke={ac} strokeWidth="2" opacity="0.95" />
+            <polygon points="180,131 212,149 212,195 180,213 148,195 148,149" fill="none" stroke={ac} strokeWidth="0.9" opacity="0.4" />
+            <polygon points="180,117 219,140 219,206 180,229 141,206 141,140" fill="none" stroke={ac} strokeWidth="0.45" opacity="0.18" />
+            <circle cx="180" cy="171" r="5" fill={ac} opacity="0.92" />
+            <line x1="155" y1="158" x2="134" y2="143" stroke={ac} strokeWidth="0.7" opacity="0.32" />
+            <line x1="205" y1="158" x2="226" y2="143" stroke={ac} strokeWidth="0.7" opacity="0.32" />
+            <line x1="155" y1="184" x2="134" y2="199" stroke={ac} strokeWidth="0.7" opacity="0.32" />
+            <line x1="205" y1="184" x2="226" y2="199" stroke={ac} strokeWidth="0.7" opacity="0.32" />
+            <text x="180" y="246" textAnchor="middle" fill={inkDim} fontSize="6" fontFamily="system-ui" fontWeight="800" letterSpacing="3">
+              {words[0]?.toUpperCase().slice(0,8)}
+            </text>
+          </>
+        )}
+        {shirt.style === 'type' && (
+          <>
+            <text x="180" y="158" textAnchor="middle" fill={ink} fontSize="26" fontFamily="Georgia,serif" fontWeight="900" letterSpacing="-1">
+              {words[0]?.toUpperCase().slice(0,6) ?? 'STYLE'}
+            </text>
+            <line x1="130" y1="166" x2="230" y2="166" stroke={ac} strokeWidth="2" />
+            <text x="180" y="180" textAnchor="middle" fill={inkDim} fontSize="7.5" fontFamily="system-ui" fontWeight="700" letterSpacing="4">
+              {words.slice(1,3).join(' ').toUpperCase().slice(0,14) || 'ORIGINAL DESIGN'}
+            </text>
+            <text x="180" y="205" textAnchor="middle" fill={inkDim} fontSize="5.5" fontFamily="system-ui" letterSpacing="2">STYLX.AI &mdash; 2026</text>
+          </>
+        )}
+        {shirt.style === 'wave' && (
+          <>
+            <path d="M 128 148 Q 148 136 168 148 Q 188 160 208 148 Q 228 136 244 148" fill="none" stroke={ac} strokeWidth="2.5" opacity="0.95" />
+            <path d="M 128 162 Q 148 150 168 162 Q 188 174 208 162 Q 228 150 244 162" fill="none" stroke={ac} strokeWidth="1.8" opacity="0.55" />
+            <path d="M 128 176 Q 148 164 168 176 Q 188 188 208 176 Q 228 164 244 176" fill="none" stroke={ac} strokeWidth="1.2" opacity="0.28" />
+            <path d="M 128 190 Q 148 178 168 190 Q 188 202 208 190 Q 228 178 244 190" fill="none" stroke={ac} strokeWidth="0.8" opacity="0.14" />
+            {[140,158,176,194,212,230].map(x =>
+              [212,222,232,242].map(y => (
+                <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" fill={inkDim} />
+              ))
+            )}
+          </>
+        )}
+      </g>
+
+      {/* Size tag at hem */}
+      <rect x="172" y="420" width="16" height="10" rx="2" fill={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'} />
     </svg>
   );
 }
 
-function GeneratingCard({
-  shirt, prompt, progress, messages,
+/* ── Liquid fill progress card ───────────────────────────────────── */
+function LiquidCard({
+  shirt, prompt, progress, ready, msgIdx,
+  onClick, selected
 }: {
-  shirt: typeof MOCK_SHIRTS[0];
+  shirt: typeof SHIRTS[0];
   prompt: string;
-  progress: number; // 0-100
-  messages: string[];
+  progress: number;
+  ready: boolean;
+  msgIdx: number;
+  onClick: () => void;
+  selected: boolean;
 }) {
-  const isDone = progress >= 100;
-  const msgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1);
   const ac = shirt.accent;
+  const msgs = CARD_MSGS[SHIRTS.indexOf(shirt)];
 
   return (
-    <div style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', border: `1.5px solid ${isDone ? ac : 'rgba(255,255,255,0.07)'}`, transition: 'border-color 0.5s, box-shadow 0.5s', boxShadow: isDone ? `0 0 40px ${ac}22` : 'none' }}>
-
-      {/* Shirt design (always rendered, revealed on complete) */}
-      <div style={{ opacity: isDone ? 1 : 0, transition: 'opacity 0.7s ease 0.1s', transform: isDone ? 'scale(1)' : 'scale(0.96)', transitionProperty: 'opacity, transform' }}>
-        <div style={{ padding: '1.25rem 1.25rem 0.5rem' }}>
-          <ShirtMockup shirt={shirt} prompt={prompt} />
+    <div
+      onClick={ready ? onClick : undefined}
+      style={{
+        position: 'relative', borderRadius: 20, overflow: 'hidden',
+        aspectRatio: '3 / 4',
+        background: '#08080f',
+        border: `1.5px solid ${selected ? ac : ready ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)'}`,
+        boxShadow: selected ? `0 0 50px ${ac}30` : '0 8px 40px rgba(0,0,0,0.5)',
+        transition: 'border-color 0.4s, box-shadow 0.4s, transform 0.3s',
+        transform: selected ? 'translateY(-6px) scale(1.01)' : 'none',
+        cursor: ready ? 'pointer' : 'default',
+      }}
+    >
+      {/* ── Liquid fill (rising tide) ── */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: `${progress}%`,
+        transition: 'height 0.12s ease-out',
+        zIndex: 1,
+        overflow: 'hidden',
+      }}>
+        {/* Wave surface (double-wide SVG sliding) */}
+        <div style={{
+          position: 'absolute', top: -28, left: 0,
+          width: '200%', height: 32,
+          animation: 'waveSlide 2.8s linear infinite',
+        }}>
+          <svg viewBox="0 0 800 32" preserveAspectRatio="none" width="100%" height="100%">
+            <path
+              d="M0,16 C66,4 133,28 200,16 C266,4 333,28 400,16 C466,4 533,28 600,16 C666,4 733,28 800,16 L800,32 L0,32 Z"
+              fill={ac} fillOpacity="0.55"
+            />
+            <path
+              d="M0,20 C80,10 160,30 240,20 C320,10 400,30 480,20 C560,10 640,30 720,20 C800,10 800,20 800,20 L800,32 L0,32 Z"
+              fill={ac} fillOpacity="0.25"
+            />
+          </svg>
         </div>
-        <div style={{ textAlign: 'center', padding: '0 1rem 1rem' }}>
-          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 3 }}>{shirt.label}</div>
-          <div style={{ fontSize: '0.7rem', color: ac }}>Tap to select</div>
-        </div>
+        {/* Fill body */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, top: 10,
+          background: `linear-gradient(to top, ${ac}50, ${ac}20)`,
+        }} />
       </div>
 
-      {/* Generation overlay */}
-      {!isDone && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-          {/* Rising tide glow */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${progress * 0.9}%`, background: `linear-gradient(to top, ${ac}28 0%, ${ac}08 70%, transparent 100%)`, transition: 'height 0.25s ease-out', pointerEvents: 'none' }} />
+      {/* Radial glow at liquid surface */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0,
+        bottom: `${progress - 15}%`,
+        height: '30%',
+        background: `radial-gradient(ellipse 70% 60% at 50% 100%, ${ac}28, transparent)`,
+        zIndex: 2, pointerEvents: 'none',
+        transition: 'bottom 0.12s ease-out',
+      }} />
 
-          {/* Ghost shirt silhouette */}
-          <div style={{ width: '75%', opacity: 0.06 }}>
-            <ShirtMockup shirt={shirt} prompt={prompt} />
+      {/* Shirt (always rendered, revealed on ready) */}
+      <div style={{
+        position: 'absolute', inset: '8% 5%',
+        opacity: ready ? 1 : 0,
+        transform: ready ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(10px)',
+        transition: 'opacity 0.7s ease 0.05s, transform 0.7s ease 0.05s',
+        zIndex: 3,
+      }}>
+        <ShirtSVG shirt={shirt} prompt={prompt} />
+      </div>
+
+      {/* Progress overlay (hidden when ready) */}
+      {!ready && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 4,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 10,
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            fontSize: '3.8rem', fontWeight: 900, lineHeight: 1,
+            letterSpacing: '-0.05em', fontVariantNumeric: 'tabular-nums',
+            color: '#fff',
+            textShadow: `0 0 40px ${ac}cc, 0 2px 20px rgba(0,0,0,0.9)`,
+          }}>
+            {Math.round(progress)}<span style={{ fontSize: '1.4rem', opacity: 0.6 }}>%</span>
           </div>
-
-          {/* Percentage counter */}
-          <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-0.05em', color: ac, lineHeight: 1, fontVariantNumeric: 'tabular-nums', textShadow: `0 0 40px ${ac}88` }}>
-              {Math.round(progress)}<span style={{ fontSize: '1.2rem', opacity: 0.6 }}>%</span>
-            </div>
-            <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em', fontWeight: 600 }}>
-              {messages[msgIdx]}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.05)' }}>
-            <div style={{ position: 'relative', height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${ac}aa, ${ac})`, transition: 'width 0.2s ease-out', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%)', animation: 'shimmerBar 1.4s linear infinite' }} />
-            </div>
+          <div style={{
+            fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)',
+            letterSpacing: '0.05em', fontWeight: 600,
+            textShadow: '0 1px 8px rgba(0,0,0,0.9)',
+          }}>
+            {msgs[Math.min(msgIdx, msgs.length - 1)]}
           </div>
         </div>
       )}
 
-      {/* Completion flash */}
-      {isDone && <div style={{ position: 'absolute', inset: 0, background: ac, opacity: 0, animation: 'flashReveal 0.5s ease forwards', pointerEvents: 'none', borderRadius: 20 }} />}
+      {/* Bottom progress bar */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: 3, zIndex: 5, background: 'rgba(0,0,0,0.4)',
+      }}>
+        <div style={{
+          height: '100%', width: `${progress}%`,
+          background: `linear-gradient(90deg, ${ac}88, ${ac})`,
+          transition: 'width 0.12s ease-out',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent)',
+            animation: 'shimBar 1.3s linear infinite',
+          }} />
+        </div>
+      </div>
+
+      {/* Ready: label + selection indicator */}
+      {ready && (
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 5,
+          padding: '0.75rem 1rem',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.75), transparent)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+        }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{shirt.label}</div>
+            <div style={{ fontSize: '0.68rem', color: selected ? ac : 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+              {selected ? '✓ Selected' : 'Tap to select'}
+            </div>
+          </div>
+          {selected && (
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#050507', fontWeight: 900 }}>✓</div>
+          )}
+        </div>
+      )}
+
+      {/* Flash on completion */}
+      {ready && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10, borderRadius: 20,
+          background: 'white', pointerEvents: 'none',
+          animation: 'flashIn 0.55s ease forwards',
+        }} />
+      )}
     </div>
   );
 }
 
+/* ── Page ─────────────────────────────────────────────────────────── */
 export default function LandingPage() {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>('hero');
-  const [prompt, setPrompt] = useState('');
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
-  const [authMode, setAuthMode] = useState<AuthMode>('signup');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [registerRole, setRegisterRole] = useState<RegisterRole>('USER');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [selectedShirt, setSelectedShirt] = useState<string | null>(null);
-
-  // Progress states
-  const [mainProgress, setMainProgress] = useState(0);
-  const [cardProgress, setCardProgress] = useState([0, 0, 0]);
-  const [cardsReady, setCardsReady] = useState([false, false, false]);
-
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const authRef = useRef<HTMLDivElement>(null);
-  const genStart = useRef<number>(0);
-  const rafRef = useRef<number>(0);
+  const [phase, setPhase]         = useState<Phase>('hero');
+  const [prompt, setPrompt]       = useState('');
+  const [phIdx, setPhIdx]         = useState(0);
+  const [authMode, setAuthMode]   = useState<AuthMode>('signup');
+  const [name, setName]           = useState('');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [role, setRole]           = useState<RegisterRole>('USER');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
+  const [selected, setSelected]   = useState<string | null>(null);
+  const [mainPct, setMainPct]     = useState(0);
+  const [cardPct, setCardPct]     = useState([0, 0, 0]);
+  const [cardReady, setCardReady] = useState([false, false, false]);
+  const cardsRef  = useRef<HTMLDivElement>(null);
+  const authRef   = useRef<HTMLDivElement>(null);
+  const rafRef    = useRef(0);
+  const startRef  = useRef(0);
 
   useEffect(() => {
-    try { if (localStorage.getItem('pd_session')) router.replace('/home'); } catch { /* ignore */ }
+    try { if (localStorage.getItem('pd_session')) router.replace('/home'); } catch { /**/ }
   }, [router]);
 
   useEffect(() => {
-    const t = setInterval(() => setPlaceholderIdx(i => (i + 1) % PROMPT_EXAMPLES.length), 3200);
+    const t = setInterval(() => setPhIdx(i => (i + 1) % PROMPT_EXAMPLES.length), 3200);
     return () => clearInterval(t);
   }, []);
 
-  function handleGenerate() {
+  function generate() {
     if (!prompt.trim()) return;
     setPhase('generating');
-    setMainProgress(0);
-    setCardProgress([0, 0, 0]);
-    setCardsReady([false, false, false]);
-    genStart.current = Date.now();
+    setMainPct(0); setCardPct([0, 0, 0]); setCardReady([false, false, false]);
+    startRef.current = performance.now();
+    const TOTAL = 3400;
+    const THRESHOLDS = [80, 91, 100];
 
-    const TOTAL_MS = 3200;
-    // Cards complete at these main progress thresholds
-    const CARD_THRESHOLDS = [82, 91, 100];
+    function tick(now: number) {
+      const el = now - startRef.current;
+      const mp = eased(el, TOTAL);
+      setMainPct(mp);
+      setCardPct(THRESHOLDS.map(th => Math.min(100, (mp / th) * 100)));
+      setCardReady(THRESHOLDS.map(th => mp >= th));
 
-    function tick() {
-      const elapsed = Date.now() - genStart.current;
-      const mp = easeProgress(elapsed, TOTAL_MS);
-      setMainProgress(mp);
-
-      // Derive card progresses
-      const cp = CARD_THRESHOLDS.map(thresh => Math.min(100, (mp / thresh) * 100));
-      setCardProgress(cp);
-
-      const ready = CARD_THRESHOLDS.map(thresh => mp >= thresh);
-      setCardsReady(ready);
-
-      if (elapsed >= TOTAL_MS + 200) {
-        setMainProgress(100);
-        setCardProgress([100, 100, 100]);
-        setCardsReady([true, true, true]);
+      if (el >= TOTAL + 250) {
+        setMainPct(100); setCardPct([100, 100, 100]); setCardReady([true, true, true]);
         setTimeout(() => {
           setPhase('results');
-          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-        }, 400);
+          setTimeout(() => cardsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+        }, 500);
         return;
       }
       rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    setTimeout(() => cardsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   }
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
-  function handleSelectShirt(id: string) {
-    setSelectedShirt(id);
-    setPhase('auth');
-    setTimeout(() => authRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  function selectShirt(id: string) {
+    setSelected(id); setPhase('auth');
+    setTimeout(() => authRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
   }
 
-  function enterAsGuest() {
-    try { localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })); } catch { /* ignore */ }
+  function enterGuest() {
+    try { localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })); } catch { /**/ }
     router.push('/home');
   }
 
-  async function handleAuth(e: React.FormEvent) {
+  async function submitAuth(e: React.FormEvent) {
     e.preventDefault();
-    if (authMode === 'signup' && !name) { setError('Please enter your name'); return; }
-    if (!email || !password) { setError('Please fill in all fields'); return; }
+    if (authMode === 'signup' && !name) { setError('Name required'); return; }
+    if (!email || !password) { setError('Fill in all fields'); return; }
     setLoading(true); setError('');
     try {
-      const endpoint = authMode === 'signup' ? '/api/auth/register' : '/api/auth/login';
-      const body = authMode === 'signup' ? { name, email, password, role: registerRole } : { email, password };
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError((d as { error?: string }).error ?? 'Auth failed'); return; }
-      const user = await res.json() as { id: string; name: string; email: string; role: string };
-      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email, role: user.role }));
-      router.push(user.role === 'ARTIST' ? '/artist' : '/home');
-    } catch { setError('Network error. Please try again.'); }
-    finally { setLoading(false); }
+      const res = await fetch(authMode === 'signup' ? '/api/auth/register' : '/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authMode === 'signup' ? { name, email, password, role } : { email, password }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setError((d as {error?:string}).error ?? 'Failed'); return; }
+      const u = await res.json() as {id:string;name:string;email:string;role:string};
+      localStorage.setItem('pd_session', JSON.stringify({ type:'user', customerId:u.id, name:u.name, email:u.email, role:u.role }));
+      router.push(u.role === 'ARTIST' ? '/artist' : '/home');
+    } catch { setError('Network error'); } finally { setLoading(false); }
   }
 
-  const mainStageMsg = MAIN_STAGES.reduce((acc, s) => mainProgress >= s.at ? s.msg : acc, MAIN_STAGES[0].msg);
+  const msgIdx = Math.min(Math.floor((mainPct / 100) * MAIN_MSGS.length), MAIN_MSGS.length - 1);
 
   return (
-    <main style={{ minHeight: '100vh', background: '#050507', overflowX: 'hidden', position: 'relative' }}>
+    <main style={{ minHeight: '100vh', background: '#050507', overflowX: 'hidden' }}>
 
-      {/* ── Ambient background ── */}
+      {/* ── Background ── */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        {/* Grid */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '56px 56px', animation: 'gridPulse 8s ease-in-out infinite' }} />
-        {/* Orb 1 */}
-        <div style={{ position: 'absolute', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.065) 0%, transparent 65%)', top: '15%', left: '40%', transform: 'translate(-50%,-50%)', animation: 'orbFloat1 18s ease-in-out infinite' }} />
-        {/* Orb 2 */}
-        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,153,255,0.055) 0%, transparent 65%)', top: '65%', right: '5%', animation: 'orbFloat2 22s ease-in-out infinite' }} />
-        {/* Orb 3 */}
-        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(123,97,255,0.045) 0%, transparent 65%)', top: '80%', left: '10%', animation: 'orbFloat3 26s ease-in-out infinite' }} />
-        {/* Scanline */}
-        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)', pointerEvents: 'none', opacity: 0.4 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.016) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.06) 0%, transparent 65%)', top: '20%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'orb1 20s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.05) 0%, transparent 65%)', bottom: '15%', right: '8%', animation: 'orb2 25s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 3px)', opacity: 0.35 }} />
       </div>
 
       {/* ── Navbar ── */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, height: 60, borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(5,5,7,0.9)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #00E5C8, #0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: '#050507' }}>S</div>
-            <span style={{ fontWeight: 900, fontSize: '1.05rem', color: '#fff', letterSpacing: '-0.03em' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></span>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, height: 58, borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(5,5,7,0.88)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, color: '#050507' }}>S</div>
+            <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', letterSpacing: '-0.03em' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></span>
           </div>
-          <button onClick={enterAsGuest} style={{ padding: '7px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s' }}>Browse as guest</button>
+          <button onClick={enterGuest} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', cursor: 'pointer' }}>Browse as guest</button>
         </div>
       </header>
 
       {/* ── Hero ── */}
-      <section style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8rem 1.5rem 4rem', textAlign: 'center' }}>
+      <section style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '7rem 1.5rem 5rem', textAlign: 'center' }}>
 
-        {/* Watermark text */}
-        <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', fontSize: 'clamp(6rem, 20vw, 16rem)', fontWeight: 900, letterSpacing: '-0.05em', color: 'rgba(255,255,255,0.018)', userSelect: 'none', whiteSpace: 'nowrap', pointerEvents: 'none' }}>STYLX.AI</div>
-
-        <div style={{ animation: 'fadeUp 0.6s ease 0.1s both' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '2rem' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00E5C8', display: 'inline-block', boxShadow: '0 0 10px #00E5C8', animation: 'pulseGlow 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#00E5C8' }}>AI-Powered Fashion Tech</span>
+        <div style={{ animation: 'up 0.5s ease 0.1s both' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1.75rem' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00E5C8', boxShadow: '0 0 8px #00E5C8', animation: 'pulse 2s ease-in-out infinite' }} />
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>AI-Powered Fashion Tech</span>
           </div>
         </div>
 
-        <h1 style={{ fontSize: 'clamp(3.2rem, 9vw, 7rem)', fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.9, marginBottom: '1.5rem', animation: 'fadeUp 0.6s ease 0.2s both' }}>
+        <h1 style={{ fontSize: 'clamp(3rem, 9vw, 7.5rem)', fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.88, marginBottom: '1.4rem', animation: 'up 0.5s ease 0.2s both' }}>
           <span style={{ display: 'block', color: '#fff' }}>Describe it.</span>
-          <span style={{ display: 'block', background: 'linear-gradient(135deg, #00E5C8 0%, #0099FF 45%, #7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', backgroundSize: '200% 200%', animation: 'gradientShift 5s ease infinite' }}>Wear it.</span>
+          <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 45%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Wear it.</span>
         </h1>
 
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.9rem,2vw,1.1rem)', lineHeight: 1.65, maxWidth: 460, marginBottom: '2.5rem', animation: 'fadeUp 0.6s ease 0.35s both' }}>
-          Type any idea. AI generates your shirt in seconds.<br />Premium print. Ships to your door in 72 hours.
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.9rem,2vw,1.05rem)', lineHeight: 1.7, maxWidth: 440, marginBottom: '2.5rem', animation: 'up 0.5s ease 0.3s both' }}>
+          Type any idea &mdash; AI generates your shirt in seconds.<br />Premium print, ships in 72 hours.
         </p>
 
-        {/* Prompt input */}
-        <div style={{ width: '100%', maxWidth: 620, animation: 'fadeUp 0.6s ease 0.45s both' }}>
-          <div style={{ position: 'relative', display: 'flex', gap: 0, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${phase === 'generating' ? '#00E5C8' : 'rgba(255,255,255,0.1)'}`, borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.3s, box-shadow 0.3s', boxShadow: phase === 'generating' ? '0 0 40px rgba(0,229,200,0.18), inset 0 0 20px rgba(0,229,200,0.04)' : 'none' }}>
+        {/* ── Prompt input ── */}
+        <div style={{ width: '100%', maxWidth: 600, animation: 'up 0.5s ease 0.4s both' }}>
+          <div style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${phase === 'generating' ? '#00E5C8' : 'rgba(255,255,255,0.1)'}`, borderRadius: 16, overflow: 'hidden', boxShadow: phase === 'generating' ? '0 0 30px rgba(0,229,200,0.18)' : 'none', transition: 'border-color 0.3s, box-shadow 0.3s' }}>
             <input
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && phase === 'hero' && handleGenerate()}
-              placeholder={PROMPT_EXAMPLES[placeholderIdx]}
+              onKeyDown={e => e.key === 'Enter' && phase === 'hero' && generate()}
+              placeholder={PROMPT_EXAMPLES[phIdx]}
               disabled={phase !== 'hero'}
-              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '1.1rem 1.25rem', fontFamily: 'inherit' }}
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '1rem 1.2rem', fontFamily: 'inherit' }}
             />
             <button
-              onClick={handleGenerate}
+              onClick={generate}
               disabled={phase !== 'hero' || !prompt.trim()}
-              style={{ margin: '7px', padding: '0 1.5rem', borderRadius: 11, border: 'none', background: phase === 'hero' && prompt.trim() ? 'linear-gradient(135deg, #00E5C8, #0099FF)' : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? '#050507' : 'rgba(255,255,255,0.22)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', whiteSpace: 'nowrap', minWidth: 130 }}
+              style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
             >
-              {phase === 'generating' ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite', fontSize: '0.85rem' }}>⟳</span>
-                  {Math.round(mainProgress)}%
-                </span>
-              ) : 'Generate →'}
+              {phase === 'generating'
+                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ animation: 'spin 1s linear infinite' }}>⟳</span>{Math.round(mainPct)}%</span>
+                : 'Generate →'}
             </button>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.7rem', marginTop: '0.75rem', letterSpacing: '0.02em' }}>No account needed &mdash; preview free &middot; 50K+ shirts created</p>
+          <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; 50K+ shirts created</p>
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 4vw, 3rem)', marginTop: '3rem', flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.55s both' }}>
-          {[['72h', 'Delivery'], ['300dpi', 'Print'], ['50+', 'Designs'], ['Free', 'Returns']].map(([n, l]) => (
+        <div style={{ display: 'flex', gap: 'clamp(1.5rem,4vw,3rem)', marginTop: '3rem', flexWrap: 'wrap', justifyContent: 'center', animation: 'up 0.5s ease 0.5s both' }}>
+          {[['72h','Delivery'],['300dpi','Print'],['50+','Designs'],['Free','Returns']].map(([n,l]) => (
             <div key={l} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{n}</div>
-              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.28)', marginTop: 3, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{l}</div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{n}</div>
+              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginTop: 3, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{l}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Generation progress ── */}
+      {/* ── Generation + Results ── */}
       {(phase === 'generating' || phase === 'results' || phase === 'auth') && (
-        <section ref={resultsRef} style={{ position: 'relative', zIndex: 1, padding: '0 1.5rem 5rem', maxWidth: 1000, margin: '0 auto' }}>
+        <section ref={cardsRef} style={{ position: 'relative', zIndex: 1, padding: '0 1.5rem 5rem', maxWidth: 960, margin: '0 auto' }}>
 
-          {/* Main progress bar (only during generating) */}
+          {/* Main progress bar */}
           {phase === 'generating' && (
-            <div style={{ marginBottom: '2.5rem', animation: 'fadeUp 0.4s ease both' }}>
-              <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: 'clamp(3rem,8vw,5rem)', fontWeight: 900, letterSpacing: '-0.06em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                  {Math.round(mainProgress)}<span style={{ fontSize: '40%', opacity: 0.6, WebkitTextFillColor: 'rgba(0,229,200,0.6)' }}>%</span>
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', marginTop: 8, letterSpacing: '0.04em' }}>{mainStageMsg}</div>
+            <div style={{ marginBottom: '2.5rem', textAlign: 'center', animation: 'up 0.4s ease both' }}>
+              <div style={{ fontSize: 'clamp(3rem,8vw,5.5rem)', fontWeight: 900, letterSpacing: '-0.06em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}>
+                {Math.round(mainPct)}<span style={{ fontSize: '38%', WebkitTextFillColor: 'rgba(0,200,180,0.65)', opacity: 0.8 }}>%</span>
               </div>
-
-              {/* Main progress track */}
-              <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden', maxWidth: 600, margin: '0 auto' }}>
-                <div style={{ height: '100%', width: `${mainProgress}%`, background: 'linear-gradient(90deg, #00E5C8, #0099FF, #7B61FF)', borderRadius: 999, transition: 'width 0.2s ease-out', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animation: 'shimmerBar 1.2s linear infinite' }} />
+              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.78rem', marginBottom: '1.25rem', letterSpacing: '0.04em' }}>{MAIN_MSGS[msgIdx]}</div>
+              <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden', maxWidth: 500, margin: '0 auto 1.25rem' }}>
+                <div style={{ height: '100%', width: `${mainPct}%`, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', borderRadius: 999, transition: 'width 0.15s ease-out', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)', animation: 'shimBar 1.2s linear infinite' }} />
                 </div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-                {MOCK_SHIRTS.map((s, i) => (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.72rem', color: cardsReady[i] ? s.accent : 'rgba(255,255,255,0.3)' }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: cardsReady[i] ? s.accent : 'rgba(255,255,255,0.15)', boxShadow: cardsReady[i] ? `0 0 10px ${s.accent}` : 'none', transition: 'all 0.3s' }} />
-                    {s.label} {cardsReady[i] ? '✓' : `${Math.round(cardProgress[i])}%`}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.75rem', flexWrap: 'wrap' }}>
+                {SHIRTS.map((s, i) => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cardReady[i] ? s.accent : 'rgba(255,255,255,0.28)', transition: 'color 0.3s' }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: cardReady[i] ? s.accent : 'rgba(255,255,255,0.12)', boxShadow: cardReady[i] ? `0 0 10px ${s.accent}` : 'none', transition: 'all 0.4s' }} />
+                    {s.label} {cardReady[i] ? '✓' : `${Math.round(cardPct[i])}%`}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Prompt label */}
+          {/* Prompt label (results/auth) */}
           {(phase === 'results' || phase === 'auth') && (
-            <div style={{ textAlign: 'center', marginBottom: '2rem', animation: 'fadeUp 0.5s ease both' }}>
-              <div style={{ display: 'inline-block', padding: '8px 20px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem', animation: 'up 0.4s ease both' }}>
+              <div style={{ display: 'inline-block', padding: '7px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>
                 Generated for: <strong style={{ color: '#fff' }}>&ldquo;{prompt}&rdquo;</strong>
               </div>
             </div>
           )}
 
-          {/* 3 cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-            {MOCK_SHIRTS.map((shirt, i) => {
-              if (phase === 'results' || phase === 'auth') {
-                // Results view: interactive selection
-                return (
-                  <div
-                    key={shirt.id}
-                    onClick={() => handleSelectShirt(shirt.id)}
-                    style={{ background: selectedShirt === shirt.id ? `rgba(0,229,200,0.04)` : 'rgba(255,255,255,0.025)', border: `1.5px solid ${selectedShirt === shirt.id ? shirt.accent : 'rgba(255,255,255,0.08)'}`, borderRadius: 20, padding: '1.25rem 1.25rem 1rem', cursor: 'pointer', transition: 'all 0.25s', boxShadow: selectedShirt === shirt.id ? `0 0 40px ${shirt.accent}22` : '0 4px 24px rgba(0,0,0,0.3)', transform: selectedShirt === shirt.id ? 'translateY(-5px) scale(1.01)' : 'none', animation: `fadeUp 0.5s ease ${i * 0.1}s both` }}
-                  >
-                    <ShirtMockup shirt={shirt} prompt={prompt} />
-                    <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 3 }}>{shirt.label}</div>
-                      <div style={{ fontSize: '0.7rem', color: selectedShirt === shirt.id ? shirt.accent : 'rgba(255,255,255,0.28)' }}>
-                        {selectedShirt === shirt.id ? '✓ Selected' : 'Tap to select'}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              // Generating view: progress cards
-              return (
-                <GeneratingCard
-                  key={shirt.id}
-                  shirt={shirt}
-                  prompt={prompt}
-                  progress={cardProgress[i]}
-                  messages={CARD_MESSAGES[i]}
-                />
-              );
-            })}
+          {/* ── 3 Liquid cards ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+            {SHIRTS.map((shirt, i) => (
+              <LiquidCard
+                key={shirt.id}
+                shirt={shirt}
+                prompt={prompt}
+                progress={cardPct[i]}
+                ready={cardReady[i]}
+                msgIdx={Math.min(Math.floor((cardPct[i] / 100) * CARD_MSGS[i].length), CARD_MSGS[i].length - 1)}
+                onClick={() => selectShirt(shirt.id)}
+                selected={selected === shirt.id}
+              />
+            ))}
           </div>
 
           {phase === 'results' && (
-            <div style={{ textAlign: 'center', animation: 'fadeUp 0.5s ease 0.3s both' }}>
-              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', marginBottom: '1rem' }}>Select a design to order it</p>
-              <button onClick={enterAsGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline' }}>Just browse as guest</button>
+            <div style={{ textAlign: 'center', animation: 'up 0.4s ease 0.2s both' }}>
+              <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>Select a design above to order it</p>
+              <button onClick={enterGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.18)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline' }}>Just browse as guest</button>
             </div>
           )}
         </section>
@@ -458,47 +526,42 @@ export default function LandingPage() {
 
       {/* ── Auth ── */}
       {phase === 'auth' && (
-        <section ref={authRef} style={{ position: 'relative', zIndex: 1, padding: '1rem 1.5rem 5rem', maxWidth: 460, margin: '0 auto' }}>
-          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, overflow: 'hidden', animation: 'fadeUp 0.4s ease both' }}>
+        <section ref={authRef} style={{ position: 'relative', zIndex: 1, padding: '0 1.5rem 5rem', maxWidth: 440, margin: '0 auto' }}>
+          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 22, overflow: 'hidden', animation: 'up 0.4s ease both' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {(['signup', 'signin'] as AuthMode[]).map(m => (
+              {(['signup','signin'] as AuthMode[]).map(m => (
                 <button key={m} onClick={() => { setAuthMode(m); setError(''); }} style={{ padding: '0.875rem', border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.02em', background: authMode === m ? 'rgba(0,229,200,0.07)' : 'transparent', color: authMode === m ? '#00E5C8' : 'rgba(255,255,255,0.3)', borderBottom: `2px solid ${authMode === m ? '#00E5C8' : 'transparent'}`, transition: 'all 0.15s' }}>
                   {m === 'signup' ? 'Create Account' : 'Sign In'}
                 </button>
               ))}
             </div>
             <div style={{ padding: '1.75rem' }}>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.82rem', marginBottom: '1.25rem', lineHeight: 1.55 }}>
-                {authMode === 'signup' ? 'Create a free account to order. Ships in 72 hours.' : 'Welcome back. Continue your order.'}
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+                {authMode === 'signup' ? 'Free account to order. Ships in 72 hours.' : 'Welcome back — continue your order.'}
               </p>
-              {error && <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.7rem 0.9rem', fontSize: '0.78rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>}
-              <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              {error && <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.65rem 0.9rem', fontSize: '0.75rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>}
+              <form onSubmit={submitAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {authMode === 'signup' && (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                      {(['USER', 'ARTIST'] as RegisterRole[]).map((r) => (
-                        <button key={r} type="button" onClick={() => setRegisterRole(r)} style={{ padding: '0.7rem', borderRadius: 10, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${registerRole === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: registerRole === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
-                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: registerRole === r ? '#00E5C8' : 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{r === 'USER' ? '🛒 Customer' : '🎨 Artist'}</div>
-                          <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{r === 'USER' ? 'Order shirts' : 'Sell designs'}</div>
+                      {(['USER','ARTIST'] as RegisterRole[]).map(r => (
+                        <button key={r} type="button" onClick={() => setRole(r)} style={{ padding: '0.65rem', borderRadius: 9, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${role === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: role === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: role === r ? '#00E5C8' : 'rgba(255,255,255,0.45)' }}>{r === 'USER' ? '🛒 Customer' : '🎨 Artist'}</div>
+                          <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{r === 'USER' ? 'Order shirts' : 'Sell designs'}</div>
                         </button>
                       ))}
                     </div>
-                    <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" required autoComplete="name"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' as const }} />
+                    <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" required autoComplete="name" style={{ background:'rgba(255,255,255,0.04)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'0.7rem 0.9rem', color:'#fff', fontSize:'0.875rem', outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' as const }} />
                   </>
                 )}
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" required autoComplete="email"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' as const }} />
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={authMode === 'signup' ? 'Password (min. 6)' : 'Password'} required autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' as const }} />
-                <button type="submit" disabled={loading} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00E5C8, #0099FF)', color: loading ? 'rgba(255,255,255,0.3)' : '#050507', fontWeight: 800, fontSize: '0.9rem', cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 6px 24px rgba(0,229,200,0.25)', transition: 'all 0.15s', marginTop: 4 }}>
-                  {loading ? (authMode === 'signup' ? 'Creating…' : 'Signing in…') : (authMode === 'signup' ? 'Create Account & Order →' : 'Sign In →')}
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" required autoComplete="email" style={{ background:'rgba(255,255,255,0.04)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'0.7rem 0.9rem', color:'#fff', fontSize:'0.875rem', outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' as const }} />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required style={{ background:'rgba(255,255,255,0.04)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'0.7rem 0.9rem', color:'#fff', fontSize:'0.875rem', outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' as const }} />
+                <button type="submit" disabled={loading} style={{ height:46, borderRadius:11, border:'none', background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg,#00E5C8,#0099FF)', color: loading ? 'rgba(255,255,255,0.3)' : '#050507', fontWeight:800, fontSize:'0.9rem', cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 4px 20px rgba(0,229,200,0.25)', transition:'all 0.15s', marginTop:4 }}>
+                  {loading ? 'Loading…' : authMode === 'signup' ? 'Create Account & Order →' : 'Sign In →'}
                 </button>
               </form>
-              <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-                <button onClick={enterAsGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.22)', fontSize: '0.72rem', cursor: 'pointer' }}>
-                  Skip &mdash; continue as guest
-                </button>
+              <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                <button onClick={enterGuest} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.2)', fontSize:'0.7rem', cursor:'pointer' }}>Skip &mdash; continue as guest</button>
               </div>
             </div>
           </div>
@@ -507,49 +570,47 @@ export default function LandingPage() {
 
       {/* ── How it works ── */}
       {phase === 'hero' && (
-        <section id="how" style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem 6rem', maxWidth: 1000, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <section id="how" style={{ position: 'relative', zIndex: 1, padding: '3rem 1.5rem 6rem', maxWidth: 960, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#00E5C8' }}>How it works</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>How it works</span>
             </div>
-            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 900, letterSpacing: '-0.035em', color: '#fff' }}>From idea to doorstep</h2>
+            <h2 style={{ fontSize: 'clamp(1.6rem,3.5vw,2.5rem)', fontWeight: 900, letterSpacing: '-0.035em', color: '#fff' }}>From idea to doorstep</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: '1rem' }}>
             {[
-              { n: '01', title: 'Describe', body: 'Type anything. A vibe, a concept, a feeling. Our AI understands context.' },
-              { n: '02', title: 'Generate', body: 'Watch as 3 AI-curated shirt designs appear in real-time from your prompt.' },
-              { n: '03', title: 'Customize', body: 'Pick your design, adjust size, color, and style in our design studio.' },
-              { n: '04', title: 'Delivered', body: 'Premium 300 DPI DTG print, at your door in 72 hours. Free returns.' },
+              { n: '01', t: 'Describe', b: 'Type a vibe, a concept, a feeling. AI understands context and nuance.' },
+              { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.' },
+              { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.' },
+              { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns.' },
             ].map(s => (
-              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '1.75rem', transition: 'border-color 0.2s, transform 0.2s', cursor: 'default' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.2)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}>
-                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', marginBottom: '0.75rem' }}>{s.n}</div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>{s.title}</div>
-                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.33)', lineHeight: 1.65 }}>{s.body}</div>
+              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem' }}>
+                <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', marginBottom: '0.65rem' }}>{s.n}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#fff', marginBottom: '0.45rem', letterSpacing: '-0.02em' }}>{s.t}</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.32)', lineHeight: 1.65 }}>{s.b}</div>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Footer ── */}
-      <footer style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '2rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '-0.03em', color: '#fff', marginBottom: '0.5rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
-        <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.68rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
+      <footer style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
+        <div style={{ fontWeight: 900, fontSize: '0.88rem', letterSpacing: '-0.03em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
+        <div style={{ color: 'rgba(255,255,255,0.14)', fontSize: '0.66rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
       </footer>
 
       <style>{`
-        @keyframes fadeUp      { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes gradientShift { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
-        @keyframes shimmerBar  { 0% { transform:translateX(-100%); } 100% { transform:translateX(250%); } }
-        @keyframes flashReveal { 0% { opacity:0.4; } 40% { opacity:0.15; } 100% { opacity:0; } }
-        @keyframes pulseGlow   { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
-        @keyframes spin        { to { transform:rotate(360deg); } }
-        @keyframes gridPulse   { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
-        @keyframes orbFloat1   { 0%,100% { transform:translate(-50%,-50%) scale(1); } 33% { transform:translate(-48%,-54%) scale(1.05); } 66% { transform:translate(-52%,-47%) scale(0.97); } }
-        @keyframes orbFloat2   { 0%,100% { transform:scale(1) translate(0,0); } 50% { transform:scale(1.1) translate(-3%,4%); } }
-        @keyframes orbFloat3   { 0%,100% { transform:translate(0,0); } 50% { transform:translate(4%,-6%); } }
+        @keyframes up        { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes waveSlide { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+        @keyframes shimBar   { from { transform:translateX(-100%); } to { transform:translateX(250%); } }
+        @keyframes flashIn   { 0% { opacity:.35; } 50% { opacity:.12; } 100% { opacity:0; } }
+        @keyframes pulse     { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(1.5); } }
+        @keyframes spin      { to { transform:rotate(360deg); } }
+        @keyframes orb1      { 0%,100% { transform:translate(-50%,-50%) scale(1); } 50% { transform:translate(-48%,-52%) scale(1.06); } }
+        @keyframes orb2      { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08) translate(-3%,3%); } }
+        @media (max-width: 640px) {
+          div[style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </main>
   );
