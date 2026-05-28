@@ -11,7 +11,7 @@ export default function Footer() {
           </span>
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-          {[['Studio', '/design'], ['Catalog', '/catalog'], ['How it works', '/#how'], ['Checkout', '/checkout']].map(([l, h]) => (
+          {[['Studio', '/design'], ['Catalog', '/catalog'], ['How it works', '/#how']].map(([l, h]) => (
             <Link key={h} href={h} style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.8rem', textDecoration: 'none', transition: 'color 0.15s' }}
               className="hover:text-white">{l}</Link>
           ))}
