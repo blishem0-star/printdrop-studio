@@ -2,12 +2,37 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { OWNER_EMAIL } from '@/lib/owner';
+import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_BASE_PRICE, buildProductSvg } from '@/lib/productTypes';
+import type { ProductType } from '@/lib/productTypes';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
+type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+type Subscription = { id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string };
+
+const STYLES = [
+  { id: 'minimal',    label: 'Minimal',    desc: 'Clean lines, muted tones',     icon: '◾', color: '#94A3B8' },
+  { id: 'bold',       label: 'Bold',       desc: 'High contrast, graphic prints', icon: '⚡', color: '#F59E0B' },
+  { id: 'urban',      label: 'Urban',      desc: 'Street art, city vibes',        icon: '🏙', color: '#6366F1' },
+  { id: 'nature',     label: 'Nature',     desc: 'Earth tones, organic shapes',   icon: '🌿', color: '#10B981' },
+  { id: 'vintage',    label: 'Vintage',    desc: 'Retro prints, faded palette',   icon: '🎞', color: '#D97706' },
+  { id: 'streetwear', label: 'Streetwear', desc: 'Oversized, logo-forward',       icon: '🔥', color: '#EF4444' },
+];
+const ALL_TYPES: ProductType[] = ['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'];
+const MONTHLY = 59.99;
 
 export default function HomePage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
+  const [sub, setSub] = useState<Subscription | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+
+  // Subscribe form
+  const [showForm, setShowForm] = useState(false);
+  const [selStyle, setSelStyle] = useState('');
+  const [selTypes, setSelTypes] = useState<ProductType[]>(['TSHIRT', 'HOODIE']);
+  const [prefSize, setPrefSize] = useState('M');
+  const [submitting, setSubmitting] = useState(false);
+  const [subSuccess, setSubSuccess] = useState(false);
 
   useEffect(() => {
     try {
@@ -15,11 +40,45 @@ export default function HomePage() {
       if (!raw) { router.replace('/'); return; }
       const sess: Session = JSON.parse(raw);
       setSession(sess);
+      if (sess.customerId) {
+        setSubLoading(true);
+        fetch(`/api/subscription?customerId=${sess.customerId}`)
+          .then(r => r.json()).then(s => { if (s) setSub(s); }).catch(() => {}).finally(() => setSubLoading(false));
+      }
     } catch { router.replace('/'); }
   }, [router]);
 
+  function toggleType(t: ProductType) {
+    setSelTypes(prev => prev.includes(t) ? (prev.length > 1 ? prev.filter(x => x !== t) : prev) : [...prev, t]);
+  }
+
+  async function subscribe() {
+    if (!session?.customerId || !selStyle) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/subscription', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: session.customerId, stylePrefs: { style: selStyle, productTypes: selTypes, size: prefSize } }),
+      });
+      if (res.ok) { setSub(await res.json()); setSubSuccess(true); setShowForm(false); }
+    } catch { /* ignore */ } finally { setSubmitting(false); }
+  }
+
+  async function cancelSub() {
+    if (!sub) return;
+    const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
+    if (res.ok) setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
+  }
+
+  async function togglePause() {
+    if (!sub) return;
+    const newStatus: SubStatus = sub.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
+    const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
+    if (res.ok) setSub(prev => prev ? { ...prev, status: newStatus } : null);
+  }
+
   function signOut() {
-    try { localStorage.removeItem('pd_session'); } catch { /* ignore */ }
+    try { localStorage.removeItem('pd_session'); } catch { /* */ }
     router.replace('/');
   }
 
@@ -29,69 +88,229 @@ export default function HomePage() {
     </div>
   );
 
+  const hasActiveSub = sub && sub.status !== 'CANCELLED';
+
   return (
-    <div style={{ minHeight: '100vh', background: '#080808' }}>
+    <div style={{ minHeight: '100vh', background: '#080808', color: 'white' }}>
 
       {/* Navbar */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(8,8,8,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
         <span style={{ fontSize: 20, marginRight: 4 }}>🖨</span>
         <span style={{ fontWeight: 900, fontSize: '1.05rem', letterSpacing: '-0.04em', marginRight: 16 }}>PrintDrop</span>
 
-        <button onClick={() => router.push('/studio/custom')} style={navBtn('orange')}
+        <button onClick={() => router.push('/design')} style={navBtn('orange')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.14)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.07)'; }}
-        >✏️ Create your shirt</button>
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.07)'; }}>
+          ✏️ Create your shirt
+        </button>
 
         <button onClick={() => router.push('/catalog')} style={navBtn('indigo')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.14)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)'; }}
-        >🎨 Catalog</button>
-
-        <button onClick={() => router.push('/premium')} style={navBtn('premium')}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.14)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.07)'; }}
-        >✨ Premium</button>
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)'; }}>
+          🎨 Catalog
+        </button>
 
         <div style={{ flex: 1 }} />
 
         {session.type === 'guest' && (
           <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: 'rgba(245,158,11,0.7)' }}>Guest</span>
         )}
-
         {session.type === 'user' && session.role === 'ARTIST' && (
           <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', color: '#A78BFA', cursor: 'pointer' }}>🎨 Artist Studio</button>
         )}
-
         {session.type === 'user' && (
-          <button
-            onClick={() => router.push('/profile')}
+          <button onClick={() => router.push('/profile')}
             style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, background: 'transparent', border: '1px solid transparent', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-          >
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,77,28,0.2)', border: '1px solid rgba(255,77,28,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.62rem', fontWeight: 900, color: '#FF8C40' }}>
               {session.name.charAt(0).toUpperCase()}
             </div>
             {session.name}
           </button>
         )}
-
         {session.email === OWNER_EMAIL && (
           <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,77,28,0.08)', border: '1px solid rgba(255,77,28,0.22)', color: 'rgba(255,140,64,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main style={{ padding: '4rem 2rem' }} />
+      <main style={{ maxWidth: 900, margin: '0 auto', padding: '3.5rem 2rem 5rem' }}>
+
+        {/* Welcome */}
+        <div style={{ marginBottom: '3rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 8 }}>
+            Hey {session.name === 'Guest' ? 'there' : session.name} 👋
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.9rem' }}>What do you want to do today?</p>
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
+          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(255,77,28,0.08),rgba(255,77,28,0.03))', border: '1px solid rgba(255,77,28,0.2)', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,77,28,0.4)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(255,77,28,0.12),rgba(255,77,28,0.05))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,77,28,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(255,77,28,0.08),rgba(255,77,28,0.03))'; }}>
+            <div style={{ fontSize: 32, marginBottom: 10 }}>✏️</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Create your shirt</div>
+            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Design from scratch — add text, upload images, or generate with AI</div>
+            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#FF8C40' }}>Open studio →</div>
+          </button>
+
+          <button onClick={() => router.push('/catalog')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.4)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.05))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))'; }}>
+            <div style={{ fontSize: 32, marginBottom: 10 }}>🎨</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Browse catalog</div>
+            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
+            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#818CF8' }}>Browse →</div>
+          </button>
+        </div>
+
+        {/* ── Premium subscription section ── */}
+        <div style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(255,77,28,0.18)', background: 'linear-gradient(135deg,rgba(255,77,28,0.05) 0%,rgba(139,92,246,0.04) 100%)' }}>
+          {/* Top accent line */}
+          <div style={{ height: 2, background: 'linear-gradient(90deg,#FF4D1C,#FF9A00,#a855f7)' }} />
+
+          <div style={{ padding: '2rem 2rem 1.75rem' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.6rem', fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(255,77,28,0.1)', border: '1px solid rgba(255,77,28,0.25)', color: '#FF8C40', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+                  ✨ Monthly Box
+                </div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 6 }}>
+                  3 pieces, curated for your style
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', lineHeight: 1.6, maxWidth: 440 }}>
+                  Every month we select 3 freshly-printed items that match your vibe — shipped free to your door.
+                </p>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(135deg,#FF4D1C,#FF9A00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${MONTHLY}</div>
+                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month · cancel anytime</div>
+              </div>
+            </div>
+
+            {/* Product types */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              {ALL_TYPES.map(t => (
+                <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+                  <span>{PRODUCT_TYPE_EMOJI[t]}</span>{PRODUCT_TYPE_LABELS[t]}
+                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>from ${PRODUCT_BASE_PRICE[t]}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Features */}
+            <div style={{ display: 'flex', gap: 18, marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+              {['🎁 Surprise every month', '🚚 Free shipping', '⏸ Pause anytime', '💳 Billed monthly'].map(f => (
+                <span key={f} style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{f}</span>
+              ))}
+            </div>
+
+            {/* ── Active subscription state ── */}
+            {hasActiveSub && (
+              <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 14, padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 800, marginBottom: 3 }}>✓ You&apos;re subscribed{sub!.status === 'PAUSED' ? ' (paused)' : ''}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>
+                    Next shipment: {new Date(sub!.nextShipmentAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={togglePause} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>
+                    {sub!.status === 'PAUSED' ? '▶ Resume' : '⏸ Pause'}
+                  </button>
+                  <button onClick={cancelSub} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.07)', color: '#f87171', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Success message ── */}
+            {subSuccess && !showForm && (
+              <div style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '1rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>🎉</div>
+                <div style={{ fontWeight: 800, marginBottom: 4 }}>You&apos;re in!</div>
+                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Your first box ships on the 1st. We&apos;ll email you a tracking number.</div>
+              </div>
+            )}
+
+            {/* ── CTA / Form ── */}
+            {!hasActiveSub && !subSuccess && session.type === 'guest' && (
+              <div style={{ padding: '1rem', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 12, fontSize: '0.78rem', color: 'rgba(245,158,11,0.75)', textAlign: 'center' }}>
+                <a href="/" style={{ color: '#F59E0B', fontWeight: 700, textDecoration: 'none' }}>Sign in</a> to subscribe
+              </div>
+            )}
+
+            {!hasActiveSub && !subSuccess && session.type === 'user' && !showForm && (
+              <button onClick={() => setShowForm(true)} style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#FF4D1C,#FF9A00)', color: 'white', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(255,77,28,0.28)', transition: 'all 0.15s' }}>
+                Subscribe — ${MONTHLY}/month
+              </button>
+            )}
+
+            {/* ── Subscribe form ── */}
+            {showForm && (
+              <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+
+                <div>
+                  <div style={LS}>Your style</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                    {STYLES.map(s => (
+                      <button key={s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
+                        <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: selStyle === s.id ? 'white' : 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{s.label}</div>
+                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)', lineHeight: 1.4 }}>{s.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={LS}>Products I want</div>
+                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                    {ALL_TYPES.map(t => (
+                      <button key={t} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(255,77,28,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(255,77,28,0.1)' : 'transparent', color: selTypes.includes(t) ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
+                        {PRODUCT_TYPE_EMOJI[t]} {PRODUCT_TYPE_LABELS[t]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={LS}>Default size</div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {['XS','S','M','L','XL','XXL'].map(s => (
+                      <button key={s} onClick={() => setPrefSize(s)} style={{ width: 44, height: 44, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${prefSize === s ? '#FF4D1C' : 'rgba(255,255,255,0.08)'}`, background: prefSize === s ? 'rgba(255,77,28,0.12)' : 'rgba(255,255,255,0.02)', color: prefSize === s ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.13s' }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button onClick={subscribe} disabled={!selStyle || submitting} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: selStyle && !submitting ? 'linear-gradient(135deg,#FF4D1C,#FF9A00)' : 'rgba(255,255,255,0.06)', color: selStyle && !submitting ? 'white' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: selStyle && !submitting ? 'pointer' : 'default', transition: 'all 0.15s' }}>
+                    {submitting ? 'Subscribing...' : `Confirm — $${MONTHLY}/month`}
+                  </button>
+                  <button onClick={() => setShowForm(false)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', cursor: 'pointer' }}>Cancel</button>
+                </div>
+
+                <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.18)', textAlign: 'center' }}>
+                  🔒 Billed on the 1st each month · Pause or cancel anytime · No hidden fees
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+      </main>
     </div>
   );
 }
 
-function navBtn(accent: 'orange' | 'indigo' | 'premium'): React.CSSProperties {
+function navBtn(accent: 'orange' | 'indigo'): React.CSSProperties {
   const c = accent === 'orange'
-    ? { bg: 'rgba(255,77,28,0.07)', border: 'rgba(255,77,28,0.25)', color: 'rgba(255,140,64,0.9)' }
-    : accent === 'premium'
     ? { bg: 'rgba(255,77,28,0.07)', border: 'rgba(255,77,28,0.25)', color: 'rgba(255,140,64,0.9)' }
     : { bg: 'rgba(99,102,241,0.07)', border: 'rgba(99,102,241,0.25)', color: 'rgba(129,140,248,0.9)' };
   return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };
 }
+
+const LS: React.CSSProperties = { display: 'block', fontSize: '0.59rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 7 };
