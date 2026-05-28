@@ -1,713 +1,666 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import {
-  DESIGNS, SHIRT_COLORS, SHIRT_SIZES, TShirtColor, TShirtSize,
-  BASE_PRICE, SHIPPING_PRICE, Design, CATEGORIES,
-} from '@/lib/mockData';
-import ShirtViewer3D from '@/components/ShirtViewer3D';
-import PhotoToDesign from '@/components/PhotoToDesign';
-import GroupOrderModal from '@/components/GroupOrderModal';
-import Footer from '@/components/Footer';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
+import type { TShirtColor, TShirtSize } from '@/lib/mockData';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import { submitOrder } from '@/lib/exportDesign';
 import Link from 'next/link';
-import StepShell from '@/components/studio/StepShell';
-import { Field, LabeledField, Checkmark } from '@/components/studio/FormFields';
-import SizeGuideModal from '@/components/SizeGuideModal';
-import { buildDesignSvg, saveDesignFile, submitOrder } from '@/lib/exportDesign';
-import Toast from '@/components/Toast';
 
+// ─── Types ───────────────────────────────────────────────────
+type Layer = { id: string; type: 'text' | 'gfx'; content: string; x: number; y: number; fontSize: number; fontFamily: string; color: string; fontWeight: 'normal'|'bold'; italic: boolean; rotation: number };
+type ImagePos = 'top'|'center'|'bottom'|'full-body'|'full-shirt';
+type FontStyle = 'bold'|'script'|'minimal';
+type UploadSlot = 'front'|'back'|'chest';
+type Session = { type:'guest'|'user'; customerId?:string; name:string; email?:string };
+
+// ─── Constants ───────────────────────────────────────────────
+const SVG_W = 200, SVG_H = 230;
+const PRINT = { x:60, y:85, w:80, h:105 };
+const SHIRT_PATH = 'M32 57 L2 82 L26 97 L21 222 L179 222 L174 97 L198 82 L168 57 L144 72 Q129 30 100 28 Q71 30 56 72 Z';
+
+const IMG_ZONE: Record<ImagePos,{x:number;y:number;w:number;h:number;clip:'body'|'full';slice?:boolean}> = {
+  top:          {x:60, y:90, w:80, h:44, clip:'body'},
+  center:       {x:60, y:115, w:80, h:50, clip:'body'},
+  bottom:       {x:60, y:148, w:80, h:42, clip:'body'},
+  'full-body':  {x:60, y:90, w:80, h:110, clip:'body'},
+  'full-shirt': {x:20, y:30, w:160, h:190, clip:'full', slice:true},
+};
+const POS_LABELS: Record<ImagePos,string> = {top:'Top',center:'Center',bottom:'Bottom','full-body':'Full front','full-shirt':'All over'};
+
+const FONTS = [
+  {id:'system-ui,sans-serif', label:'Sans'},
+  {id:'"Georgia",serif', label:'Serif'},
+  {id:'"Courier New",monospace', label:'Mono'},
+  {id:'"Impact","Arial Black",sans-serif', label:'Impact'},
+];
+const EMOJIS = ['🔥','⚡','💀','🎭','🌊','🦁','🎨','🎵','🏆','💎','🌙','⭐','🚀','🎯','🐉','👑','☠','✦','★','◆'];
+const TEXT_COLORS = ['#ffffff','#000000','#FF4D1C','#FFD700','#10B981','#6C63FF','#FF69B4','#00BCD4'];
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
-/* ── main ─────────────────────────────────────────────── */
+function uid() { return Math.random().toString(36).slice(2,9); }
 
+// ─── Component ───────────────────────────────────────────────
 function DesignStudio() {
-  const params = useSearchParams();
-  const initId = params.get('id');
+  const router = useRouter();
 
-  const [color,  setColor]  = useState<TShirtColor | null>(null);
-  const [size,   setSize]   = useState<TShirtSize  | null>(null);
-  const [design, setDesign] = useState<Design | null>(
-    initId ? (DESIGNS.find(d => d.id === initId) ?? null) : null
-  );
-
-  const [aiPrompt,     setAiPrompt]     = useState('');
-  const [aiLoading,    setAiLoading]    = useState(false);
-  const [designTab,    setDesignTab]    = useState<'catalog'|'ai'|'photo'>('catalog');
-  const [catFilter,    setCatFilter]    = useState('All');
-  const [remixItems,   setRemixItems]   = useState<Design[]|null>(null);
-  const [remixLoad,    setRemixLoad]    = useState(false);
-  const [showGroup,    setShowGroup]    = useState(false);
-  const [ordered,      setOrdered]      = useState(false);
-  const [activeStep,   setActiveStep]   = useState(1);
-  const [customText,   setCustomText]   = useState('');
-  const [showSizeGuide,setShowSizeGuide]= useState(false);
-  const [wishlist,     setWishlist]     = useState<string[]>([]);
-  const [submitting,   setSubmitting]   = useState(false);
-  const [orderId,      setOrderId]      = useState<string | null>(null);
-  const [toast,        setToast]        = useState<{ msg: string; type: 'error'|'success'|'info' } | null>(null);
-
-  // Shipping
-  const [shipName,   setShipName]   = useState('');
-  const [shipEmail,  setShipEmail]  = useState('');
-  const [shipStreet, setShipStreet] = useState('');
-  const [shipCity,   setShipCity]   = useState('');
-  const [shipZip,    setShipZip]    = useState('');
-  const [shipState,  setShipState]  = useState('');
-
-  // Payment
-  const [cardNum,   setCardNum]   = useState('');
-  const [cardExp,   setCardExp]   = useState('');
-  const [cardCvv,   setCardCvv]   = useState('');
-  const [cardName,  setCardName]  = useState('');
-  const [payMethod, setPayMethod] = useState<'card'|'apple'|'google'|'paypal'>('card');
-
-  // Completion gates
-  const step1Done = color !== null && size !== null;
-  const step2Done = design !== null;
-  const step3Done = shipName.trim().length > 1
-    && shipEmail.includes('@')
-    && shipStreet.trim().length > 3
-    && shipCity.trim().length > 1
-    && shipZip.length === 5
-    && shipState !== '';
-  const step4Done = payMethod !== 'card' ||
-    (cardNum.replace(/\s/g,'').length >= 12 && cardExp.length >= 4 && cardCvv.length >= 3);
-
-  // Restore studio state + wishlist from localStorage
+  // Session
+  const [session, setSession] = useState<Session|null>(null);
   useEffect(() => {
     try {
-      const wl = localStorage.getItem('pd_wishlist');
-      if (wl) setWishlist(JSON.parse(wl)); // eslint-disable-line react-hooks/set-state-in-effect
-      const studio = localStorage.getItem('pd_studio');
-      if (studio) {
-        const s = JSON.parse(studio);
-        /* eslint-disable react-hooks/set-state-in-effect */
-        if (s.colorId)   setColor(SHIRT_COLORS.find(c => c.id === s.colorId) ?? null);
-        if (s.size)      setSize(s.size);
-        if (s.designId)  setDesign(DESIGNS.find(d => d.id === s.designId) ?? null);
-        if (s.customText) setCustomText(s.customText);
-        /* eslint-enable react-hooks/set-state-in-effect */
-      }
-    } catch { /* ignore */ }
+      const raw = localStorage.getItem('pd_session');
+      setSession(raw ? JSON.parse(raw) : {type:'guest',name:'Guest'});
+    } catch { setSession({type:'guest',name:'Guest'}); }
   }, []);
 
-  // Persist studio selections
-  useEffect(() => {
-    try { localStorage.setItem('pd_studio', JSON.stringify({ colorId: color?.id, size, designId: design?.id, customText })); }
-    catch { /* ignore */ }
-  }, [color, size, design, customText]);
+  // Shirt
+  const [color, setColor] = useState<TShirtColor>(SHIRT_COLORS[0]);
+  const [size,  setSize]  = useState<TShirtSize|null>(null);
+  const [showBack, setShowBack] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
 
-  function toggleWishlist(id: string) {
-    setWishlist(prev => {
-      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      try { localStorage.setItem('pd_wishlist', JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
+  // Draggable layers
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [selected, setSelected] = useState<string|null>(null);
+  const layersRef = useRef<Layer[]>(layers);
+  useEffect(() => { layersRef.current = layers; }, [layers]);
+  const dragging = useRef<{id:string;sx:number;sy:number;ox:number;oy:number}|null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Image uploads
+  const [uploads, setUploads] = useState<Record<UploadSlot,string|null>>({front:null,back:null,chest:null});
+  const [uploadSlot, setUploadSlot] = useState<UploadSlot>('front');
+  const [imgPos, setImgPos] = useState<Record<'front'|'back',ImagePos>>({front:'center',back:'center'});
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [fileDragging, setFileDragging] = useState(false);
+
+  // AI
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiSvg, setAiSvg] = useState<string|null>(null);
+
+  // Text editor
+  const [textInput, setTextInput] = useState('');
+  const [fontSize,  setFontSize]  = useState(16);
+  const [fontFam,   setFontFam]   = useState(FONTS[0].id);
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [fontWeight,setFontWeight]= useState<'normal'|'bold'>('bold');
+  const [italic,    setItalic]    = useState(false);
+
+  // Tabs
+  const [rightTab, setRightTab] = useState<'design'|'shirt'|'order'>('design');
+  const [designTab, setDesignTab] = useState<'text'|'upload'|'ai'|'gfx'>('text');
+
+  // Order
+  const [shipName,  setShipName]  = useState('');
+  const [shipEmail, setShipEmail] = useState('');
+  const [shipStreet,setShipStreet]= useState('');
+  const [shipCity,  setShipCity]  = useState('');
+  const [shipZip,   setShipZip]   = useState('');
+  const [shipState, setShipState] = useState('');
+  const [submitting,setSubmitting]= useState(false);
+  const [ordered,   setOrdered]   = useState(false);
+  const [orderId,   setOrderId]   = useState<string|null>(null);
+
+  // Restore session shipping
+  useEffect(() => {
+    if (!session) return;
+    if (session.name && session.name !== 'Guest') setShipName(session.name);
+    if (session.email) setShipEmail(session.email);
+    try {
+      const s = localStorage.getItem('pd_shipping');
+      if (s) { const d=JSON.parse(s); setShipStreet(d.street??''); setShipCity(d.city??''); setShipZip(d.zip??''); setShipState(d.state??''); }
+    } catch { /* ignore */ }
+  }, [session]);
+
+  // ── Layers ──────────────────────────────────────────────────
+  const selLayer = layers.find(l=>l.id===selected)??null;
+
+  function addText() {
+    if (!textInput.trim()) return;
+    const l: Layer = {id:uid(),type:'text',content:textInput,x:50,y:50,fontSize,fontFamily:fontFam,color:textColor,fontWeight,italic,rotation:0};
+    setLayers(p=>[...p,l]); setSelected(l.id); setTextInput('');
+  }
+  function addGfx(c:string) {
+    const l: Layer = {id:uid(),type:'gfx',content:c,x:50,y:45,fontSize:32,fontFamily:'system-ui',color:'#ffffff',fontWeight:'normal',italic:false,rotation:0};
+    setLayers(p=>[...p,l]); setSelected(l.id);
+  }
+  function updateLayer(id:string, patch:Partial<Layer>) {
+    setLayers(p=>p.map(l=>l.id===id?{...l,...patch}:l));
+  }
+  function deleteLayer(id:string) {
+    setLayers(p=>p.filter(l=>l.id!==id));
+    if(selected===id) setSelected(null);
+  }
+
+  // Sync editor when selection changes
+  useEffect(() => {
+    if (!selLayer || selLayer.type!=='text') return;
+    setFontSize(selLayer.fontSize); setFontFam(selLayer.fontFamily);
+    setTextColor(selLayer.color); setFontWeight(selLayer.fontWeight); setItalic(selLayer.italic);
+  }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Drag ──────────────────────────────────────────────────
+  const onLayerDown = useCallback((e:React.PointerEvent, id:string) => {
+    e.stopPropagation();
+    setSelected(id);
+    const l = layersRef.current.find(x=>x.id===id);
+    dragging.current = {id, sx:e.clientX, sy:e.clientY, ox:l?.x??50, oy:l?.y??50};
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  useEffect(() => {
+    function onMove(e:PointerEvent) {
+      if (!dragging.current || !canvasRef.current) return;
+      const r = canvasRef.current.getBoundingClientRect();
+      const sx = r.width/SVG_W, sy = r.height/SVG_H;
+      const dx = (e.clientX-dragging.current.sx)/sx;
+      const dy = (e.clientY-dragging.current.sy)/sy;
+      setLayers(p=>p.map(l=>l.id===dragging.current!.id
+        ? {...l, x:Math.max(0,Math.min(100,dragging.current!.ox+(dx/PRINT.w)*100)), y:Math.max(0,Math.min(100,dragging.current!.oy+(dy/PRINT.h)*100))}
+        : l));
+    }
+    function onUp() { dragging.current=null; }
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+    return ()=>{window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);};
+  }, []);
+
+  useEffect(() => {
+    function onKey(e:KeyboardEvent) {
+      if((e.key==='Delete'||e.key==='Backspace')&&selected&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement)) deleteLayer(selected);
+      if(e.key==='Escape') setSelected(null);
+    }
+    window.addEventListener('keydown',onKey);
+    return ()=>window.removeEventListener('keydown',onKey);
+  }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Upload ────────────────────────────────────────────────
+  function handleFile(file:File) {
+    if (!file.type.startsWith('image/')) return;
+    const r = new FileReader();
+    r.onload = e => setUploads(p=>({...p,[uploadSlot]:e.target?.result as string}));
+    r.readAsDataURL(file);
+  }
+
+  // ── AI ────────────────────────────────────────────────────
+  function generateAI() {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true); setAiProgress(0); setAiSvg(null);
+    const iv = setInterval(()=>setAiProgress(p=>p>=90?(clearInterval(iv),90):p+Math.random()*14), 180);
+    setTimeout(()=>{
+      clearInterval(iv); setAiProgress(100);
+      const kw = aiPrompt.toLowerCase();
+      const match = CATALOG_DESIGNS.find(d=>kw.includes(d.category.toLowerCase())||kw.includes(d.title.toLowerCase().split(' ')[0]))
+        ?? CATALOG_DESIGNS[Math.floor(Math.random()*CATALOG_DESIGNS.length)];
+      setAiSvg(match.svg); setAiLoading(false);
+    }, 2800);
+  }
+
+  // ── Order ─────────────────────────────────────────────────
+  const deliveryDone = shipName.trim().length>1 && shipEmail.includes('@') && shipStreet.trim().length>3 && shipCity.trim().length>1 && shipZip.length===5 && shipState!=='';
+  const canOrder = color && size && deliveryDone;
+  const total = 24.99 + SHIPPING_PRICE;
+
+  async function handleOrder() {
+    if (!canOrder) return;
+    setSubmitting(true);
+    try {
+      const svgDataUrl = aiSvg ? 'data:image/svg+xml;base64,'+btoa(aiSvg.replace(/currentColor/g,color!.textColor)) : uploads.front ?? '';
+      const result = await submitOrder({
+        customerName:shipName, customerEmail:shipEmail,
+        shippingName:shipName, shippingAddr:shipStreet,
+        shippingCity:shipCity, shippingZip:shipZip, shippingState:shipState, total,
+        design:{title:aiPrompt||'Custom Design',emoji:'✏️',colorHex:color!.hex,colorName:color!.name,size:size!,price:24.99,svgDataUrl},
+      });
+      if (result) {
+        try { localStorage.setItem('pd_shipping',JSON.stringify({street:shipStreet,city:shipCity,zip:shipZip,state:shipState})); } catch{/**/}
+        setOrderId(result.id); setOrdered(true);
+      }
+    } catch{/**/} finally { setSubmitting(false); }
+  }
+
+  // ── SVG canvas helpers ─────────────────────────────────────
+  const activeImg  = showBack ? uploads.back : uploads.front;
+  const activePos  = showBack ? imgPos.back : imgPos.front;
+  const zone = IMG_ZONE[activePos];
+
+  function renderLayers(interactive=true) {
+    return layers.map(layer => {
+      const lx = PRINT.x+(layer.x/100)*PRINT.w;
+      const ly = PRINT.y+(layer.y/100)*PRINT.h;
+      const isSel = selected===layer.id && interactive;
+      const aw = layer.type==='text' ? layer.content.length*layer.fontSize*0.58 : layer.fontSize*1.1;
+      const ah = layer.fontSize*1.3;
+      return (
+        <g key={layer.id} transform={`translate(${lx},${ly}) rotate(${layer.rotation})`}
+          style={interactive?{cursor:'move'}:{}}
+          onPointerDown={interactive?(e)=>onLayerDown(e,layer.id):undefined}>
+          <rect x={-aw/2-4} y={-ah/2-2} width={aw+8} height={ah+4} fill="transparent"/>
+          <text textAnchor="middle" dominantBaseline="middle" fontSize={layer.fontSize}
+            fill={layer.color} fontFamily={layer.fontFamily} fontWeight={layer.fontWeight}
+            fontStyle={layer.italic?'italic':'normal'} style={{userSelect:'none'}}>
+            {layer.content}
+          </text>
+          {isSel && <>
+            <rect x={-aw/2-5} y={-ah/2-3} width={aw+10} height={ah+6}
+              fill="rgba(255,77,28,0.06)" stroke="#FF4D1C" strokeWidth="0.8"
+              strokeDasharray="2.5,1.5" rx="2"/>
+            {[[-aw/2-5,-ah/2-3],[aw/2+5,-ah/2-3],[-aw/2-5,ah/2+3],[aw/2+5,ah/2+3]].map(([cx,cy],i)=>
+              <circle key={i} cx={cx} cy={cy} r="2" fill="#FF4D1C"/>)}
+          </>}
+        </g>
+      );
     });
   }
 
-  // Auto-advance (step3 via effect; steps 1+2 via event handlers below)
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { if (step3Done) setActiveStep(s => s === 3 ? 4 : s); }, [step3Done]);
+  function ShirtCanvas({w,h,interactive=true}:{w:number;h:number;interactive?:boolean}) {
+    const s = w/SVG_W;
+    return (
+      <svg width={w} height={h} viewBox={`0 0 ${SVG_W} ${SVG_H}`} fill="none">
+        <defs>
+          <filter id="cs"><feDropShadow dx="0" dy="10" stdDeviation="18" floodColor="rgba(0,0,0,0.7)"/></filter>
+          <linearGradient id="cg" x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0%" stopColor={color.hex} stopOpacity="1"/>
+            <stop offset="100%" stopColor={color.hex} stopOpacity="0.88"/>
+          </linearGradient>
+          <linearGradient id="ch" x1="0.15" y1="0" x2="0.85" y2="0.5">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.13)"/>
+            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <clipPath id="ccb"><rect x="56" y="82" width="88" height="130"/></clipPath>
+          <clipPath id="ccf"><path d={SHIRT_PATH}/></clipPath>
+        </defs>
+        <path d={SHIRT_PATH} fill="url(#cg)" filter="url(#cs)"/>
+        <path d={SHIRT_PATH} fill="url(#ch)"/>
+        <path d="M32 57 L2 82 L26 97 L21 222 L34 222 L34 97 L26 97 L2 82 L32 57Z" fill="rgba(0,0,0,0.07)"/>
+        <path d="M168 57 L198 82 L174 97 L179 222 L166 222 L166 97 L174 97 L198 82 L168 57Z" fill="rgba(0,0,0,0.05)"/>
+        <path d="M56 72 Q71 51 100 49 Q129 51 144 72 Q129 59 100 57 Q71 59 56 72Z" fill="rgba(0,0,0,0.2)"/>
 
-  const total = (design?.price ?? BASE_PRICE) + SHIPPING_PRICE;
-
-  function fmtCard(v: string) { return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim(); }
-  function fmtExp(v: string) { const d = v.replace(/\D/g,'').slice(0,4); return d.length > 2 ? d.slice(0,2) + ' / ' + d.slice(2) : d; }
-
-  function handleAI() {
-    if (!aiPrompt.trim()) return;
-    setAiLoading(true);
-    setTimeout(() => { setDesign(DESIGNS[5]); setAiLoading(false); if (activeStep === 2) setActiveStep(3); }, 2000);
-  }
-
-  function handleRemix() {
-    if (!design) return;
-    setRemixLoad(true); setRemixItems(null);
-    setTimeout(() => {
-      setRemixItems(DESIGNS.filter(d => d.id !== design.id).sort(() => Math.random() - 0.5).slice(0, 4));
-      setRemixLoad(false);
-    }, 1500);
-  }
-
-  async function handleOrder() {
-    if (!design || !color || !size) return;
-    setSubmitting(true);
-    try {
-      const svgDataUrl = buildDesignSvg({
-        colorHex: color.hex, textColor: color.textColor,
-        emoji: design.emoji, label: design.title, customText: customText || undefined,
-      });
-      const filePath = await saveDesignFile(svgDataUrl);
-      const result = await submitOrder({
-        customerName: shipName, customerEmail: shipEmail,
-        shippingName: shipName, shippingAddr: shipStreet,
-        shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState,
-        total,
-        design: {
-          title: design.title, emoji: design.emoji, customText: customText || undefined,
-          colorHex: color.hex, colorName: color.name, size, price: design.price,
-          svgDataUrl, filePath: filePath ?? undefined,
-        },
-      });
-      if (result) {
-        setOrderId(result.id);
-        setOrdered(true);
-        try { localStorage.removeItem('pd_studio'); } catch { /* ignore */ }
-      } else {
-        setToast({ msg: 'Failed to save order. Please try again.', type: 'error' });
-      }
-    } catch {
-      setToast({ msg: 'Unexpected error. Please try again.', type: 'error' });
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  function resetStudio() {
-    setOrdered(false); setActiveStep(1);
-    setColor(null); setSize(null); setDesign(null); setCustomText('');
-    setShipName(''); setShipEmail(''); setShipStreet('');
-    setShipCity(''); setShipState(''); setShipZip('');
-    setCardNum(''); setCardExp(''); setCardCvv(''); setCardName('');
-  }
-
-  /* ── Order success ── */
-  if (ordered) return (
-    <main style={{ paddingTop: 60, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5rem 1.5rem' }}>
-      <div style={{ textAlign: 'center', maxWidth: 520 }}>
-        <div style={{ fontSize: 72, marginBottom: 20 }}>🎉</div>
-        <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 12 }}>Order confirmed!</h1>
-        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 6 }}>
-          <strong style={{ color: 'white' }}>{design?.title}</strong> · {color?.name} · Size {size}
-        </p>
-        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginBottom: orderId ? 8 : '2.5rem' }}>
-          Delivery in <span style={{ color: '#10B981' }}>72 hours</span> · Confirmation sent to {shipEmail}
-        </p>
-        {orderId && (
-          <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.7rem', fontFamily: 'monospace', marginBottom: '2.5rem' }}>
-            Order #{orderId.slice(0, 8).toUpperCase()}
-          </p>
+        {/* Uploaded image */}
+        {activeImg && (
+          <image href={activeImg} x={zone.x} y={zone.y} width={zone.w} height={zone.h}
+            preserveAspectRatio={zone.slice?'xMidYMid slice':'xMidYMid meet'}
+            clipPath={`url(#cc${zone.clip==='full'?'f':'b'})`} opacity="0.95"/>
         )}
-        <div style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 18, padding: '1.5rem', marginBottom: '2rem' }}>
-          <p style={{ fontWeight: 700, marginBottom: 6, fontSize: '0.9rem' }}>📸 Earn 10% off your next order</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.78rem', marginBottom: 14 }}>
-            Upload a photo wearing your shirt and we&apos;ll send you a discount code.
-          </p>
-          <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-            Upload photo <input type="file" accept="image/*" style={{ display: 'none' }} />
-          </label>
-        </div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <Link href="/catalog" className="btn btn-primary">Browse more</Link>
-          <button className="btn btn-ghost" onClick={resetStudio}>Create another</button>
+        {/* Chest logo */}
+        {!showBack && uploads.chest && (
+          <image href={uploads.chest} x="66" y="87" width="26" height="26"
+            preserveAspectRatio="xMidYMid meet" clipPath="url(#ccb)" opacity="0.95"/>
+        )}
+        {/* AI SVG */}
+        {!showBack && !uploads.front && aiSvg && (
+          <g transform="translate(71,93)"
+            dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,color.textColor).replace(/<svg[^>]*>/,'').replace('</svg>','').replace(/width="[^"]*"/,'width="58"').replace(/height="[^"]*"/,'height="58"')}}/>
+        )}
+        {/* Print area guide */}
+        {interactive && layers.length===0 && !activeImg && !aiSvg && (
+          <rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h}
+            fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.12)"
+            strokeDasharray="3,2" rx="3" strokeWidth="0.7"/>
+        )}
+        {/* Back label */}
+        {showBack && <text x="100" y="170" textAnchor="middle" fill="rgba(255,255,255,0.18)" fontSize="7" fontWeight="700" letterSpacing="3">BACK</text>}
+        {renderLayers(interactive)}
+      </svg>
+    );
+  }
+
+  // ── Order success ──────────────────────────────────────────
+  if (ordered) return (
+    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#08080c'}}>
+      <div style={{textAlign:'center',maxWidth:380}}>
+        <div style={{fontSize:64,marginBottom:16}}>🎉</div>
+        <h1 style={{fontSize:'1.9rem',fontWeight:900,letterSpacing:'-0.04em',marginBottom:8}}>Order placed!</h1>
+        <p style={{color:'rgba(255,255,255,0.4)',marginBottom:4}}>{color?.name} · Size {size}</p>
+        {orderId && <p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:28}}>#{orderId.slice(0,8).toUpperCase()}</p>}
+        <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+          <button onClick={()=>{setOrdered(false);setLayers([]);setAiSvg(null);setUploads({front:null,back:null,chest:null});}} style={{padding:'0.8rem 1.5rem',borderRadius:12,border:'none',background:'rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.7)',fontWeight:700,cursor:'pointer'}}>Design another</button>
+          <Link href="/catalog" style={{padding:'0.8rem 1.5rem',borderRadius:12,border:'none',background:'linear-gradient(135deg,#FF4D1C,#FF9A00)',color:'#fff',fontWeight:800,textDecoration:'none',display:'inline-flex',alignItems:'center'}}>Browse catalog</Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 
-  /* ── Studio ── */
+  // ──────────────────────────────────────────────────────────
   return (
-    <main style={{ paddingTop: 60, minHeight: '100vh' }}>
-      {showGroup && <GroupOrderModal onClose={() => setShowGroup(false)} />}
-      {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} selected={size} />}
-      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'#08080c',color:'white',overflow:'hidden'}}>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem 1rem' }}>
-        <h1 style={{ fontSize: '1.35rem', fontWeight: 900, letterSpacing: '-0.03em' }}>Design Studio</h1>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', marginTop: 4 }}>Complete each step to unlock the next</p>
-      </div>
+      {/* Fullscreen */}
+      {fullscreen && (
+        <div style={{position:'fixed',inset:0,zIndex:9999,background:'radial-gradient(ellipse at 50% 38%,rgba(22,22,32,1) 0%,rgba(4,4,6,1) 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',animation:'fsIn 0.25s ease'}}
+          onClick={()=>setFullscreen(false)}>
+          <div style={{filter:'drop-shadow(0 40px 80px rgba(0,0,0,0.9))'}}>
+            <ShirtCanvas w={480} h={552} interactive={false}/>
+          </div>
+          <p style={{marginTop:28,color:'rgba(255,255,255,0.18)',fontSize:'0.72rem',letterSpacing:'0.08em'}}>TAP ANYWHERE TO CLOSE</p>
+          <button onClick={e=>{e.stopPropagation();setFullscreen(false);}} style={{position:'absolute',top:24,right:28,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:10,padding:'8px 18px',color:'rgba(255,255,255,0.6)',fontSize:'0.78rem',fontWeight:700,cursor:'pointer'}}>✕ Close</button>
+        </div>
+      )}
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem 4rem', display: 'grid', gap: '2rem', alignItems: 'start' }}
-        className="lg:grid-cols-[1fr_360px]">
+      {/* Header */}
+      <header style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 20px',gap:12,background:'rgba(8,8,12,0.97)',backdropFilter:'blur(12px)'}}>
+        <Link href="/catalog" style={{color:'rgba(255,255,255,0.25)',fontSize:'0.76rem',textDecoration:'none',fontWeight:600}}>← Back</Link>
+        <div style={{width:1,height:16,background:'rgba(255,255,255,0.08)'}}/>
+        <span style={{fontWeight:900,fontSize:'0.92rem',letterSpacing:'-0.03em',flex:1}}>✏️ Create your shirt</span>
+        {layers.length>0 && <span style={{background:'rgba(255,77,28,0.12)',border:'1px solid rgba(255,77,28,0.2)',borderRadius:20,padding:'3px 10px',fontSize:'0.62rem',fontWeight:700,color:'#FF6B3D'}}>{layers.length} layer{layers.length!==1?'s':''}</span>}
+        <button onClick={()=>setFullscreen(true)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'5px 13px',color:'rgba(255,255,255,0.5)',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.04em'}}>⛶ PREVIEW</button>
+      </header>
 
-        {/* ── LEFT: steps ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Body */}
+      <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 340px',overflow:'hidden',minHeight:0}}>
 
-          {/* ══ STEP 1: Shirt ══ */}
-          <StepShell n={1} title="Choose your shirt"
-            status={activeStep === 1 ? 'active' : step1Done ? 'done' : 'locked'}
-            summary={step1Done ? `${color!.name} · Size ${size}` : undefined}
-            onEdit={() => setActiveStep(1)}>
+        {/* ── CANVAS ────────────────────────────────────── */}
+        <div style={{background:'radial-gradient(ellipse at 50% 35%,rgba(18,18,28,1) 0%,rgba(5,5,9,1) 100%)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}
+          onClick={()=>setSelected(null)}>
+          {/* Grid */}
+          <div style={{position:'absolute',inset:0,pointerEvents:'none',opacity:0.035,backgroundImage:'linear-gradient(rgba(255,255,255,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.6) 1px,transparent 1px)',backgroundSize:'36px 36px'}}/>
 
-            <div style={{ marginBottom: '1.75rem' }}>
-              <div className="label" style={{ marginBottom: 14 }}>
-                Select a color
-                {color && <span style={{ color: 'rgba(255,255,255,0.5)', textTransform: 'none', letterSpacing: 0, fontWeight: 500, marginLeft: 8 }}>— {color.name}</span>}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {SHIRT_COLORS.map(c => (
-                  <button key={c.id} title={c.name}
-                    onClick={() => { setColor(c); if (size !== null && activeStep === 1) setActiveStep(2); }}
-                    style={{
-                      width: 44, height: 44, borderRadius: '50%', border: 'none', background: c.hex, cursor: 'pointer',
-                      outline: color?.id === c.id ? '3px solid #FF4D1C' : '2px solid rgba(255,255,255,0.08)',
-                      outlineOffset: 3,
-                      boxShadow: color?.id === c.id ? '0 0 18px rgba(255,77,28,0.45)' : 'none',
-                      transition: 'all 0.15s',
-                      transform: color?.id === c.id ? 'scale(1.1)' : 'scale(1)',
-                    }} />
+          {/* Front/Back toggle */}
+          <div style={{position:'absolute',top:16,left:16,background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:3,display:'flex',gap:3,backdropFilter:'blur(8px)'}}>
+            {['Front','Back'].map(s=>(
+              <button key={s} onClick={e=>{e.stopPropagation();setShowBack(s==='Back');}} style={{padding:'5px 12px',borderRadius:7,border:'none',cursor:'pointer',background:(s==='Back')===showBack?'rgba(255,255,255,0.1)':'transparent',color:(s==='Back')===showBack?'white':'rgba(255,255,255,0.3)',fontSize:'0.67rem',fontWeight:700,letterSpacing:'0.05em'}}>{s}</button>
+            ))}
+          </div>
+
+          {/* Fullscreen btn */}
+          <button onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:16,right:16,background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'6px 13px',color:'rgba(255,255,255,0.55)',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(8px)',letterSpacing:'0.04em',transition:'all 0.15s'}}
+            onMouseEnter={e=>{(e.currentTarget.style.background='rgba(255,77,28,0.2)');(e.currentTarget.style.color='#FF8C40');}}
+            onMouseLeave={e=>{(e.currentTarget.style.background='rgba(0,0,0,0.55)');(e.currentTarget.style.color='rgba(255,255,255,0.55)');}}>
+            ⛶ FULLSCREEN
+          </button>
+
+          {/* Shirt */}
+          <div ref={canvasRef} style={{filter:'drop-shadow(0 36px 64px rgba(0,0,0,0.8))',animation:'shirtIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
+            <ShirtCanvas w={340} h={391}/>
+          </div>
+
+          {/* Selected info bar */}
+          {selLayer && (
+            <div style={{position:'absolute',bottom:18,background:'rgba(8,8,14,0.92)',border:'1px solid rgba(255,77,28,0.2)',borderRadius:10,padding:'6px 14px',display:'flex',alignItems:'center',gap:10,backdropFilter:'blur(8px)',fontSize:'0.7rem',animation:'fadeUp 0.15s ease'}}>
+              <span style={{color:'rgba(255,255,255,0.35)'}}>Selected:</span>
+              <span style={{fontWeight:700,color:'#FF8C40',maxWidth:110,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{selLayer.content}</span>
+              <span style={{color:'rgba(255,255,255,0.2)'}}>·</span>
+              <span style={{color:'rgba(255,255,255,0.3)'}}>Drag to move · Del to remove</span>
+              <button onClick={()=>deleteLayer(selLayer.id)} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:6,padding:'3px 8px',color:'#f87171',fontSize:'0.62rem',fontWeight:700,cursor:'pointer'}}>✕</button>
+            </div>
+          )}
+
+          {/* Empty hint */}
+          {layers.length===0&&!activeImg&&!aiSvg&&!showBack&&(
+            <div style={{position:'absolute',bottom:18,textAlign:'center',pointerEvents:'none',animation:'fadeUp 0.5s ease 0.3s both'}}>
+              <p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.7rem',letterSpacing:'0.05em'}}>Add text, graphics, or upload an image →</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT PANEL ───────────────────────────────── */}
+        <div style={{borderLeft:'1px solid rgba(255,255,255,0.07)',display:'flex',flexDirection:'column',background:'rgba(9,9,14,1)',overflow:'hidden'}}>
+
+          {/* Main tabs */}
+          <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+            {([['design','✏','Design'],['shirt','👕','Shirt'],['order','🛒','Order']] as const).map(([id,icon,label])=>(
+              <button key={id} onClick={()=>setRightTab(id)} style={{flex:1,padding:'12px 4px',border:'none',background:'none',cursor:'pointer',color:rightTab===id?'white':'rgba(255,255,255,0.28)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',borderBottom:`2px solid ${rightTab===id?'#FF4D1C':'transparent'}`,marginBottom:-1,transition:'all 0.15s',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                <span style={{fontSize:'0.95rem'}}>{icon}</span>{label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          <div style={{flex:1,overflowY:'auto',padding:'14px',minHeight:0}}>
+
+            {/* ─ DESIGN TAB ─ */}
+            {rightTab==='design' && <>
+              {/* Sub-tabs */}
+              <div style={{display:'flex',background:'rgba(0,0,0,0.4)',borderRadius:9,padding:3,gap:2,marginBottom:14}}>
+                {([['text','✏ Text'],['upload','📁 Upload'],['ai','✨ AI'],['gfx','✦ Graphics']] as const).map(([id,label])=>(
+                  <button key={id} onClick={()=>setDesignTab(id)} style={{flex:1,padding:'5px 2px',borderRadius:6,border:'none',cursor:'pointer',background:designTab===id?'rgba(255,255,255,0.08)':'transparent',color:designTab===id?'white':'rgba(255,255,255,0.3)',fontSize:'0.6rem',fontWeight:700,transition:'all 0.13s'}}>{label}</button>
                 ))}
               </div>
-            </div>
 
-            <div>
-              <div className="label" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>Select a size</span>
-                {size && <span style={{ color: 'rgba(255,255,255,0.5)', textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>— {size}</span>}
-                <button onClick={() => setShowSizeGuide(true)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '2px 9px', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', textTransform: 'none', letterSpacing: 0 }}>
-                  📏 Size Guide
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                {SHIRT_SIZES.map(s => (
-                  <button key={s}
-                    onClick={() => { setSize(s); if (color !== null && activeStep === 1) setActiveStep(2); }}
-                    style={{
-                      minWidth: 56, height: 56, borderRadius: 12, cursor: 'pointer',
-                      border: `1.5px solid ${size === s ? '#FF4D1C' : 'rgba(255,255,255,0.08)'}`,
-                      background: size === s ? 'rgba(255,77,28,0.12)' : 'rgba(255,255,255,0.02)',
-                      color: size === s ? '#FF8C40' : 'rgba(255,255,255,0.4)',
-                      fontWeight: 700, fontSize: '0.875rem', transition: 'all 0.15s',
-                      boxShadow: size === s ? '0 0 16px rgba(255,77,28,0.25)' : 'none',
-                      transform: size === s ? 'scale(1.05)' : 'scale(1)',
-                    }}>{s}</button>
-                ))}
-              </div>
-              <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.72rem' }}>
-                Unisex · 100% ring-spun cotton · Pre-shrunk · Machine washable
-              </p>
-            </div>
-
-            {!step1Done && (
-              <p style={{ marginTop: '1.25rem', color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem' }}>
-                {!color ? '← Pick a color to continue' : '← Pick a size to continue'}
-              </p>
-            )}
-          </StepShell>
-
-          {/* ══ STEP 2: Design ══ */}
-          <StepShell n={2} title="Choose a design"
-            status={step1Done ? (activeStep === 2 ? 'active' : step2Done ? 'done' : 'active') : 'locked'}
-            summary={step2Done ? `${design!.title} — $${design!.price}` : undefined}
-            onEdit={() => { if (step1Done) setActiveStep(2); }}>
-
-            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.35)', borderRadius: 12, padding: 3, marginBottom: '1.5rem', gap: 3, width: 'fit-content' }}>
-              {(['catalog','ai','photo'] as const).map((id) => {
-                const labels = { catalog: '📋 Catalog', ai: '✦ AI', photo: '📸 Photo' };
-                return (
-                  <button key={id} onClick={() => setDesignTab(id)} style={{
-                    padding: '7px 16px', borderRadius: 9, border: 'none',
-                    background: designTab === id ? 'rgba(255,255,255,0.09)' : 'transparent',
-                    color: designTab === id ? 'white' : 'rgba(255,255,255,0.3)',
-                    fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s',
-                  }}>{labels[id]}</button>
-                );
-              })}
-            </div>
-
-            {designTab === 'catalog' && (
-              <div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                  {CATEGORIES.map(c => (
-                    <button key={c} onClick={() => setCatFilter(c)} style={{
-                      padding: '5px 12px', borderRadius: 999, border: '1px solid',
-                      borderColor: catFilter === c ? 'rgba(255,77,28,0.5)' : 'rgba(255,255,255,0.07)',
-                      background: catFilter === c ? 'rgba(255,77,28,0.08)' : 'transparent',
-                      color: catFilter === c ? '#FF8C40' : 'rgba(255,255,255,0.3)',
-                      fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                    }}>{c}</button>
-                  ))}
+              {/* TEXT */}
+              {designTab==='text' && <div style={{display:'flex',flexDirection:'column',gap:13}}>
+                <div>
+                  <div style={LS}>Your Text</div>
+                  <div style={{display:'flex',gap:6}}>
+                    <input value={textInput} onChange={e=>setTextInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addText()} placeholder="Type something..." style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'9px 11px',color:'white',fontSize:'0.83rem',outline:'none'}} onFocus={e=>(e.target.style.borderColor='rgba(255,77,28,0.5)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.1)')}/>
+                    <button onClick={addText} disabled={!textInput.trim()} style={{width:40,borderRadius:9,border:'none',background:textInput.trim()?'linear-gradient(135deg,#FF4D1C,#FF9A00)':'rgba(255,255,255,0.05)',color:textInput.trim()?'white':'rgba(255,255,255,0.15)',fontSize:'1.1rem',fontWeight:700,cursor:textInput.trim()?'pointer':'default',transition:'all 0.15s'}}>+</button>
+                  </div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
+                    {['YOUR NAME','EST. 2025','ORIGINAL','NO RULES'].map(t=>(
+                      <button key={t} onClick={()=>setTextInput(t)} style={{padding:'3px 8px',borderRadius:20,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.35)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer'}}>{t}</button>
+                    ))}
+                  </div>
                 </div>
-                {wishlist.length > 0 && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>❤ Saved</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {DESIGNS.filter(d => wishlist.includes(d.id)).map(d => (
-                        <button key={d.id} onClick={() => { setDesign(d); if (activeStep === 2) setActiveStep(3); }}
-                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: design?.id === d.id ? 'rgba(255,77,28,0.12)' : 'rgba(255,255,255,0.04)', border: `1px solid ${design?.id === d.id ? 'rgba(255,77,28,0.4)' : 'rgba(255,255,255,0.08)'}`, cursor: 'pointer', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
-                          <span>{d.emoji}</span><span>{d.title}</span>
-                        </button>
-                      ))}
-                    </div>
+                <div>
+                  <div style={LS}>Font</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5}}>
+                    {FONTS.map(f=>(
+                      <button key={f.id} onClick={()=>{setFontFam(f.id);if(selected)updateLayer(selected,{fontFamily:f.id});}} style={{padding:'8px',borderRadius:8,cursor:'pointer',background:fontFam===f.id?'rgba(255,77,28,0.1)':'rgba(255,255,255,0.03)',border:`1.5px solid ${fontFam===f.id?'rgba(255,77,28,0.4)':'rgba(255,255,255,0.07)'}`,color:fontFam===f.id?'#FF8C40':'rgba(255,255,255,0.4)',fontSize:'0.75rem',fontWeight:600,fontFamily:f.id,transition:'all 0.13s'}}>{f.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Size</span><span style={{color:'#FF8C40'}}>{fontSize}px</span></div>
+                  <input type="range" min={8} max={64} value={fontSize} onChange={e=>{const v=+e.target.value;setFontSize(v);if(selected)updateLayer(selected,{fontSize:v});}} style={{width:'100%',accentColor:'#FF4D1C'}}/>
+                </div>
+                <div>
+                  <div style={LS}>Style</div>
+                  <div style={{display:'flex',gap:5}}>
+                    <button onClick={()=>{const n:typeof fontWeight=fontWeight==='bold'?'normal':'bold';setFontWeight(n);if(selected)updateLayer(selected,{fontWeight:n});}} style={{width:42,height:38,borderRadius:8,cursor:'pointer',background:fontWeight==='bold'?'rgba(255,77,28,0.1)':'rgba(255,255,255,0.04)',border:`1.5px solid ${fontWeight==='bold'?'rgba(255,77,28,0.35)':'rgba(255,255,255,0.07)'}`,color:fontWeight==='bold'?'#FF8C40':'rgba(255,255,255,0.35)',fontWeight:'bold',fontSize:'0.9rem',transition:'all 0.13s'}}>B</button>
+                    <button onClick={()=>{const n=!italic;setItalic(n);if(selected)updateLayer(selected,{italic:n});}} style={{width:42,height:38,borderRadius:8,cursor:'pointer',background:italic?'rgba(255,77,28,0.1)':'rgba(255,255,255,0.04)',border:`1.5px solid ${italic?'rgba(255,77,28,0.35)':'rgba(255,255,255,0.07)'}`,color:italic?'#FF8C40':'rgba(255,255,255,0.35)',fontStyle:'italic',fontWeight:700,fontSize:'0.9rem',transition:'all 0.13s'}}>I</button>
+                  </div>
+                </div>
+                <div>
+                  <div style={LS}>Color</div>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+                    {TEXT_COLORS.map(c=>(
+                      <button key={c} onClick={()=>{setTextColor(c);if(selected)updateLayer(selected,{color:c});}} style={{width:28,height:28,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2.5px solid #FF4D1C':'2px solid rgba(255,255,255,0.08)',outlineOffset:2,transition:'all 0.12s',transform:textColor===c?'scale(1.18)':'scale(1)'}}/>
+                    ))}
+                    <label style={{width:28,height:28,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.12)',fontSize:'0.85rem',position:'relative'}}>
+                      +<input type="color" value={textColor} onChange={e=>{setTextColor(e.target.value);if(selected)updateLayer(selected,{color:e.target.value});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
+                    </label>
+                  </div>
+                </div>
+                {selLayer && selLayer.type==='text' && (
+                  <div style={{background:'rgba(255,77,28,0.05)',border:'1px solid rgba(255,77,28,0.15)',borderRadius:9,padding:10}}>
+                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Rotation</span><span style={{color:'#FF8C40'}}>{selLayer.rotation}°</span></div>
+                    <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#FF4D1C'}}/>
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(115px,1fr))', gap: '0.6rem' }}>
-                  {DESIGNS.filter(d => catFilter === 'All' || d.category === catFilter).map(d => (
-                    <div key={d.id} style={{ position: 'relative' }}>
-                      <button
-                        onClick={() => { setDesign(d); if (activeStep === 2) setActiveStep(3); }}
-                        style={{
-                          width: '100%', borderRadius: 14, padding: '1rem 0.5rem', cursor: 'pointer', textAlign: 'center',
-                          border: `1.5px solid ${design?.id === d.id ? '#FF4D1C' : 'rgba(255,255,255,0.06)'}`,
-                          background: design?.id === d.id ? 'rgba(255,77,28,0.09)' : 'rgba(255,255,255,0.02)',
-                          transition: 'all 0.15s',
-                          boxShadow: design?.id === d.id ? '0 0 20px rgba(255,77,28,0.2)' : 'none',
-                          transform: design?.id === d.id ? 'scale(1.03)' : 'scale(1)',
-                        }}>
-                        <div style={{ fontSize: 34, marginBottom: 6 }}>{d.emoji}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{d.title}</div>
-                        <div style={{ color: '#FF5C28', fontSize: '0.75rem', fontWeight: 800 }}>${d.price}</div>
-                      </button>
-                      <button onClick={() => toggleWishlist(d.id)} style={{
-                        position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%',
-                        background: wishlist.includes(d.id) ? 'rgba(255,77,28,0.2)' : 'rgba(0,0,0,0.5)',
-                        border: `1px solid ${wishlist.includes(d.id) ? 'rgba(255,77,28,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                        color: wishlist.includes(d.id) ? '#FF6B3D' : 'rgba(255,255,255,0.3)',
-                        fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.15s',
-                      }}>♥</button>
-                    </div>
+              </div>}
+
+              {/* UPLOAD */}
+              {designTab==='upload' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                <div style={{display:'flex',gap:5}}>
+                  {([['front','👕 Front',uploads.front],['back','↩️ Back',uploads.back],['chest','❤️ Chest',uploads.chest]] as [UploadSlot,string,string|null][]).map(([slot,label,img])=>(
+                    <button key={slot} onClick={()=>setUploadSlot(slot)} style={{flex:1,padding:'6px 4px',borderRadius:8,border:'1px solid',borderColor:uploadSlot===slot?'rgba(255,77,28,0.4)':'rgba(255,255,255,0.08)',background:uploadSlot===slot?'rgba(255,77,28,0.07)':'transparent',color:uploadSlot===slot?'#FF8C40':'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
+                      {label}{img&&<span style={{width:5,height:5,borderRadius:'50%',background:'#10B981',flexShrink:0}}/>}
+                    </button>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {designTab === 'ai' && (
-              <div style={{ background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 16, padding: '1.5rem' }}>
-                <div style={{ fontWeight: 700, color: '#a78bfa', marginBottom: '1rem', fontSize: '0.9rem' }}>✦ Describe your design</div>
-                <textarea className="input" value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} rows={3}
-                  placeholder="e.g. A lone wolf under a neon moon, cyberpunk style..." />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '0.75rem 0' }}>
-                  {['Minimalist logo','Retro sunset','Abstract art','Bold type'].map(h => (
-                    <button key={h} onClick={() => setAiPrompt(h)} style={{
-                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: 999, color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', padding: '4px 10px', cursor: 'pointer',
-                    }}>+ {h}</button>
-                  ))}
+                <div onDragEnter={e=>{e.preventDefault();setFileDragging(true);}} onDragLeave={()=>setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();setFileDragging(false);const f=e.dataTransfer.files[0];if(f)handleFile(f);}} onClick={()=>fileRef.current?.click()}
+                  style={{border:`2px dashed ${fileDragging?'rgba(255,77,28,0.5)':uploads[uploadSlot]?'rgba(16,185,129,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:'1.5rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(255,77,28,0.04)':uploads[uploadSlot]?'rgba(16,185,129,0.03)':'rgba(255,255,255,0.01)',transition:'all 0.2s'}}>
+                  <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);e.target.value='';}}/>
+                  {uploads[uploadSlot]
+                    ? <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:120,borderRadius:6,objectFit:'contain'}}/><div style={{textAlign:'left'}}><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>✓ Uploaded</div><div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.3)',marginTop:2}}>Click to replace</div></div></div>
+                    : <><div style={{fontSize:28,marginBottom:6}}>📁</div><div style={{fontWeight:700,color:'rgba(255,255,255,0.6)',fontSize:'0.8rem',marginBottom:4}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.28)'}}>PNG, JPG, SVG · click to browse</div></>}
                 </div>
-                <button className="btn btn-primary" onClick={handleAI} disabled={aiLoading || !aiPrompt.trim()}
-                  style={{ opacity: aiLoading || !aiPrompt.trim() ? 0.4 : 1 }}>
-                  {aiLoading ? '✦ Generating...' : '✦ Generate'}
-                </button>
-                {design && designTab === 'ai' && !aiLoading && (
-                  <p style={{ color: '#10B981', fontSize: '0.78rem', marginTop: 10 }}>✓ Design ready: {design.title}</p>
-                )}
-              </div>
-            )}
+                {uploadSlot!=='chest' && <div>
+                  <div style={LS}>Position</div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                    {(Object.keys(POS_LABELS) as ImagePos[]).map(p=>(
+                      <button key={p} onClick={()=>setImgPos(prev=>({...prev,[uploadSlot==='front'?'front':'back']:p}))} style={{padding:'4px 10px',borderRadius:999,border:'1px solid',borderColor:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(255,77,28,0.45)':'rgba(255,255,255,0.08)',background:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(255,77,28,0.08)':'transparent',color:imgPos[uploadSlot==='front'?'front':'back']===p?'#FF8C40':'rgba(255,255,255,0.35)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',transition:'all 0.13s'}}>{POS_LABELS[p]}</button>
+                    ))}
+                  </div>
+                </div>}
+                {uploads[uploadSlot] && <button onClick={()=>setUploads(p=>({...p,[uploadSlot]:null}))} style={{padding:'7px',borderRadius:9,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.07)',color:'#f87171',fontSize:'0.7rem',fontWeight:700,cursor:'pointer'}}>🗑 Remove image</button>}
+              </div>}
 
-            {designTab === 'photo' && (
-              <PhotoToDesign onDesignGenerated={(emoji, label) => {
-                setDesign({ ...DESIGNS[5], emoji, title: label });
-                if (activeStep === 2) setActiveStep(3);
-              }} />
-            )}
-
-            {/* Custom text on shirt */}
-            <div style={{ marginTop: '1.25rem', borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>✏ Custom text on shirt (optional)</div>
-              <div style={{ position: 'relative' }}>
-                <input className="input" value={customText} onChange={e => setCustomText(e.target.value)} maxLength={22}
-                  placeholder="e.g. YOUR NAME, EST. 2025..."
-                  style={{ paddingRight: customText ? 48 : 14, background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: '0.85rem' }} />
-                {customText && (
-                  <button onClick={() => setCustomText('')} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, padding: 2 }}>×</button>
-                )}
-              </div>
-              {customText && <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>Appears on the shirt — visible in the 3D preview</p>}
-            </div>
-
-            {design && (
-              <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: remixItems ? 12 : 0 }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>✦ Remix variations</span>
-                  <button className="btn btn-ghost btn-sm" onClick={handleRemix} disabled={remixLoad}>
-                    {remixLoad ? '...' : 'Generate →'}
+              {/* AI */}
+              {designTab==='ai' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                <div>
+                  <div style={LS}>Describe your design</div>
+                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain with bold typography EXPLORE..." rows={4} style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:10,padding:'10px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.6}}/>
+                </div>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <button onClick={generateAI} disabled={!aiPrompt.trim()||aiLoading} style={{flex:1,padding:'10px',borderRadius:10,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#FF4D1C,#FF9A00)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#fff':'rgba(255,255,255,0.2)',fontWeight:800,fontSize:'0.82rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s'}}>
+                    {aiLoading?`Generating... ${Math.round(aiProgress)}%`:aiSvg?'↻ Regenerate':'✨ Generate'}
                   </button>
                 </div>
-                {remixItems && !remixLoad && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 4 }}>
-                    {remixItems.map((d, i) => (
-                      <button key={d.id} onClick={() => setDesign(d)} style={{
-                        borderRadius: 10, padding: '0.75rem 0.25rem',
-                        border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)',
-                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
-                      }}>
-                        <div style={{ fontSize: 26 }}>{d.emoji}</div>
-                        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>
-                          {(['Darker','Neon','Minimal','Retro'] as const)[i]}
-                        </div>
+                {aiLoading && <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}><div style={{height:'100%',width:`${aiProgress}%`,background:'linear-gradient(90deg,#FF4D1C,#FF9A00)',borderRadius:999,transition:'width 0.2s'}}/></div>}
+                {aiSvg && !aiLoading && <div style={{padding:'10px',background:'rgba(16,185,129,0.05)',border:'1px solid rgba(16,185,129,0.15)',borderRadius:10,display:'flex',gap:10,alignItems:'center'}}><div style={{width:48,height:48,background:'rgba(255,255,255,0.03)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:36,height:36}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="36" height="36" ')}}/></div><div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>✓ Design ready</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.4)',marginTop:2}}>Showing on shirt preview</div></div><button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.2)',cursor:'pointer',fontSize:16}}>×</button></div>}
+                <div>
+                  <div style={LS}>Inspiration</div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                    {['Minimalist mountain','Neon dragon','Bold street art','Abstract waves','Vintage logo'].map(p=>(
+                      <button key={p} onClick={()=>setAiPrompt(p)} style={{padding:'4px 9px',borderRadius:20,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:600,cursor:'pointer'}}>{p}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>}
+
+              {/* GRAPHICS */}
+              {designTab==='gfx' && <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                <div>
+                  <div style={LS}>Emoji & Icons</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5}}>
+                    {EMOJIS.map(e=>(
+                      <button key={e} onClick={()=>addGfx(e)} style={{padding:'9px 2px',borderRadius:9,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',fontSize:'1.25rem',transition:'all 0.12s',lineHeight:1}}
+                        onMouseEnter={x=>{(x.currentTarget.style.background='rgba(255,77,28,0.12)');(x.currentTarget.style.transform='scale(1.12)');}}
+                        onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.04)');(x.currentTarget.style.transform='scale(1)');}}>
+                        {e}
                       </button>
                     ))}
                   </div>
+                </div>
+                {selLayer && (
+                  <div style={{background:'rgba(255,77,28,0.05)',border:'1px solid rgba(255,77,28,0.15)',borderRadius:9,padding:10}}>
+                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Size</span><span style={{color:'#FF8C40'}}>{selLayer.fontSize}px</span></div>
+                    <input type="range" min={12} max={80} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#FF4D1C'}}/>
+                    <div style={{marginTop:8,...LS,display:'flex',justifyContent:'space-between'}}><span>Rotation</span><span style={{color:'#FF8C40'}}>{selLayer.rotation}°</span></div>
+                    <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#FF4D1C'}}/>
+                  </div>
                 )}
-              </div>
-            )}
+              </div>}
+            </>}
 
-            {!step2Done && (
-              <p style={{ marginTop: '1.25rem', color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem' }}>
-                ← Select a design to continue
-              </p>
-            )}
-          </StepShell>
-
-          {/* ══ STEP 3: Delivery ══ */}
-          <StepShell n={3} title="Delivery"
-            status={step1Done && step2Done ? (activeStep === 3 ? 'active' : step3Done ? 'done' : 'active') : 'locked'}
-            summary={step3Done ? `${shipName} · ${shipCity}, ${shipState} ${shipZip}` : undefined}
-            onEdit={() => { if (step1Done && step2Done) setActiveStep(3); }}>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-              {/* Contact panel */}
-              <div style={{ borderRadius: 18, background: 'linear-gradient(160deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))', border: '1px solid rgba(255,255,255,0.09)', overflow: 'hidden' }}>
-                <div style={{ height: 2, background: 'linear-gradient(90deg,#FF4D1C,#FF9A00,transparent)' }} />
-                <div style={{ padding: '1rem 1.25rem 0.875rem', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,rgba(255,77,28,0.3),rgba(255,154,0,0.15))', border: '1px solid rgba(255,77,28,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✉</div>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)' }}>Contact Info</div>
-                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>Where we send your tracking number</div>
-                  </div>
-                  {shipName.trim().length > 1 && shipEmail.includes('@') && (
-                    <div style={{ marginLeft: 'auto', width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg,#10B981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'white', fontWeight: 800 }}>✓</div>
-                  )}
-                </div>
-                <div className="studio-2col" style={{ padding: '1.125rem 1.25rem' }}>
-                  <LabeledField label="Full Name" value={shipName} onChange={setShipName} valid={shipName.trim().length > 1} placeholder="Jane Smith" />
-                  <LabeledField label="Email Address" type="email" value={shipEmail} onChange={setShipEmail} valid={shipEmail.includes('@') && shipEmail.includes('.')} placeholder="you@example.com" />
-                </div>
-              </div>
-
-              {/* Address panel */}
-              <div style={{ borderRadius: 18, background: 'linear-gradient(160deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))', border: '1px solid rgba(255,255,255,0.09)', overflow: 'hidden' }}>
-                <div style={{ height: 2, background: 'linear-gradient(90deg,#6C63FF,#8B5CF6,transparent)' }} />
-                <div style={{ padding: '1rem 1.25rem 0.875rem', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,rgba(108,99,255,0.3),rgba(139,92,246,0.15))', border: '1px solid rgba(108,99,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📍</div>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)' }}>Shipping Address</div>
-                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>Delivering within the United States 🇺🇸</div>
-                  </div>
-                  {shipStreet.length > 3 && shipCity.length > 1 && shipState && shipZip.length === 5 && (
-                    <div style={{ marginLeft: 'auto', width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg,#10B981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'white', fontWeight: 800 }}>✓</div>
-                  )}
-                </div>
-                <div style={{ padding: '1.125rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <LabeledField label="Street Address" value={shipStreet} onChange={setShipStreet} valid={shipStreet.trim().length > 3} placeholder="123 Main St, Apt 4B" />
-                  <div className="studio-3col">
-                    <LabeledField label="City" value={shipCity} onChange={setShipCity} valid={shipCity.trim().length > 1} placeholder="New York" />
-                    <div>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>State</div>
-                      <div style={{ position: 'relative' }}>
-                        <select value={shipState} onChange={e => setShipState(e.target.value)} style={{
-                          width: '100%', appearance: 'none',
-                          background: 'rgba(255,255,255,0.06)',
-                          border: `1.5px solid ${shipState ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                          borderRadius: 10, padding: '0.65rem 1.75rem 0.65rem 0.75rem',
-                          color: shipState ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.28)',
-                          fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', outline: 'none',
-                          transition: 'border-color 0.15s',
-                        }}>
-                          <option value="">ST</option>
-                          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        {!shipState && <div style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'rgba(255,255,255,0.25)', fontSize:9 }}>▾</div>}
-                        {shipState && <Checkmark />}
-                      </div>
-                    </div>
-                    <LabeledField label="ZIP" value={shipZip} onChange={v => setShipZip(v.replace(/\D/g,'').slice(0,5))} valid={shipZip.length === 5} placeholder="10001" mono />
-                  </div>
-                </div>
-              </div>
-
-              <button onClick={() => setShowGroup(true)} style={{
-                padding: '0.875rem 1.25rem', borderRadius: 14, cursor: 'pointer',
-                background: 'linear-gradient(135deg,rgba(139,92,246,0.06),rgba(139,92,246,0.02))',
-                border: '1px dashed rgba(139,92,246,0.22)',
-                color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', fontWeight: 600,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s',
-              }}>
-                <span style={{ fontSize: 16 }}>👥</span>
-                Group order — everyone picks their size
-                <span style={{ fontSize: '0.58rem', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa', padding: '2px 8px', borderRadius: 999, fontWeight: 800, letterSpacing: '0.06em' }}>TEAM</span>
-              </button>
-            </div>
-          </StepShell>
-
-          {/* ══ STEP 4: Payment ══ */}
-          <StepShell n={4} title="Payment"
-            status={step3Done ? (activeStep === 4 ? 'active' : step4Done ? 'done' : 'active') : 'locked'}
-            summary={step4Done ? (payMethod === 'card' ? `Card ···· ${cardNum.replace(/\s/g,'').slice(-4)}` : payMethod) : undefined}
-            onEdit={() => { if (step3Done) setActiveStep(4); }}>
-
-            <div className="studio-4col" style={{ marginBottom: '1.75rem' }}>
-              {([
-                { id: 'card',   bg: 'linear-gradient(135deg,#1a1a2e,#16213e)', accent: '#6C63FF', icon: '💳', label: 'Card' },
-                { id: 'apple',  bg: 'linear-gradient(135deg,#1a1a1a,#2d2d2d)', accent: '#fff',    icon: '',    label: 'Apple Pay' },
-                { id: 'google', bg: 'linear-gradient(135deg,#1a2a1a,#1f3a1f)', accent: '#34A853', icon: 'G',   label: 'Google Pay' },
-                { id: 'paypal', bg: 'linear-gradient(135deg,#001a3a,#003087)', accent: '#009CDE', icon: 'P',   label: 'PayPal' },
-              ] as const).map(m => {
-                const active = payMethod === m.id;
-                return (
-                  <button key={m.id} onClick={() => setPayMethod(m.id)} style={{
-                    borderRadius: 14, padding: '1rem 0.5rem', cursor: 'pointer',
-                    background: active ? m.bg : 'rgba(255,255,255,0.025)',
-                    border: `1.5px solid ${active ? m.accent + '60' : 'rgba(255,255,255,0.07)'}`,
-                    transition: 'all 0.2s', boxShadow: active ? `0 8px 24px ${m.accent}22` : 'none',
-                    transform: active ? 'scale(1.03)' : 'scale(1)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: m.id === 'card' ? 22 : 16, fontWeight: 900, color: active ? m.accent : 'rgba(255,255,255,0.25)', marginBottom: 6 }}>{m.icon}</div>
-                    <div style={{ fontSize: '0.62rem', fontWeight: 700, color: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)', lineHeight: 1.3 }}>{m.label}</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {payMethod === 'card' && (
+            {/* ─ SHIRT TAB ─ */}
+            {rightTab==='shirt' && <div style={{display:'flex',flexDirection:'column',gap:18}}>
               <div>
-                <div style={{ borderRadius: 18, padding: '1.5rem', background: 'linear-gradient(135deg,#1a1040,#0d0720,#1a0a30)', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '1.25rem', position: 'relative', overflow: 'hidden', minHeight: 140 }}>
-                  <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: 'rgba(108,99,255,0.15)' }} />
-                  <div style={{ position: 'absolute', bottom: -30, left: 30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,77,28,0.08)' }} />
-                  <div style={{ width: 36, height: 28, borderRadius: 6, marginBottom: '1.25rem', background: 'linear-gradient(135deg,#c8a44a,#f0d080)', border: '1px solid rgba(255,255,255,0.2)' }} />
-                  <div style={{ fontFamily: 'monospace', fontSize: '1.15rem', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 16, color: 'rgba(255,255,255,0.85)' }}>
-                    {cardNum || '•••• •••• •••• ••••'}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div>
-                      <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Card holder</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em' }}>{cardName || 'YOUR NAME'}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Expires</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', fontFamily: 'monospace' }}>{cardExp || 'MM / YY'}</div>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Field label="Name on card" value={cardName} onChange={setCardName} valid={cardName.trim().length > 2} />
-                  <Field label="Card number" value={cardNum} onChange={v => setCardNum(fmtCard(v))} valid={cardNum.replace(/\s/g,'').length >= 16} mono />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <Field label="MM / YY" value={cardExp} onChange={v => setCardExp(fmtExp(v))} valid={cardExp.length >= 7} mono />
-                    <Field label="CVC" value={cardCvv} onChange={v => setCardCvv(v.replace(/\D/g,'').slice(0,4))} valid={cardCvv.length >= 3} mono />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {payMethod !== 'card' && (
-              <div style={{ borderRadius: 16, padding: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>
-                  {payMethod === 'apple' ? '' : payMethod === 'google' ? '🟢' : '🔵'}
-                </div>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: 600 }}>
-                  {payMethod === 'apple' ? 'Apple Pay' : payMethod === 'google' ? 'Google Pay' : 'PayPal'} selected
-                </p>
-                <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', marginTop: 6 }}>
-                  You&apos;ll be redirected to complete payment
-                </p>
-              </div>
-            )}
-
-            <p style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.68rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span>🔒</span> 256-bit SSL encryption · Demo only — no real payment
-            </p>
-          </StepShell>
-        </div>
-
-        {/* ── RIGHT: preview panel ── */}
-        <div style={{ position: 'sticky', top: 76 }}>
-          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 22, overflow: 'hidden' }}>
-
-            {/* 3D viewer */}
-            <div style={{ background: 'rgba(0,0,0,0.45)', padding: '2rem 1.5rem 1.5rem', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {color ? (
-                <ShirtViewer3D color={color.hex} textColor={color.textColor} emoji={design?.emoji} label={design?.title} customText={customText || undefined} />
-              ) : (
-                <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
-                  <div style={{ fontSize: 56, marginBottom: 12 }}>👕</div>
-                  <p style={{ fontSize: '0.78rem' }}>Select a color to see your shirt</p>
-                </div>
-              )}
-            </div>
-
-            {/* Order summary card */}
-            {design && (
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ padding: '1.25rem 1.5rem', background: 'linear-gradient(160deg,rgba(255,77,28,0.06),rgba(139,92,246,0.04))', display: 'flex', gap: 14, alignItems: 'center' }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, background: `radial-gradient(circle at 35% 35%,${color?.hex ?? '#333'}cc,${color?.hex ?? '#111'})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, boxShadow: `0 6px 20px ${color?.hex ?? '#000'}55`, border: '1px solid rgba(255,255,255,0.1)' }}>{design.emoji}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{design.title}</div>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {[color?.name, size ? `Size ${size}` : null, 'DTG Print'].filter(Boolean).map((t, i) => (
-                        <span key={i} style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: i === 2 ? 'rgba(255,140,0,0.15)' : 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>{t}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, letterSpacing: '-0.03em', background: 'linear-gradient(135deg,#FF6B3D,#FF9A00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${design.price.toFixed(2)}</div>
-                    <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', marginTop: 1 }}>per shirt</div>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  {[{ icon:'⚡',t:'72h',sub:'Delivery'},{icon:'🎨',t:'300DPI',sub:'Quality'},{icon:'♻️',t:'Carbon',sub:'Neutral'},{icon:'↩️',t:'Free',sub:'Returns'}].map((b,i,arr) => (
-                    <div key={b.t} style={{ padding: '0.75rem 0.25rem', textAlign: 'center', borderRight: i < arr.length-1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <div style={{ fontSize: 13 }}>{b.icon}</div>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>{b.t}</div>
-                      <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.22)' }}>{b.sub}</div>
-                    </div>
+                <div style={LS}>Color — {color.name}</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:9}}>
+                  {SHIRT_COLORS.map(c=>(
+                    <button key={c.id} title={c.name} onClick={()=>setColor(c)} style={{width:38,height:38,borderRadius:'50%',border:'none',background:c.hex,cursor:'pointer',outline:color.id===c.id?'3px solid #FF4D1C':'2px solid rgba(255,255,255,0.09)',outlineOffset:3,boxShadow:color.id===c.id?`0 0 16px ${c.hex}aa`:'none',transition:'all 0.15s',transform:color.id===c.id?'scale(1.15)':'scale(1)'}}/>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Price + CTA */}
-            <div style={{ padding: '1.5rem' }}>
-              {!design && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: '1rem' }}>
-                  {[{ label: 'Color', value: color?.name }, { label: 'Size', value: size }, { label: 'Design', value: null }].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
-                      {value ? <span style={{ fontWeight: 600 }}>{value}</span> : <span style={{ color: 'rgba(255,255,255,0.15)', fontStyle: 'italic' }}>Not selected</span>}
-                    </div>
+              <div>
+                <div style={LS}>Size {size&&<span style={{color:'#FF8C40',textTransform:'none',letterSpacing:0,fontWeight:500}}>— {size}</span>}</div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  {SHIRT_SIZES.map(s=>(
+                    <button key={s} onClick={()=>setSize(s)} style={{width:48,height:48,borderRadius:10,cursor:'pointer',border:`1.5px solid ${size===s?'#FF4D1C':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(255,77,28,0.12)':'rgba(255,255,255,0.02)',color:size===s?'#FF8C40':'rgba(255,255,255,0.4)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.08)':'scale(1)'}}>{s}</button>
                   ))}
                 </div>
-              )}
+                <p style={{marginTop:7,fontSize:'0.6rem',color:'rgba(255,255,255,0.2)'}}>Unisex · 100% ring-spun cotton · Pre-shrunk</p>
+              </div>
+            </div>}
 
-              {design && (
-                <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 12, padding: '0.875rem 1rem', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.04)' }}>
-                  {[['Design', `$${design.price.toFixed(2)}`], ['Shipping', `$${SHIPPING_PRICE.toFixed(2)}`]].map(([label, val], i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.78rem' }}>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.65)' }}>{val}</span>
-                    </div>
-                  ))}
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '8px 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>Total</span>
-                    <span style={{ fontWeight: 900, fontSize: '1.1rem', color: '#FF5C28' }}>${total.toFixed(2)}</span>
+            {/* ─ ORDER TAB ─ */}
+            {rightTab==='order' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              {(!color||!size) && (
+                <div style={{padding:'10px',background:'rgba(245,158,11,0.07)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:10,fontSize:'0.72rem',color:'rgba(245,158,11,0.8)'}}>
+                  ⚠ Select color & size in the Shirt tab first
+                </div>
+              )}
+              {/* Order summary */}
+              <div style={{background:'rgba(255,255,255,0.02)',borderRadius:12,border:'1px solid rgba(255,255,255,0.06)',padding:'12px',marginBottom:2}}>
+                <div style={{fontSize:'0.6rem',fontWeight:700,color:'rgba(255,255,255,0.3)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:8}}>Summary</div>
+                {[['Custom shirt',`$24.99`],['Shipping',`$${SHIPPING_PRICE.toFixed(2)}`]].map(([k,v])=>(
+                  <div key={k} style={{display:'flex',justifyContent:'space-between',marginBottom:5,fontSize:'0.78rem'}}>
+                    <span style={{color:'rgba(255,255,255,0.4)'}}>{k}</span><span style={{color:'rgba(255,255,255,0.7)'}}>{v}</span>
                   </div>
-                </div>
-              )}
-
-              <button className="btn btn-primary"
-                disabled={!step1Done || !step2Done || !step3Done || !step4Done || submitting}
-                onClick={handleOrder}
-                style={{ width: '100%', height: 52, fontSize: '0.9rem', borderRadius: 14, justifyContent: 'center', opacity: step1Done && step2Done && step3Done && step4Done && !submitting ? 1 : 0.3, pointerEvents: step1Done && step2Done && step3Done && step4Done && !submitting ? 'auto' : 'none' }}>
-                {submitting ? '⏳ Saving order...' :
-                 !step1Done ? 'Complete Step 1 first' :
-                 !step2Done ? 'Complete Step 2 first' :
-                 !step3Done ? 'Add delivery details' :
-                 !step4Done ? 'Add payment info' :
-                 `Place Order — $${total.toFixed(2)}`}
-              </button>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.875rem', justifyContent: 'center' }}>
-                {['🔒 Secure', '72h Delivery', '100% Quality'].map(b => (
-                  <span key={b} style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', fontWeight: 600 }}>{b}</span>
                 ))}
+                <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'7px 0'}}/>
+                <div style={{display:'flex',justifyContent:'space-between',fontWeight:900}}>
+                  <span>Total</span><span style={{color:'#FF5C28'}}>${total.toFixed(2)}</span>
+                </div>
               </div>
+              {/* Form */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                <div><div style={LS}>Full Name</div><input style={INP} value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith"/></div>
+                <div><div style={LS}>Email</div><input style={INP} type="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com"/></div>
+              </div>
+              <div><div style={LS}>Street Address</div><input style={INP} value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St"/></div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 60px 76px',gap:8}}>
+                <div><div style={LS}>City</div><input style={INP} value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York"/></div>
+                <div><div style={LS}>State</div>
+                  <select value={shipState} onChange={e=>setShipState(e.target.value)} style={{...INP,appearance:'none',cursor:'pointer',color:shipState?'#fff':'rgba(255,255,255,0.25)'}}>
+                    <option value="">ST</option>
+                    {US_STATES.map(s=><option key={s} value={s} style={{background:'#1a1a1a'}}>{s}</option>)}
+                  </select>
+                </div>
+                <div><div style={LS}>ZIP</div><input style={{...INP,fontFamily:'monospace'}} value={shipZip} onChange={e=>setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001"/></div>
+              </div>
+              <div style={{padding:'8px',background:'rgba(245,158,11,0.05)',border:'1px solid rgba(245,158,11,0.12)',borderRadius:8,fontSize:'0.67rem',color:'rgba(245,158,11,0.6)',lineHeight:1.5}}>
+                🔒 Stripe/PayPal coming soon — demo mode active
+              </div>
+            </div>}
+          </div>
+
+          {/* Layers list */}
+          {layers.length>0 && (
+            <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',padding:'9px 12px',flexShrink:0,maxHeight:150,overflowY:'auto'}}>
+              <div style={{fontSize:'0.55rem',fontWeight:700,color:'rgba(255,255,255,0.2)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:6}}>LAYERS ({layers.length})</div>
+              {[...layers].reverse().map(l=>(
+                <div key={l.id} onClick={()=>setSelected(l.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'5px 7px',borderRadius:7,cursor:'pointer',background:selected===l.id?'rgba(255,77,28,0.09)':'rgba(255,255,255,0.03)',border:`1px solid ${selected===l.id?'rgba(255,77,28,0.22)':'rgba(255,255,255,0.04)'}`,marginBottom:3,transition:'all 0.12s'}}>
+                  <span style={{fontSize:'0.7rem',width:14,textAlign:'center'}}>{l.type==='text'?'T':l.content}</span>
+                  <span style={{flex:1,fontSize:'0.68rem',fontWeight:600,color:selected===l.id?'rgba(255,255,255,0.8)':'rgba(255,255,255,0.4)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.content}</span>
+                  <button onClick={e=>{e.stopPropagation();deleteLayer(l.id);}} style={{width:18,height:18,borderRadius:4,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.04)',color:'#f87171',fontSize:'0.65rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Order CTA */}
+          <div style={{padding:'11px 13px',borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(4,4,8,0.9)',flexShrink:0}}>
+            {canOrder ? (
+              <button onClick={handleOrder} disabled={submitting} style={{width:'100%',padding:'13px',borderRadius:11,border:'none',background:'linear-gradient(135deg,#FF4D1C,#FF9A00)',color:'white',fontWeight:800,fontSize:'0.87rem',cursor:submitting?'default':'pointer',boxShadow:'0 6px 20px rgba(255,77,28,0.28)',transition:'all 0.15s',opacity:submitting?0.7:1}}>
+                {submitting?'⏳ Placing order...':(`Place Order — $${total.toFixed(2)}`)}
+              </button>
+            ) : (
+              <div style={{textAlign:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.2)',padding:'10px 0'}}>
+                {!size ? 'Select color & size → Order tab' : 'Fill delivery details in Order tab'}
+              </div>
+            )}
+            <div style={{display:'flex',justifyContent:'center',gap:14,marginTop:7}}>
+              {['🔒 Secure','⚡ 72h delivery','↩️ Free returns'].map(b=><span key={b} style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.14)',fontWeight:600}}>{b}</span>)}
             </div>
           </div>
         </div>
-
       </div>
-      <Footer />
-    </main>
+
+      <style>{`
+        @keyframes fsIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
+        @keyframes shirtIn{from{opacity:0;transform:scale(0.93) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        input[type=range]{height:3px;border-radius:999px}
+        input[type=range]::-webkit-slider-thumb{width:14px;height:14px}
+        textarea:focus,input:focus{outline:none}
+        select option{background:#111;color:white}
+      `}</style>
+    </div>
   );
 }
 
 export default function DesignPage() {
   return (
-    <Suspense fallback={<div style={{ paddingTop: 100, textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}>Loading...</div>}>
-      <DesignStudio />
+    <Suspense fallback={<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#08080c',color:'rgba(255,255,255,0.18)',fontSize:'0.82rem'}}>Loading...</div>}>
+      <DesignStudio/>
     </Suspense>
   );
 }
+
+const LS: React.CSSProperties = {display:'block',fontSize:'0.59rem',fontWeight:700,color:'rgba(255,255,255,0.3)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:6};
+const INP: React.CSSProperties = {width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:9,padding:'8px 10px',color:'#fff',fontSize:'0.82rem',outline:'none'};

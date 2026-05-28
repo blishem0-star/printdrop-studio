@@ -47,6 +47,11 @@ export default function HomePage() {
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)'; }}
         >🎨 Catalog</button>
 
+        <button onClick={() => router.push('/premium')} style={navBtn('premium')}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.14)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.07)'; }}
+        >✨ Premium</button>
+
         <div style={{ flex: 1 }} />
 
         {session.type === 'guest' && (
@@ -82,8 +87,10 @@ export default function HomePage() {
   );
 }
 
-function navBtn(accent: 'orange' | 'indigo'): React.CSSProperties {
+function navBtn(accent: 'orange' | 'indigo' | 'premium'): React.CSSProperties {
   const c = accent === 'orange'
+    ? { bg: 'rgba(255,77,28,0.07)', border: 'rgba(255,77,28,0.25)', color: 'rgba(255,140,64,0.9)' }
+    : accent === 'premium'
     ? { bg: 'rgba(255,77,28,0.07)', border: 'rgba(255,77,28,0.25)', color: 'rgba(255,140,64,0.9)' }
     : { bg: 'rgba(99,102,241,0.07)', border: 'rgba(99,102,241,0.25)', color: 'rgba(129,140,248,0.9)' };
   return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };

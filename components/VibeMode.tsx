@@ -59,7 +59,7 @@ export default function VibeMode() {
             {filteredDesigns.length} designs curated for <strong style={{ color: '#fff' }}>{vibe?.label}</strong>
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px,1fr))', gap: '1.25rem', animation: 'fadeIn 0.3s ease' }}>
-            {filteredDesigns.map(d => <DesignCard key={d.id} design={d} />)}
+            {filteredDesigns.map(d => d && <DesignCard key={d.id} design={d} />)}
           </div>
         </div>
       )}

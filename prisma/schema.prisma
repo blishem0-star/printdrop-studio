@@ -30,6 +30,20 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ProductType {
+  TSHIRT
+  LONG_SLEEVE
+  HOODIE
+  HOODIE_VEST
+  SOCKS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
 // ── Models ─────────────────────────────────────────────────────
 
 model Customer {
@@ -39,38 +53,63 @@ model Customer {
   password    String?
   role        Role     @default(USER)
 
-  // Saved shipping address
   shipStreet  String?
   shipCity    String?
   shipState   String?
   shipZip     String?
 
-  // AI-generated style profile (JSON string, populated after 3+ orders)
   aiProfile   String?
 
   createdAt     DateTime       @default(now())
   orders        Order[]
   artistDesigns ArtistDesign[]
+  subscriptions Subscription[]
 }
 
 model ArtistDesign {
-  id         String       @id @default(cuid())
-  artistId   String
-  artist     Customer     @relation(fields: [artistId], references: [id])
+  id          String       @id @default(cuid())
+  artistId    String
+  artist      Customer     @relation(fields: [artistId], references: [id])
 
-  title      String
-  category   String
-  price      Float        @default(29.99)
-  svg        String
-  badge      String?
+  title       String
+  category    String
+  productType ProductType  @default(TSHIRT)
+  price       Float        @default(29.99)
+  svg         String
+  badge       String?
 
-  status     DesignStatus @default(PENDING)
+  status      DesignStatus @default(PENDING)
 
   salesCount  Int   @default(0)
   totalEarned Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  customerId     String
+  customer       Customer           @relation(fields: [customerId], references: [id])
+  status         SubscriptionStatus @default(ACTIVE)
+  // JSON: { style, productTypes, size, colorPref }
+  stylePrefs     String
+  nextShipmentAt DateTime
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  shipments      SubscriptionShipment[]
+}
+
+model SubscriptionShipment {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  // PENDING | SHIPPED | DELIVERED
+  status         String       @default("PENDING")
+  // JSON array of items
+  items          String
+  shippedAt      DateTime?
+  createdAt      DateTime     @default(now())
 }
 
 model DesignAsset {
