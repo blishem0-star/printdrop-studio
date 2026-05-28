@@ -16,22 +16,22 @@ export default function Navbar() {
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
       height: 60,
       borderBottom: '1px solid rgba(255,255,255,0.06)',
-      background: 'rgba(6,6,8,0.8)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
+      background: 'rgba(5,5,7,0.85)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
     }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
         {/* Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{
-            width: 30, height: 30, borderRadius: 8,
-            background: 'linear-gradient(135deg,#FF4D1C,#FF8C00)',
+            width: 28, height: 28, borderRadius: 7,
+            background: 'linear-gradient(135deg, #00E5C8, #0099FF)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 900, color: 'white',
-          }}>P</div>
-          <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'white', letterSpacing: '-0.02em' }}>
-            Print<span style={{ color: '#FF5C28' }}>Drop</span>
+            fontSize: 13, fontWeight: 900, color: '#050507',
+          }}>S</div>
+          <span style={{ fontWeight: 900, fontSize: '1.05rem', color: 'white', letterSpacing: '-0.03em' }}>
+            STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
           </span>
         </Link>
 

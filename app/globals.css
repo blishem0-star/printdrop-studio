@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #060608;
+  --bg: #050507;
   --surface: rgba(255,255,255,0.03);
   --surface-hover: rgba(255,255,255,0.055);
   --border: rgba(255,255,255,0.07);
-  --border-strong: rgba(255,255,255,0.12);
-  --accent: #FF4D1C;
-  --accent-2: #8B5CF6;
-  --accent-glow: rgba(255,77,28,0.25);
+  --border-strong: rgba(255,255,255,0.13);
+  --accent: #00E5C8;
+  --accent-2: #0099FF;
+  --accent-glow: rgba(0,229,200,0.22);
   --text: #FFFFFF;
   --text-2: rgba(255,255,255,0.55);
   --text-3: rgba(255,255,255,0.25);
@@ -45,7 +45,7 @@ body {
 
 /* ── Gradient text ── */
 .g-text {
-  background: linear-gradient(135deg, #FF6B3D 0%, #FF9A00 40%, #a78bfa 100%);
+  background: linear-gradient(135deg, #00E5C8 0%, #0099FF 50%, #7B61FF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -80,8 +80,8 @@ body {
 }
 .card-selected {
   border-color: var(--accent) !important;
-  background: rgba(255,77,28,0.07) !important;
-  box-shadow: 0 0 0 1px rgba(255,77,28,0.2), 0 0 30px rgba(255,77,28,0.1) !important;
+  background: rgba(0,229,200,0.06) !important;
+  box-shadow: 0 0 0 1px rgba(0,229,200,0.2), 0 0 30px rgba(0,229,200,0.08) !important;
 }
 
 /* ── Buttons ── */
@@ -95,11 +95,12 @@ body {
 .btn-sm { height: 34px; padding: 0 1rem; font-size: 0.8rem; }
 
 .btn-primary {
-  background: linear-gradient(135deg, #FF4D1C 0%, #FF7A00 100%);
-  color: white;
-  box-shadow: 0 2px 12px rgba(255,77,28,0.35);
+  background: linear-gradient(135deg, #00E5C8 0%, #0099FF 100%);
+  color: #050507;
+  font-weight: 700;
+  box-shadow: 0 2px 14px rgba(0,229,200,0.3);
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,77,28,0.45); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,229,200,0.4); }
 .btn-primary:active { transform: translateY(0); }
 
 .btn-ghost {
@@ -121,7 +122,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 14px; border-radius: 999px;
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-  background: rgba(255,77,28,0.08); border: 1px solid rgba(255,77,28,0.2); color: #FF8C40;
+  background: rgba(0,229,200,0.07); border: 1px solid rgba(0,229,200,0.2); color: #00E5C8;
 }
 
 /* ── Divider ── */
@@ -140,7 +141,7 @@ body {
   width: 100%;
   font-family: inherit;
 }
-.input:focus { border-color: rgba(255,77,28,0.5); background: rgba(255,255,255,0.05); }
+.input:focus { border-color: rgba(0,229,200,0.45); background: rgba(255,255,255,0.05); }
 .input::placeholder { color: var(--text-3); }
 
 /* ── Animations ── */

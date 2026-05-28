@@ -1,51 +1,124 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
-type Mode = 'welcome' | 'login' | 'register';
+type Phase = 'hero' | 'generating' | 'results' | 'auth';
+type AuthMode = 'signup' | 'signin';
 type RegisterRole = 'USER' | 'ARTIST';
 
-export default function AuthPage() {
+const PROMPT_EXAMPLES = [
+  'Minimalist black cat, Japanese ink style',
+  'Retro 80s sunset with palm trees',
+  'Abstract geometric wolf, neon colors',
+  'Space astronaut floating in galaxy',
+  'Vintage band tee with distressed texture',
+  'Lo-fi city night scene, warm tones',
+];
+
+const MOCK_SHIRTS = [
+  { id: 'a', colors: ['#0a0a0a', '#1a1a2e', '#16213e'], label: 'Dark Edition' },
+  { id: 'b', colors: ['#f5f5f0', '#e8e8e0', '#d0d0c8'], label: 'Clean White' },
+  { id: 'c', colors: ['#0d1117', '#161b22', '#21262d'], label: 'Stealth Mode' },
+];
+
+function ShirtSVG({ colors, text }: { colors: string[]; text: string }) {
+  const short = text.length > 22 ? text.slice(0, 22) + '…' : text;
+  return (
+    <svg viewBox="0 0 200 230" width="100%" style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id={`g${colors[0].replace('#', '')}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={colors[0]} />
+          <stop offset="100%" stopColor={colors[1]} />
+        </linearGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.35" />
+        </filter>
+      </defs>
+      <path
+        d="M32 57 L2 82 L26 97 L21 222 L179 222 L174 97 L198 82 L168 57 C155 62 143 65 100 65 C57 65 45 62 32 57 Z"
+        fill={`url(#g${colors[0].replace('#', '')})`}
+        filter="url(#shadow)"
+        stroke="rgba(255,255,255,0.06)"
+        strokeWidth="1"
+      />
+      <path d="M68 57 C72 80 85 92 100 92 C115 92 128 80 132 57" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+      <text
+        x="100" y="138"
+        textAnchor="middle"
+        fill="rgba(255,255,255,0.9)"
+        fontSize="10"
+        fontFamily="system-ui, sans-serif"
+        fontWeight="600"
+        style={{ userSelect: 'none' }}
+      >{short}</text>
+      <rect x="75" y="144" width="50" height="1" fill="rgba(0,229,200,0.4)" rx="1" />
+    </svg>
+  );
+}
+
+export default function LandingPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>('welcome');
+  const [phase, setPhase] = useState<Phase>('hero');
+  const [prompt, setPrompt] = useState('');
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [registerRole, setRegisterRole] = useState<RegisterRole>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedShirt, setSelectedShirt] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const authRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem('pd_session')) router.replace('/home');
-    } catch { /* ignore */ }
+    try { if (localStorage.getItem('pd_session')) router.replace('/home'); } catch { /* ignore */ }
   }, [router]);
 
-  function switchMode(m: Mode) {
-    setMode(m);
-    setError('');
+  useEffect(() => {
+    const t = setInterval(() => setPlaceholderIdx(i => (i + 1) % PROMPT_EXAMPLES.length), 3000);
+    return () => clearInterval(t);
+  }, []);
+
+  function handleGenerate() {
+    if (!prompt.trim()) return;
+    setPhase('generating');
+    setTimeout(() => {
+      setPhase('results');
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }, 2600);
+  }
+
+  function handleSelectShirt(id: string) {
+    setSelectedShirt(id);
+    setPhase('auth');
+    setTimeout(() => authRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
   function enterAsGuest() {
-    try {
-      localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' }));
-    } catch { /* ignore */ }
+    try { localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })); } catch { /* ignore */ }
     router.push('/home');
   }
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
+    if (authMode === 'signup' && !name) { setError('Please enter your name'); return; }
     if (!email || !password) { setError('Please fill in all fields'); return; }
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/auth/login', {
+      const endpoint = authMode === 'signup' ? '/api/auth/register' : '/api/auth/login';
+      const body = authMode === 'signup'
+        ? { name, email, password, role: registerRole }
+        : { email, password };
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        setError((d as { error?: string }).error ?? 'Login failed');
+        setError((d as { error?: string }).error ?? 'Authentication failed');
         return;
       }
       const user = await res.json() as { id: string; name: string; email: string; role: string };
@@ -57,254 +130,294 @@ export default function AuthPage() {
       setLoading(false);
     }
   }
-
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !email || !password) { setError('Please fill in all fields'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role: registerRole }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError((d as { error?: string }).error ?? 'Registration failed');
-        return;
-      }
-      const user = await res.json() as { id: string; name: string; email: string; role: string };
-      localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: user.id, name: user.name, email: user.email, role: user.role }));
-      router.push(user.role === 'ARTIST' ? '/artist' : '/home');
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', boxSizing: 'border-box',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1.5px solid rgba(255,255,255,0.1)',
-    borderRadius: 10, padding: '0.7rem 0.9rem',
-    color: '#fff', fontSize: '0.875rem', outline: 'none',
-    transition: 'border-color 0.15s',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: '0.6rem', fontWeight: 700,
-    color: 'rgba(255,255,255,0.35)', letterSpacing: '0.08em',
-    textTransform: 'uppercase', marginBottom: 5,
-  };
 
   return (
-    <main style={{
-      minHeight: '100vh', background: '#080808',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '2rem', position: 'relative', overflow: 'hidden',
-    }}>
-      {/* Grid background */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
-        backgroundSize: '48px 48px', pointerEvents: 'none',
-      }} />
+    <main style={{ minHeight: '100vh', background: '#050507', overflowX: 'hidden' }}>
 
-      {/* Glow */}
-      <div style={{
-        position: 'absolute', width: 600, height: 600, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,77,28,0.12) 0%, transparent 70%)',
-        top: '20%', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none',
-      }} />
-
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420 }}>
-
-        {/* Branding */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: 40, marginBottom: 10, filter: 'drop-shadow(0 0 20px rgba(255,77,28,0.4))' }}>🖨</div>
-          <div style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.05em' }}>PrintDrop</div>
-          <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.8rem', marginTop: 6, letterSpacing: '0.02em' }}>
-            Custom T-Shirts · Delivered in 72h
+      {/* Navbar */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, height: 60, borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(5,5,7,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '-0.03em', color: '#fff' }}>
+            STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={enterAsGuest} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', cursor: 'pointer' }}>
+              Browse as guest
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Card */}
-        <div style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 24, overflow: 'hidden',
-        }}>
-          {/* Tab bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            {([
-              ['welcome', 'Guest'],
-              ['login', 'Sign In'],
-              ['register', 'Register'],
-            ] as [Mode, string][]).map(([m, label]) => (
-              <button key={m} onClick={() => switchMode(m)} style={{
-                padding: '0.875rem 0.5rem', border: 'none', cursor: 'pointer',
-                fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.02em',
-                background: mode === m ? 'rgba(255,77,28,0.07)' : 'transparent',
-                color: mode === m ? '#FF8C40' : 'rgba(255,255,255,0.3)',
-                borderBottom: `2px solid ${mode === m ? '#FF4D1C' : 'transparent'}`,
-                transition: 'all 0.15s',
-              }}>{label}</button>
+      {/* Hero */}
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '7rem 1.5rem 4rem', position: 'relative' }}>
+
+        {/* Background mesh */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.07) 0%, transparent 65%)', top: '30%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,153,255,0.07) 0%, transparent 65%)', top: '60%', right: '10%' }} />
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+          }} />
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 720, textAlign: 'center' }}>
+
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1.75rem' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00E5C8', display: 'inline-block', boxShadow: '0 0 8px #00E5C8' }} />
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#00E5C8' }}>AI-Powered Design</span>
+          </div>
+
+          <h1 style={{ fontSize: 'clamp(3rem,8vw,6rem)', fontWeight: 900, letterSpacing: '-0.045em', lineHeight: 0.93, marginBottom: '1.25rem', color: '#fff' }}>
+            Describe it.<br />
+            <span style={{ background: 'linear-gradient(135deg, #00E5C8 0%, #0099FF 50%, #7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Wear it.</span>
+          </h1>
+
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 'clamp(0.9rem,2vw,1.1rem)', lineHeight: 1.65, marginBottom: '2.5rem', maxWidth: 480, margin: '0 auto 2.5rem' }}>
+            Type a shirt idea. AI generates it in seconds.<br />Order it printed and shipped in 72 hours.
+          </p>
+
+          {/* Prompt input */}
+          <div style={{ position: 'relative', maxWidth: 600, margin: '0 auto', marginBottom: '1rem' }}>
+            <div style={{
+              display: 'flex', gap: 0,
+              background: 'rgba(255,255,255,0.04)',
+              border: `1.5px solid ${phase === 'generating' ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 16, overflow: 'hidden',
+              boxShadow: phase === 'generating' ? '0 0 30px rgba(0,229,200,0.15)' : 'none',
+              transition: 'all 0.3s',
+            }}>
+              <input
+                value={prompt}
+                onChange={e => setPrompt(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && phase === 'hero' && handleGenerate()}
+                placeholder={PROMPT_EXAMPLES[placeholderIdx]}
+                disabled={phase !== 'hero'}
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: '#fff', fontSize: '1rem', padding: '1rem 1.25rem',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <button
+                onClick={handleGenerate}
+                disabled={phase !== 'hero' || !prompt.trim()}
+                style={{
+                  padding: '0.75rem 1.5rem', margin: '6px', borderRadius: 10, border: 'none',
+                  background: phase === 'hero' && prompt.trim() ? 'linear-gradient(135deg, #00E5C8, #0099FF)' : 'rgba(255,255,255,0.06)',
+                  color: phase === 'hero' && prompt.trim() ? '#050507' : 'rgba(255,255,255,0.25)',
+                  fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default',
+                  transition: 'all 0.2s', whiteSpace: 'nowrap',
+                }}
+              >
+                {phase === 'generating' ? 'Generating...' : 'Generate →'}
+              </button>
+            </div>
+          </div>
+
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.72rem', letterSpacing: '0.02em' }}>
+            No account needed to preview · 50K+ shirts created
+          </p>
+
+          {/* Social proof */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '2.5rem', flexWrap: 'wrap' }}>
+            {[['72h', 'Delivery'], ['300dpi', 'Print quality'], ['50+', 'Base designs'], ['Free', 'Returns']].map(([n, l]) => (
+              <div key={l} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{n}</div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', marginTop: 2, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Generating animation */}
+      {phase === 'generating' && (
+        <section style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: '1rem' }}>
+            {[0,1,2].map(i => (
+              <div key={i} style={{
+                width: 8, height: 8, borderRadius: '50%', background: '#00E5C8',
+                animation: `bounce 1.2s ease-in-out ${i * 0.15}s infinite`,
+              }} />
+            ))}
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>Generating 3 designs for &ldquo;<span style={{ color: '#00E5C8' }}>{prompt}</span>&rdquo;…</p>
+          <style>{`@keyframes bounce { 0%,80%,100% { transform:translateY(0); opacity:0.4; } 40% { transform:translateY(-10px); opacity:1; } }`}</style>
+        </section>
+      )}
+
+      {/* Results */}
+      {(phase === 'results' || phase === 'auth') && (
+        <section ref={resultsRef} style={{ padding: '2rem 1.5rem 4rem', maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Generated for</p>
+            <p style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>&ldquo;{prompt}&rdquo;</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+            {MOCK_SHIRTS.map((shirt, i) => (
+              <div
+                key={shirt.id}
+                onClick={() => handleSelectShirt(shirt.id)}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: `1.5px solid ${selectedShirt === shirt.id ? '#00E5C8' : 'rgba(255,255,255,0.08)'}`,
+                  borderRadius: 20, padding: '1.5rem', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: selectedShirt === shirt.id ? '0 0 30px rgba(0,229,200,0.15)' : 'none',
+                  animation: `fadeUp 0.4s ease ${i * 0.1}s both`,
+                }}
+              >
+                <div style={{ marginBottom: '1rem' }}>
+                  <ShirtSVG colors={shirt.colors} text={prompt} />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 4 }}>{shirt.label}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>Click to order</div>
+                </div>
+              </div>
             ))}
           </div>
 
-          {/* Body */}
-          <div style={{ padding: '1.75rem' }}>
+          {phase === 'results' && (
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginBottom: '1rem' }}>Pick a design to order it →</p>
+              <button onClick={enterAsGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>
+                Just browse as guest
+              </button>
+            </div>
+          )}
+        </section>
+      )}
 
-            {/* ── Guest ── */}
-            {mode === 'welcome' && (
-              <div>
-                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: '1.25rem' }}>
-                  Browse 50+ designs, customize your shirt, and place orders — no account needed.
-                </p>
+      {/* Auth */}
+      {phase === 'auth' && (
+        <section ref={authRef} style={{ padding: '1rem 1.5rem 5rem', maxWidth: 460, margin: '0 auto' }}>
+          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, overflow: 'hidden' }}>
 
-                <div style={{
-                  background: 'rgba(245,158,11,0.06)',
-                  border: '1px solid rgba(245,158,11,0.18)',
-                  borderRadius: 10, padding: '0.875rem 1rem',
-                  display: 'flex', gap: 10, alignItems: 'flex-start',
-                  marginBottom: '1.25rem',
-                }}>
-                  <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1, opacity: 0.8 }}>⚠</span>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(245,158,11,0.9)', marginBottom: 2 }}>
-                      AI features unavailable
+            {/* Tab */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              {(['signup', 'signin'] as AuthMode[]).map(m => (
+                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} style={{
+                  padding: '0.875rem 0.5rem', border: 'none', cursor: 'pointer',
+                  fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.02em',
+                  background: authMode === m ? 'rgba(0,229,200,0.07)' : 'transparent',
+                  color: authMode === m ? '#00E5C8' : 'rgba(255,255,255,0.3)',
+                  borderBottom: `2px solid ${authMode === m ? '#00E5C8' : 'transparent'}`,
+                  transition: 'all 0.15s',
+                }}>{m === 'signup' ? 'Create Account' : 'Sign In'}</button>
+              ))}
+            </div>
+
+            <div style={{ padding: '1.75rem' }}>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.82rem', marginBottom: '1.25rem', lineHeight: 1.55 }}>
+                {authMode === 'signup'
+                  ? 'Create a free account to order your design. Ships in 72 hours.'
+                  : 'Welcome back. Sign in to continue your order.'}
+              </p>
+
+              {error && (
+                <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.7rem 0.9rem', fontSize: '0.78rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>
+              )}
+
+              <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                {authMode === 'signup' && (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {([['USER', '🛒 Customer', 'Order shirts'] , ['ARTIST', '🎨 Artist', 'Sell designs']] as [RegisterRole, string, string][]).map(([r, label, desc]) => (
+                        <button key={r} type="button" onClick={() => setRegisterRole(r)} style={{
+                          padding: '0.7rem', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                          border: `1.5px solid ${registerRole === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                          background: registerRole === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)',
+                          transition: 'all 0.15s',
+                        }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: registerRole === r ? '#00E5C8' : 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{label}</div>
+                          <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{desc}</div>
+                        </button>
+                      ))}
                     </div>
-                    <div style={{ fontSize: '0.67rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.55 }}>
-                      AI design generation requires a free account. Create one in seconds.
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: '1.5rem' }}>
-                  {['Browse 50+ premium designs', 'Custom text on your shirt', '72-hour door delivery', 'Free returns policy'].map(f => (
-                    <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>
-                      <span style={{ color: '#10B981', fontSize: 11, fontWeight: 900 }}>✓</span>
-                      {f}
-                    </div>
-                  ))}
-                </div>
-
-                <button onClick={enterAsGuest} style={{
+                    <input
+                      value={name} onChange={e => setName(e.target.value)}
+                      placeholder="Your name" required autoComplete="name"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </>
+                )}
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="Email address" required autoComplete="email"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }}
+                />
+                <input
+                  type="password" value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder={authMode === 'signup' ? 'Password (min. 6 chars)' : 'Password'} required autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.7rem 0.9rem', color: '#fff', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }}
+                />
+                <button type="submit" disabled={loading} style={{
                   width: '100%', height: 48, borderRadius: 12, border: 'none',
-                  background: 'linear-gradient(135deg, #FF4D1C, #FF8C40)',
-                  color: '#fff', fontWeight: 800, fontSize: '0.9rem',
-                  cursor: 'pointer', letterSpacing: '0.01em',
-                  boxShadow: '0 6px 24px rgba(255,77,28,0.35)',
-                  transition: 'opacity 0.15s',
+                  background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00E5C8, #0099FF)',
+                  color: loading ? 'rgba(255,255,255,0.3)' : '#050507',
+                  fontWeight: 800, fontSize: '0.9rem', cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: loading ? 'none' : '0 6px 24px rgba(0,229,200,0.25)',
+                  transition: 'all 0.15s', marginTop: 4,
                 }}>
-                  Continue as Guest →
+                  {loading ? (authMode === 'signup' ? 'Creating account…' : 'Signing in…') : (authMode === 'signup' ? 'Create Account & Order →' : 'Sign In →')}
+                </button>
+              </form>
+
+              <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+                <button onClick={enterAsGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.22)', fontSize: '0.72rem', cursor: 'pointer' }}>
+                  Skip for now — continue as guest
                 </button>
               </div>
-            )}
-
-            {/* ── Login ── */}
-            {mode === 'login' && (
-              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {error && (
-                  <div style={{
-                    background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
-                    borderRadius: 8, padding: '0.7rem 0.9rem',
-                    fontSize: '0.78rem', color: '#F87171', marginBottom: '1rem',
-                  }}>{error}</div>
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <label style={labelStyle}>Email</label>
-                    <input style={inputStyle} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Password</label>
-                    <input style={inputStyle} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required autoComplete="current-password" />
-                  </div>
-                </div>
-                <button type="submit" disabled={loading} style={{
-                  width: '100%', height: 48, borderRadius: 12, border: 'none',
-                  background: 'linear-gradient(135deg, #FF4D1C, #FF8C40)',
-                  color: '#fff', fontWeight: 800, fontSize: '0.9rem',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  boxShadow: loading ? 'none' : '0 6px 24px rgba(255,77,28,0.3)',
-                  transition: 'all 0.15s',
-                }}>
-                  {loading ? 'Signing in...' : 'Sign In →'}
-                </button>
-                <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.22)' }}>
-                  No account?{' '}
-                  <button type="button" onClick={() => switchMode('register')} style={{
-                    background: 'none', border: 'none', color: '#FF8C40',
-                    cursor: 'pointer', fontSize: 'inherit', fontWeight: 700, padding: 0,
-                  }}>Create one free</button>
-                </p>
-              </form>
-            )}
-
-            {/* ── Register ── */}
-            {mode === 'register' && (
-              <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {error && (
-                  <div style={{
-                    background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
-                    borderRadius: 8, padding: '0.7rem 0.9rem',
-                    fontSize: '0.78rem', color: '#F87171', marginBottom: '1rem',
-                  }}>{error}</div>
-                )}
-                {/* Account type */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: '1.25rem' }}>
-                  {([['USER', '🛒 Customer', 'Order custom shirts'] , ['ARTIST', '🎨 Artist', 'Upload & earn 50%']] as [RegisterRole, string, string][]).map(([r, label, desc]) => (
-                    <button key={r} type="button" onClick={() => setRegisterRole(r)} style={{ padding: '0.75rem', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${registerRole === r ? (r === 'ARTIST' ? 'rgba(139,92,246,0.5)' : 'rgba(255,77,28,0.4)') : 'rgba(255,255,255,0.07)'}`, background: registerRole === r ? (r === 'ARTIST' ? 'rgba(139,92,246,0.07)' : 'rgba(255,77,28,0.06)') : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: registerRole === r ? (r === 'ARTIST' ? '#A78BFA' : '#FF8C40') : 'rgba(255,255,255,0.55)', marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>{desc}</div>
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <label style={labelStyle}>Full Name</label>
-                    <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" required autoComplete="name" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Email</label>
-                    <input style={inputStyle} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Password</label>
-                    <input style={inputStyle} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 6 characters" required autoComplete="new-password" />
-                  </div>
-                </div>
-                <button type="submit" disabled={loading} style={{
-                  width: '100%', height: 48, borderRadius: 12, border: 'none',
-                  background: 'linear-gradient(135deg, #FF4D1C, #FF8C40)',
-                  color: '#fff', fontWeight: 800, fontSize: '0.9rem',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  boxShadow: loading ? 'none' : '0 6px 24px rgba(255,77,28,0.3)',
-                  transition: 'all 0.15s',
-                }}>
-                  {loading ? 'Creating account...' : 'Create Account →'}
-                </button>
-                <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.22)' }}>
-                  Already have an account?{' '}
-                  <button type="button" onClick={() => switchMode('login')} style={{
-                    background: 'none', border: 'none', color: '#FF8C40',
-                    cursor: 'pointer', fontSize: 'inherit', fontWeight: 700, padding: 0,
-                  }}>Sign in</button>
-                </p>
-              </form>
-            )}
+            </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.62rem', color: 'rgba(255,255,255,0.12)' }}>
-          By continuing you agree to our Terms of Service
-        </p>
-      </div>
+      {/* How it works */}
+      {phase === 'hero' && (
+        <section id="how" style={{ padding: '5rem 1.5rem', maxWidth: 1000, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#00E5C8' }}>How it works</span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.75rem,4vw,2.75rem)', fontWeight: 900, letterSpacing: '-0.035em', color: '#fff' }}>
+              From idea to doorstep
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+            {[
+              { n: '01', title: 'Describe', body: 'Type anything. A vibe, a concept, a feeling. Our AI understands it.' },
+              { n: '02', title: 'Generate', body: 'See 3 AI-curated shirt designs based on your prompt instantly.' },
+              { n: '03', title: 'Customize', body: 'Pick your size, color, and style in our design studio.' },
+              { n: '04', title: 'Delivered', body: 'Premium 300 DPI DTG print, at your door in 72 hours.' },
+            ].map(s => (
+              <div key={s.n} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '1.75rem' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>{s.n}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>{s.title}</div>
+                <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.65 }}>{s.body}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '2rem 1.5rem', textAlign: 'center' }}>
+        <div style={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '-0.03em', color: '#fff', marginBottom: '0.5rem' }}>
+          STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
+        </div>
+        <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.7rem' }}>© 2026 STYLX.AI — Describe it. Wear it.</div>
+      </footer>
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </main>
   );
 }

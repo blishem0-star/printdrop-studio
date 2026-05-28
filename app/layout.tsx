@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "PrintDrop — Custom T-Shirts in 72h", template: "%s | PrintDrop" },
-  description: "Design a custom t-shirt in 3 steps. 50+ designs, premium DTG printing, shipped in 72 hours.",
-  keywords: ["custom t-shirts", "print on demand", "personalized shirts", "DTG printing"],
-  metadataBase: new URL("https://printdrop.studio"),
+  title: { default: "STYLX.AI — Describe it. Wear it.", template: "%s | STYLX.AI" },
+  description: "Describe your perfect shirt and AI generates it instantly. Fashion-tech custom printing shipped in 72 hours.",
+  keywords: ["ai shirt design", "custom t-shirts", "ai fashion", "print on demand", "personalized shirts"],
+  metadataBase: new URL("https://stylx.ai"),
   openGraph: {
-    title: "PrintDrop — Custom T-Shirts in 72h",
-    description: "Design a custom t-shirt in 3 steps. Premium DTG printing, 300 DPI, shipped in 72 hours.",
+    title: "STYLX.AI — Describe it. Wear it.",
+    description: "Describe your perfect shirt and AI generates it instantly. Fashion-tech printing, shipped in 72 hours.",
     type: "website",
-    siteName: "PrintDrop",
+    siteName: "STYLX.AI",
   },
   robots: { index: true, follow: true },
 };

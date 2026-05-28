@@ -95,13 +95,14 @@ export default function HomePage() {
 
       {/* Navbar */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
-        <span style={{ fontSize: 20, marginRight: 4 }}>🖨</span>
-        <span style={{ fontWeight: 900, fontSize: '1.05rem', letterSpacing: '-0.04em', marginRight: 16 }}>PrintDrop</span>
+        <span style={{ fontWeight: 900, fontSize: '1.05rem', letterSpacing: '-0.03em', marginRight: 16, color: '#fff' }}>
+          STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
+        </span>
 
         <button onClick={() => router.push('/design')} style={navBtn('orange')}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.14)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,77,28,0.07)'; }}>
-          ✏️ Create your shirt
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.14)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.07)'; }}>
+          ✏️ Design Studio
         </button>
 
         <button onClick={() => router.push('/catalog')} style={navBtn('indigo')}
