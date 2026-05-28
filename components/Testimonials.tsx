@@ -12,7 +12,7 @@ export default function Testimonials() {
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div className="tag" style={{ margin: '0 auto 1rem' }}>Reviews</div>
           <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
-            People love PrintDrop
+            People love STYLX.AI
           </h2>
         </div>
 
@@ -35,7 +35,7 @@ export default function Testimonials() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #FF4D1C, #8B5CF6)',
+                    background: 'linear-gradient(135deg, #00E5C8, #0099FF)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontWeight: 700, fontSize: 13,
                   }}>

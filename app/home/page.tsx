@@ -124,14 +124,14 @@ export default function HomePage() {
             style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, background: 'transparent', border: '1px solid transparent', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,77,28,0.2)', border: '1px solid rgba(255,77,28,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.62rem', fontWeight: 900, color: '#FF8C40' }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,229,200,0.15)', border: '1px solid rgba(0,229,200,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.62rem', fontWeight: 900, color: '#00E5C8' }}>
               {session.name.charAt(0).toUpperCase()}
             </div>
             {session.name}
           </button>
         )}
         {session.email === OWNER_EMAIL && (
-          <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,77,28,0.08)', border: '1px solid rgba(255,77,28,0.22)', color: 'rgba(255,140,64,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
+          <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
@@ -148,13 +148,13 @@ export default function HomePage() {
 
         {/* Quick actions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
-          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(255,77,28,0.08),rgba(255,77,28,0.03))', border: '1px solid rgba(255,77,28,0.2)', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,77,28,0.4)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(255,77,28,0.12),rgba(255,77,28,0.05))'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,77,28,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(255,77,28,0.08),rgba(255,77,28,0.03))'; }}>
+          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))', border: '1px solid rgba(0,229,200,0.18)', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.35)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.1),rgba(0,229,200,0.04))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.18)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))'; }}>
             <div style={{ fontSize: 32, marginBottom: 10 }}>✏️</div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Create your shirt</div>
-            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Design from scratch — add text, upload images, or generate with AI</div>
-            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#FF8C40' }}>Open studio →</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Design Studio</div>
+            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Design from scratch &mdash; add text, upload images, or generate with AI</div>
+            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#00E5C8' }}>Open studio &rarr;</div>
           </button>
 
           <button onClick={() => router.push('/catalog')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s' }}
@@ -168,15 +168,15 @@ export default function HomePage() {
         </div>
 
         {/* ── Premium subscription section ── */}
-        <div style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(255,77,28,0.18)', background: 'linear-gradient(135deg,rgba(255,77,28,0.05) 0%,rgba(139,92,246,0.04) 100%)' }}>
+        <div style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.15)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.03) 100%)' }}>
           {/* Top accent line */}
-          <div style={{ height: 2, background: 'linear-gradient(90deg,#FF4D1C,#FF9A00,#a855f7)' }} />
+          <div style={{ height: 2, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)' }} />
 
           <div style={{ padding: '2rem 2rem 1.75rem' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
               <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.6rem', fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(255,77,28,0.1)', border: '1px solid rgba(255,77,28,0.25)', color: '#FF8C40', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.6rem', fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: '#00E5C8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
                   ✨ Monthly Box
                 </div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 6 }}>
@@ -187,7 +187,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(135deg,#FF4D1C,#FF9A00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${MONTHLY}</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${MONTHLY}</div>
                 <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month · cancel anytime</div>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function HomePage() {
             )}
 
             {!hasActiveSub && !subSuccess && session.type === 'user' && !showForm && (
-              <button onClick={() => setShowForm(true)} style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#FF4D1C,#FF9A00)', color: 'white', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(255,77,28,0.28)', transition: 'all 0.15s' }}>
+              <button onClick={() => setShowForm(true)} style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(0,229,200,0.25)', transition: 'all 0.15s' }}>
                 Subscribe — ${MONTHLY}/month
               </button>
             )}
@@ -271,7 +271,7 @@ export default function HomePage() {
                   <div style={LS}>Products I want</div>
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                     {ALL_TYPES.map(t => (
-                      <button key={t} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(255,77,28,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(255,77,28,0.1)' : 'transparent', color: selTypes.includes(t) ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
+                      <button key={t} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(0,229,200,0.08)' : 'transparent', color: selTypes.includes(t) ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
                         {PRODUCT_TYPE_EMOJI[t]} {PRODUCT_TYPE_LABELS[t]}
                       </button>
                     ))}
@@ -282,13 +282,13 @@ export default function HomePage() {
                   <div style={LS}>Default size</div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {['XS','S','M','L','XL','XXL'].map(s => (
-                      <button key={s} onClick={() => setPrefSize(s)} style={{ width: 44, height: 44, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${prefSize === s ? '#FF4D1C' : 'rgba(255,255,255,0.08)'}`, background: prefSize === s ? 'rgba(255,77,28,0.12)' : 'rgba(255,255,255,0.02)', color: prefSize === s ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.13s' }}>{s}</button>
+                      <button key={s} onClick={() => setPrefSize(s)} style={{ width: 44, height: 44, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.08)'}`, background: prefSize === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.13s' }}>{s}</button>
                     ))}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <button onClick={subscribe} disabled={!selStyle || submitting} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: selStyle && !submitting ? 'linear-gradient(135deg,#FF4D1C,#FF9A00)' : 'rgba(255,255,255,0.06)', color: selStyle && !submitting ? 'white' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: selStyle && !submitting ? 'pointer' : 'default', transition: 'all 0.15s' }}>
+                  <button onClick={subscribe} disabled={!selStyle || submitting} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: selStyle && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.06)', color: selStyle && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: selStyle && !submitting ? 'pointer' : 'default', transition: 'all 0.15s' }}>
                     {submitting ? 'Subscribing...' : `Confirm — $${MONTHLY}/month`}
                   </button>
                   <button onClick={() => setShowForm(false)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', cursor: 'pointer' }}>Cancel</button>
@@ -309,7 +309,7 @@ export default function HomePage() {
 
 function navBtn(accent: 'orange' | 'indigo'): React.CSSProperties {
   const c = accent === 'orange'
-    ? { bg: 'rgba(255,77,28,0.07)', border: 'rgba(255,77,28,0.25)', color: 'rgba(255,140,64,0.9)' }
+    ? { bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)' }
     : { bg: 'rgba(99,102,241,0.07)', border: 'rgba(99,102,241,0.25)', color: 'rgba(129,140,248,0.9)' };
   return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };
 }

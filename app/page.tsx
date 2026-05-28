@@ -16,42 +16,103 @@ const PROMPT_EXAMPLES = [
 ];
 
 const MOCK_SHIRTS = [
-  { id: 'a', colors: ['#0a0a0a', '#1a1a2e', '#16213e'], label: 'Dark Edition' },
-  { id: 'b', colors: ['#f5f5f0', '#e8e8e0', '#d0d0c8'], label: 'Clean White' },
-  { id: 'c', colors: ['#0d1117', '#161b22', '#21262d'], label: 'Stealth Mode' },
+  { id: 'a', shirtColor: '#0a0a0d', shirtColor2: '#12121a', label: 'Dark Geo', style: 'geo' },
+  { id: 'b', shirtColor: '#f2f0eb', shirtColor2: '#e5e3de', label: 'Ivory Type', style: 'type' },
+  { id: 'c', shirtColor: '#0f172a', shirtColor2: '#1e293b', label: 'Night Wave', style: 'wave' },
 ];
 
-function ShirtSVG({ colors, text }: { colors: string[]; text: string }) {
-  const short = text.length > 22 ? text.slice(0, 22) + '…' : text;
+function ShirtMockup({ shirt, prompt }: { shirt: typeof MOCK_SHIRTS[0]; prompt: string }) {
+  const isDark = shirt.shirtColor.startsWith('#0') || shirt.shirtColor.startsWith('#1');
+  const ink = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.85)';
+  const inkDim = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)';
+  const accent = isDark ? '#00E5C8' : '#0055AA';
+  const words = prompt.split(' ').slice(0, 3);
+
   return (
-    <svg viewBox="0 0 200 230" width="100%" style={{ display: 'block' }}>
+    <svg viewBox="0 0 220 260" width="100%" style={{ display: 'block' }}>
       <defs>
-        <linearGradient id={`g${colors[0].replace('#', '')}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={colors[0]} />
-          <stop offset="100%" stopColor={colors[1]} />
+        <linearGradient id={`shirt${shirt.id}`} x1="0%" y1="0%" x2="60%" y2="100%">
+          <stop offset="0%" stopColor={shirt.shirtColor} />
+          <stop offset="100%" stopColor={shirt.shirtColor2} />
         </linearGradient>
-        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.35" />
+        <linearGradient id={`sleeve${shirt.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={shirt.shirtColor2} />
+          <stop offset="100%" stopColor={shirt.shirtColor} />
+        </linearGradient>
+        <filter id={`shadow${shirt.id}`}>
+          <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="#000" floodOpacity="0.5" />
         </filter>
+        <filter id={`glow${shirt.id}`}>
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <clipPath id={`body${shirt.id}`}>
+          <path d="M40 65 L8 92 L30 106 L26 242 L194 242 L190 106 L212 92 L180 65 C168 71 150 75 110 75 C70 75 52 71 40 65 Z" />
+        </clipPath>
       </defs>
+
+      {/* Shirt body */}
       <path
-        d="M32 57 L2 82 L26 97 L21 222 L179 222 L174 97 L198 82 L168 57 C155 62 143 65 100 65 C57 65 45 62 32 57 Z"
-        fill={`url(#g${colors[0].replace('#', '')})`}
-        filter="url(#shadow)"
-        stroke="rgba(255,255,255,0.06)"
-        strokeWidth="1"
+        d="M40 65 L8 92 L30 106 L26 242 L194 242 L190 106 L212 92 L180 65 C168 71 150 75 110 75 C70 75 52 71 40 65 Z"
+        fill={`url(#shirt${shirt.id})`}
+        filter={`url(#shadow${shirt.id})`}
       />
-      <path d="M68 57 C72 80 85 92 100 92 C115 92 128 80 132 57" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-      <text
-        x="100" y="138"
-        textAnchor="middle"
-        fill="rgba(255,255,255,0.9)"
-        fontSize="10"
-        fontFamily="system-ui, sans-serif"
-        fontWeight="600"
-        style={{ userSelect: 'none' }}
-      >{short}</text>
-      <rect x="75" y="144" width="50" height="1" fill="rgba(0,229,200,0.4)" rx="1" />
+
+      {/* Collar */}
+      <path d="M76 65 C80 88 95 102 110 102 C125 102 140 88 144 65" fill="none" stroke={isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'} strokeWidth="1.5" />
+
+      {/* Fabric highlight */}
+      <path d="M40 65 L8 92 L30 106 L26 130" fill="none" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'} strokeWidth="8" />
+
+      {/* ── Design area ── */}
+      {shirt.style === 'geo' && (
+        <g clipPath={`url(#body${shirt.id})`}>
+          {/* Concentric hexagons */}
+          <polygon points="110,108 128,118 128,138 110,148 92,138 92,118" fill="none" stroke={accent} strokeWidth="1.5" opacity="0.9" />
+          <polygon points="110,96 134,110 134,147 110,161 86,147 86,110" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.4" />
+          <polygon points="110,84 140,102 140,156 110,174 80,156 80,102" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.2" />
+          {/* Center dot */}
+          <circle cx="110" cy="128" r="4" fill={accent} opacity="0.8" />
+          <circle cx="110" cy="128" r="8" fill="none" stroke={accent} strokeWidth="0.5" opacity="0.3" />
+          {/* Diagonal lines */}
+          <line x1="92" y1="118" x2="75" y2="105" stroke={accent} strokeWidth="0.7" opacity="0.3" />
+          <line x1="128" y1="118" x2="145" y2="105" stroke={accent} strokeWidth="0.7" opacity="0.3" />
+          <line x1="92" y1="138" x2="75" y2="151" stroke={accent} strokeWidth="0.7" opacity="0.3" />
+          <line x1="128" y1="138" x2="145" y2="151" stroke={accent} strokeWidth="0.7" opacity="0.3" />
+          {/* Label */}
+          <text x="110" y="186" textAnchor="middle" fill={inkDim} fontSize="6" fontFamily="system-ui,sans-serif" fontWeight="700" letterSpacing="2">{words[0]?.toUpperCase() ?? 'DESIGN'}</text>
+        </g>
+      )}
+
+      {shirt.style === 'type' && (
+        <g clipPath={`url(#body${shirt.id})`}>
+          {/* Bold type layout */}
+          <text x="110" y="122" textAnchor="middle" fill={ink} fontSize="22" fontFamily="Georgia,serif" fontWeight="900" letterSpacing="-1">
+            {words[0]?.toUpperCase().slice(0,6) ?? 'STYLE'}
+          </text>
+          <line x1="72" y1="128" x2="148" y2="128" stroke={accent} strokeWidth="1.5" />
+          <text x="110" y="140" textAnchor="middle" fill={inkDim} fontSize="7" fontFamily="system-ui,sans-serif" fontWeight="600" letterSpacing="3">
+            {words.slice(1).join(' ').toUpperCase().slice(0,14) || 'ORIGINAL DESIGN'}
+          </text>
+          <text x="110" y="160" textAnchor="middle" fill={inkDim} fontSize="5.5" fontFamily="system-ui,sans-serif" letterSpacing="1">STYLX.AI &mdash; 2026</text>
+        </g>
+      )}
+
+      {shirt.style === 'wave' && (
+        <g clipPath={`url(#body${shirt.id})`}>
+          {/* Abstract wave pattern */}
+          <path d="M72 112 Q86 100 100 112 Q114 124 128 112 Q142 100 152 112" fill="none" stroke={accent} strokeWidth="2" opacity="0.9" />
+          <path d="M72 122 Q86 110 100 122 Q114 134 128 122 Q142 110 152 122" fill="none" stroke={accent} strokeWidth="1.5" opacity="0.55" />
+          <path d="M72 132 Q86 120 100 132 Q114 144 128 132 Q142 120 152 132" fill="none" stroke={accent} strokeWidth="1" opacity="0.3" />
+          <path d="M72 142 Q86 130 100 142 Q114 154 128 142 Q142 130 152 142" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.18" />
+          {/* Dot grid */}
+          {[88, 100, 112, 124, 136].map(x =>
+            [160, 168, 176].map(y => (
+              <circle key={`${x}${y}`} cx={x} cy={y} r="1" fill={inkDim} />
+            ))
+          )}
+        </g>
+      )}
     </svg>
   );
 }
@@ -256,26 +317,27 @@ export default function LandingPage() {
             <p style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>&ldquo;{prompt}&rdquo;</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
             {MOCK_SHIRTS.map((shirt, i) => (
               <div
                 key={shirt.id}
                 onClick={() => handleSelectShirt(shirt.id)}
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
+                  background: selectedShirt === shirt.id ? 'rgba(0,229,200,0.04)' : 'rgba(255,255,255,0.025)',
                   border: `1.5px solid ${selectedShirt === shirt.id ? '#00E5C8' : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius: 20, padding: '1.5rem', cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: selectedShirt === shirt.id ? '0 0 30px rgba(0,229,200,0.15)' : 'none',
-                  animation: `fadeUp 0.4s ease ${i * 0.1}s both`,
+                  borderRadius: 20, padding: '1.25rem 1.25rem 1rem', cursor: 'pointer',
+                  transition: 'all 0.25s',
+                  boxShadow: selectedShirt === shirt.id ? '0 0 40px rgba(0,229,200,0.12)' : '0 4px 24px rgba(0,0,0,0.3)',
+                  animation: `fadeUp 0.4s ease ${i * 0.12}s both`,
+                  transform: selectedShirt === shirt.id ? 'translateY(-4px)' : 'none',
                 }}
               >
-                <div style={{ marginBottom: '1rem' }}>
-                  <ShirtSVG colors={shirt.colors} text={prompt} />
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 4 }}>{shirt.label}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>Click to order</div>
+                <ShirtMockup shirt={shirt} prompt={prompt} />
+                <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff', marginBottom: 3 }}>{shirt.label}</div>
+                  <div style={{ fontSize: '0.7rem', color: selectedShirt === shirt.id ? '#00E5C8' : 'rgba(255,255,255,0.28)' }}>
+                    {selectedShirt === shirt.id ? '✓ Selected' : 'Tap to select'}
+                  </div>
                 </div>
               </div>
             ))}

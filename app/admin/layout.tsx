@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const raw = localStorage.getItem('pd_session');
       if (!raw) { router.replace('/'); return; }
       const sess = JSON.parse(raw);
-      if (sess.email !== OWNER_EMAIL) { router.replace('/studio'); return; }
+      if (sess.email !== OWNER_EMAIL) { router.replace('/home'); return; }
       setAllowed(true);
     } catch {
       router.replace('/');
@@ -45,8 +45,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         position: 'sticky', top: 0, height: '100vh', gap: 2,
       }}>
         <div style={{ marginBottom: '1.75rem', padding: '0 0.625rem' }}>
-          <div style={{ fontSize: 20, marginBottom: 4 }}>🖨</div>
-          <div style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.03em' }}>PrintDrop</div>
+          <div style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.03em', color: '#fff' }}>
+            STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
+          </div>
           <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', fontWeight: 700, marginTop: 1, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</div>
         </div>
 
