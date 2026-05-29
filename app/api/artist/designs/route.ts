@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function GET(req: NextRequest) {
   const artistId = req.nextUrl.searchParams.get('artistId');
