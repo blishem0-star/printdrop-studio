@@ -8,6 +8,12 @@ export async function GET(req: NextRequest) {
   const designs = await prisma.artistDesign.findMany({
     where: { artistId },
     orderBy: { createdAt: 'desc' },
+    take: 50,
+    select: {
+      id: true, title: true, category: true, price: true,
+      svg: true, badge: true, status: true,
+      salesCount: true, totalEarned: true, createdAt: true,
+    },
   });
   return NextResponse.json(designs);
 }
