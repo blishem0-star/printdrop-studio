@@ -303,7 +303,7 @@ export default function CatalogPage() {
       </div>
 
       {/* Drawer */}
-      <div ref={drawerRef} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 460, zIndex: 60, background: '#0f0f0f', borderLeft: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', transform: selected ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: selected ? '-24px 0 60px rgba(0,0,0,0.5)' : 'none' }}>
+      <div ref={drawerRef} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(460px, 100vw)', zIndex: 60, background: '#0f0f0f', borderLeft: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', transform: selected ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: selected ? '-24px 0 60px rgba(0,0,0,0.5)' : 'none' }}>
         {selected && (
           <>
             <div style={{ height: 54, display: 'flex', alignItems: 'center', padding: '0 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, gap: 10 }}>
