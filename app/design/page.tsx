@@ -437,7 +437,7 @@ function DesignStudio() {
               {/* Sub-tabs */}
               <div style={{display:'flex',background:'rgba(0,0,0,0.4)',borderRadius:9,padding:3,gap:2,marginBottom:14}}>
                 {([['text','✏ Text'],['upload','📁 Upload'],['ai','✨ AI'],['gfx','✦ Graphics']] as const).map(([id,label])=>(
-                  <button key={id} onClick={()=>setDesignTab(id)} style={{flex:1,padding:'5px 2px',borderRadius:6,border:'none',cursor:'pointer',background:designTab===id?'rgba(255,255,255,0.08)':'transparent',color:designTab===id?'white':'rgba(255,255,255,0.3)',fontSize:'0.6rem',fontWeight:700,transition:'all 0.13s'}}>{label}</button>
+                  <button key={id} role="tab" aria-selected={designTab===id} onClick={()=>setDesignTab(id)} style={{flex:1,padding:'5px 2px',borderRadius:6,border:'none',cursor:'pointer',background:designTab===id?'rgba(255,255,255,0.08)':'transparent',color:designTab===id?'white':'rgba(255,255,255,0.3)',fontSize:'0.6rem',fontWeight:700,transition:'all 0.13s'}}>{label}</button>
                 ))}
               </div>
 
