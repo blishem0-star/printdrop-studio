@@ -107,7 +107,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
   return (
     <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="scan-card holo-card" style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
-      {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 30 : 10, left: 10, zIndex: 2, fontSize: '0.48rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(139,92,246,0.85)', color: '#fff', letterSpacing: '0.04em' }}>🎨 {design.artistName}</div>}
+      {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 30 : 10, left: 10, zIndex: 2, fontSize: '0.48rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em' }}>🎨 {design.artistName}</div>}
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#050507', fontWeight: 900, boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}>✓</div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
@@ -233,7 +233,7 @@ export default function CatalogPage() {
 
   const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0.55rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' };
 
-  if (!session) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}><div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading...</div></div>;
+  if (!session) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}><div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading...</div></div>;
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
@@ -300,7 +300,7 @@ export default function CatalogPage() {
                 <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order confirmed!</div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} · {color?.name} · Size {size}</div>
                 {orderId && <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontFamily: 'monospace' }}>#{orderId.slice(0,8).toUpperCase()}</div>}
-                <button onClick={() => { setOrdered(false); setSelected(null); }} style={{ marginTop: 8, padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem' }}>Back to catalog</button>
+                <button onClick={() => { setOrdered(false); setSelected(null); }} style={{ marginTop: 8, padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', boxShadow: '0 6px 20px rgba(0,229,200,0.3)' }}>Back to catalog</button>
               </div>
             ) : drawerStep === 'customize' ? (
               <>
@@ -310,9 +310,9 @@ export default function CatalogPage() {
                     <DrawerShirt design={selected} color={color} frontText={frontText} backText={backText} frontPos={frontPos} backPos={backPos} frontFont={frontFont} backFont={backFont} showBack={showBack} productType={drawerProductType} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(['front', 'back'] as const).map(side => (
-                        <button key={side} onClick={() => setShowBack(side === 'back')} style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid', borderColor: (showBack ? side === 'back' : side === 'front') ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.07)', background: (showBack ? side === 'back' : side === 'front') ? 'rgba(99,102,241,0.08)' : 'transparent', color: (showBack ? side === 'back' : side === 'front') ? '#818CF8' : 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <button key={side} onClick={() => setShowBack(side === 'back')} style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid', borderColor: (showBack ? side === 'back' : side === 'front') ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: (showBack ? side === 'back' : side === 'front') ? 'rgba(0,229,200,0.08)' : 'transparent', color: (showBack ? side === 'back' : side === 'front') ? '#00E5C8' : 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                           {side === 'front' ? '👕 Front' : '↩️ Back'}
-                          {(side === 'front' ? frontText : backText) && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#818CF8', display: 'inline-block' }} />}
+                          {(side === 'front' ? frontText : backText) && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#00E5C8', display: 'inline-block' }} />}
                         </button>
                       ))}
                     </div>
@@ -343,7 +343,7 @@ export default function CatalogPage() {
                   <div style={{ marginBottom: '1.15rem' }}>
                     <div style={lbl}>Size {size && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {size}</span>}</div>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      {SHIRT_SIZES.map(s => <button key={s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? '#6366F1' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.02)', color: size === s ? '#818CF8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s' }}>{s}</button>)}
+                      {SHIRT_SIZES.map(s => <button key={s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
                     </div>
                   </div>
                   {/* Text */}
@@ -361,7 +361,7 @@ export default function CatalogPage() {
                           <div style={lbl}>Position</div>
                           <div style={{ display: 'flex', gap: 6 }}>
                             {(['top', 'center', 'bottom'] as TextPos[]).map(p => (
-                              <button key={p} onClick={() => showBack ? setBackPos(p) : setFrontPos(p)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backPos : frontPos) === p ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backPos : frontPos) === p ? 'rgba(99,102,241,0.07)' : 'transparent', color: (showBack ? backPos : frontPos) === p ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'capitalize' }}>{p}</button>
+                              <button key={p} onClick={() => showBack ? setBackPos(p) : setFrontPos(p)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.07)' : 'transparent', color: (showBack ? backPos : frontPos) === p ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'capitalize' }}>{p}</button>
                             ))}
                           </div>
                         </div>
@@ -369,7 +369,7 @@ export default function CatalogPage() {
                           <div style={lbl}>Font</div>
                           <div style={{ display: 'flex', gap: 6 }}>
                             {([['bold','BOLD'],['script','Script'],['minimal','minimal']] as [FontStyle,string][]).map(([f, label]) => (
-                              <button key={f} onClick={() => showBack ? setBackFont(f) : setFrontFont(f)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backFont : frontFont) === f ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backFont : frontFont) === f ? 'rgba(99,102,241,0.07)' : 'transparent', color: (showBack ? backFont : frontFont) === f ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: f === 'bold' ? '0.7rem' : '0.72rem', fontWeight: f === 'bold' ? 900 : f === 'script' ? 600 : 300, fontStyle: f === 'script' ? 'italic' : 'normal', letterSpacing: f === 'minimal' ? '0.12em' : 0 }}>{label}</button>
+                              <button key={f} onClick={() => showBack ? setBackFont(f) : setFrontFont(f)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backFont : frontFont) === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backFont : frontFont) === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: (showBack ? backFont : frontFont) === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: f === 'bold' ? '0.7rem' : '0.72rem', fontWeight: f === 'bold' ? 900 : f === 'script' ? 600 : 300, fontStyle: f === 'script' ? 'italic' : 'normal', letterSpacing: f === 'minimal' ? '0.12em' : 0 }}>{label}</button>
                             ))}
                           </div>
                         </div>
@@ -381,9 +381,9 @@ export default function CatalogPage() {
                 <div style={{ flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>Total</span>
-                    <span style={{ fontWeight: 900, color: '#818CF8', fontSize: '1.05rem' }}>${total.toFixed(2)}</span>
+                    <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.3rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${total.toFixed(2)}</span>
                   </div>
-                  <button disabled={!customizeDone} onClick={() => setDrawerStep('delivery')} style={{ width: '100%', height: 46, borderRadius: 12, border: 'none', background: customizeDone ? 'linear-gradient(135deg,#6366F1,#8B5CF6)' : 'rgba(255,255,255,0.05)', color: customizeDone ? '#fff' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: customizeDone ? 'pointer' : 'default', boxShadow: customizeDone ? '0 6px 20px rgba(99,102,241,0.3)' : 'none', transition: 'all 0.2s' }}>
+                  <button disabled={!customizeDone} onClick={() => setDrawerStep('delivery')} style={{ width: '100%', height: 46, borderRadius: 12, border: 'none', background: customizeDone ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: customizeDone ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: customizeDone ? 'pointer' : 'default', boxShadow: customizeDone ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
                     {!color || !size ? 'Pick color & size' : 'Continue to delivery →'}
                   </button>
                 </div>
@@ -392,7 +392,7 @@ export default function CatalogPage() {
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
                   {/* Recap */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.75rem', background: 'rgba(99,102,241,0.06)', borderRadius: 12, border: '1px solid rgba(99,102,241,0.12)', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.75rem', background: 'rgba(0,229,200,0.04)', borderRadius: 12, border: '1px solid rgba(0,229,200,0.12)', marginBottom: '1.5rem' }}>
                     <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
                       <svg width="56" height="56" viewBox="0 0 200 200" fill="none"><path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill={color?.hex ?? '#2a2a2a'} stroke="rgba(255,255,255,0.1)" strokeWidth="3"/></svg>
                       <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }}><SvgPreview svg={selected.svg} color={color?.textColor ?? '#fff'} size={22} /></div>
@@ -402,7 +402,7 @@ export default function CatalogPage() {
                       <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{color?.name} · Size {size}</div>
                       {(frontText || backText) && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{[frontText && `Front: "${frontText}"`, backText && `Back: "${backText}"`].filter(Boolean).join(' · ')}</div>}
                     </div>
-                    <div style={{ fontWeight: 900, color: '#818CF8', flexShrink: 0 }}>${total.toFixed(2)}</div>
+                    <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', flexShrink: 0 }}>${total.toFixed(2)}</div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -423,7 +423,7 @@ export default function CatalogPage() {
                     {/* Save checkbox — only for registered users */}
                     {session.type === 'user' && (
                       <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginTop: 4 }}>
-                        <div onClick={() => setSaveAddress(v => !v)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#6366F1' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#6366F1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer' }}>
+                        <div onClick={() => setSaveAddress(v => !v)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#00E5C8' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#00E5C8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer' }}>
                           {saveAddress && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
                         </div>
                         <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>Save delivery details for next time</span>
@@ -433,7 +433,7 @@ export default function CatalogPage() {
                 </div>
 
                 <div style={{ flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
-                  <button disabled={!deliveryDone || submitting} onClick={handleOrder} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: deliveryDone && !submitting ? 'linear-gradient(135deg,#6366F1,#8B5CF6)' : 'rgba(255,255,255,0.05)', color: deliveryDone && !submitting ? '#fff' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: deliveryDone && !submitting ? 'pointer' : 'default', boxShadow: deliveryDone && !submitting ? '0 6px 20px rgba(99,102,241,0.3)' : 'none', transition: 'all 0.2s' }}>
+                  <button disabled={!deliveryDone || submitting} onClick={handleOrder} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: deliveryDone && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: deliveryDone && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: deliveryDone && !submitting ? 'pointer' : 'default', boxShadow: deliveryDone && !submitting ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
                     {submitting ? 'Placing order...' : !deliveryDone ? 'Fill in delivery details' : `Send to Print — $${total.toFixed(2)}`}
                   </button>
                   {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{['🔒 Secure', '72h Delivery', 'Free Returns'].map(t => <span key={t} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.18)', fontWeight: 600 }}>{t}</span>)}</div>}

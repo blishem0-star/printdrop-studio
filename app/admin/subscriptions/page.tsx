@@ -58,7 +58,7 @@ export default function AdminSubscriptionsPage() {
 
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(255,77,28,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(255,77,28,0.08)' : 'transparent', color: filter === f ? '#FF8C40' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
+          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: filter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
             {f === 'ALL' ? `All (${subs.length})` : f === 'ACTIVE' ? `Active (${active})` : f}
           </button>
         ))}
@@ -105,7 +105,7 @@ export default function AdminSubscriptionsPage() {
                     <td style={{ padding: '0.875rem 1rem', fontSize: '0.78rem', color: s.status === 'ACTIVE' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.28)' }}>
                       {new Date(s.nextShipmentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
-                    <td style={{ padding: '0.875rem 1rem', fontSize: '0.82rem', fontWeight: 700, color: '#A78BFA' }}>{s.shipments.length}</td>
+                    <td style={{ padding: '0.875rem 1rem', fontSize: '0.82rem', fontWeight: 700, color: '#00E5C8' }}>{s.shipments.length}</td>
                     <td style={{ padding: '0.875rem 1rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)' }}>
                       {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>

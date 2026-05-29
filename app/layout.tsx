@@ -88,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body suppressHydrationWarning style={{ margin: 0, backgroundColor: '#080808', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <body suppressHydrationWarning style={{ margin: 0, backgroundColor: '#050507', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <CursorEffect />
         {children}
       </body>

@@ -76,7 +76,7 @@ export default function AdminArtistsPage() {
       {/* Filter */}
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(139,92,246,0.1)' : 'transparent', color: filter === f ? '#A78BFA' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
+          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(0,229,200,0.08)' : 'transparent', color: filter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
             {f === 'ALL' ? `All (${designs.length})` : f === 'PENDING' ? `Pending (${pending})` : f}
           </button>
         ))}
@@ -125,7 +125,7 @@ export default function AdminArtistsPage() {
                     </td>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>${d.price.toFixed(2)}</div>
-                      <div style={{ fontSize: '0.62rem', color: '#A78BFA' }}>Artist: ${(d.price * 0.5).toFixed(2)}</div>
+                      <div style={{ fontSize: '0.62rem', color: '#00E5C8' }}>Artist: ${(d.price * 0.5).toFixed(2)}</div>
                       {d.salesCount > 0 && <div style={{ fontSize: '0.6rem', color: '#10B981', marginTop: 1 }}>{d.salesCount} sold · ${d.totalEarned.toFixed(2)} paid</div>}
                     </td>
                     <td style={{ padding: '0.875rem 1rem' }}>

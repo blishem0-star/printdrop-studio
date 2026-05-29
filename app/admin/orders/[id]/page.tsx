@@ -70,7 +70,7 @@ export default function OrderDetailPage() {
                     </div>
                   )}
                   {design.filePath && (
-                    <a href={design.filePath} download style={{ display: 'inline-block', marginTop: 12, fontSize: '0.72rem', color: '#FF8C40', textDecoration: 'none', fontWeight: 600 }}>
+                    <a href={design.filePath} download style={{ display: 'inline-block', marginTop: 12, fontSize: '0.72rem', color: '#00E5C8', textDecoration: 'none', fontWeight: 600 }}>
                       ↓ Download print file
                     </a>
                   )}
@@ -136,7 +136,7 @@ export default function OrderDetailPage() {
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '0.75rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800 }}>
               <span>Total</span>
-              <span style={{ color: '#FF5C28' }}>${order.total.toFixed(2)}</span>
+              <span style={{ color: '#00E5C8' }}>${order.total.toFixed(2)}</span>
             </div>
             <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', marginTop: 10 }}>
               Placed {new Date(order.createdAt).toLocaleString('en-US')}

@@ -48,7 +48,7 @@ export default async function AdminDesignsPage() {
                       <span key={t} style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.07)' }}>{t}</span>
                     ))}
                     {d.customText && (
-                      <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(255,77,28,0.1)', color: '#FF8C40', border: '1px solid rgba(255,77,28,0.2)' }}>✏ {d.customText}</span>
+                      <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', color: '#00E5C8', border: '1px solid rgba(0,229,200,0.2)' }}>✏ {d.customText}</span>
                     )}
                   </div>
 
@@ -66,7 +66,7 @@ export default async function AdminDesignsPage() {
                   )}
 
                   {d.filePath && (
-                    <a href={d.filePath} download style={{ display: 'block', marginTop: 8, fontSize: '0.68rem', color: '#FF8C40', textDecoration: 'none', fontWeight: 600 }}>
+                    <a href={d.filePath} download style={{ display: 'block', marginTop: 8, fontSize: '0.68rem', color: '#00E5C8', textDecoration: 'none', fontWeight: 600 }}>
                       ↓ Download print file
                     </a>
                   )}

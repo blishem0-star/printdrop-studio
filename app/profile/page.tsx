@@ -140,8 +140,10 @@ export default function ProfilePage() {
     letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6, display: 'block',
   };
   const sectionStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+    background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)',
     borderRadius: 18, padding: '1.5rem', marginBottom: '1.25rem',
+    position: 'relative', overflow: 'hidden',
+    backdropFilter: 'blur(8px)',
   };
 
   const role = profile?.role ?? session?.role ?? 'USER';
@@ -150,21 +152,28 @@ export default function ProfilePage() {
   const aiUnlocked = orderCount >= 3;
 
   if (!session || loading) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading profile...</div>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
+      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading...</div>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
+      {/* Atmosphere */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', right: '10%' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.03) 0%, transparent 65%)', bottom: '10%', left: '0%' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.011) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.011) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+      </div>
+
       {/* Header */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>← Back</button>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
-        <span style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.03em' }}>My Profile</span>
+        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Profile</span>
         <div style={{ flex: 1 }} />
         {role === 'ARTIST' && (
-          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', color: '#A78BFA', cursor: 'pointer' }}>🎨 Artist Studio</button>
+          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer' }}>🎨 Artist Studio</button>
         )}
         {session.email === OWNER_EMAIL && (
           <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
@@ -172,7 +181,7 @@ export default function ProfilePage() {
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem' }}>
+      <main style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
 
         {/* Identity card */}
         <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
@@ -226,7 +235,7 @@ export default function ProfilePage() {
               <div><label style={lbl}>ZIP</label><input style={{ ...inp, fontFamily: 'monospace' }} value={addrZip} onChange={e => setAddrZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
             </div>
           </div>
-          <button onClick={saveAddress} disabled={addrSaving} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: addrSaved ? '#10B981' : !addrSaving ? 'rgba(99,102,241,0.8)' : 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: !addrSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
+          <button onClick={saveAddress} disabled={addrSaving} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: addrSaved ? '#10B981' : !addrSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: !addrSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: !addrSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
             {addrSaved ? '✓ Saved' : addrSaving ? 'Saving...' : 'Save Address'}
           </button>
         </div>
@@ -289,14 +298,14 @@ export default function ProfilePage() {
 
         {/* Artist CTA */}
         {role === 'USER' && (
-          <div style={{ ...sectionStyle, background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.12)' }}>
+          <div style={{ ...sectionStyle, background: 'rgba(0,229,200,0.03)', border: '1px solid rgba(0,229,200,0.12)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ fontSize: 32 }}>🎨</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.88rem', marginBottom: 3 }}>Are you a designer?</div>
                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Artists can upload their designs to our catalog and earn 50% on every sale. Register a new artist account to get started.</div>
               </div>
-              <button onClick={() => router.push('/')} style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)', color: '#A78BFA', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0 }}>Learn More</button>
+              <button onClick={() => router.push('/')} style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.07)', color: '#00E5C8', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0 }}>Learn More</button>
             </div>
           </div>
         )}

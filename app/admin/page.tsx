@@ -24,7 +24,7 @@ export default async function AdminOverview() {
     { label: 'Customers', value: customers.length, icon: '👥', color: '#8B5CF6' },
     { label: 'In Progress', value: pending, icon: '⚡', color: '#F59E0B' },
     { label: 'Delivered', value: delivered, icon: '✅', color: '#10B981' },
-    { label: 'Designs Saved', value: designs.length, icon: '🎨', color: '#FF4D1C' },
+    { label: 'Designs Saved', value: designs.length, icon: '🎨', color: '#00E5C8' },
   ];
 
   return (
@@ -79,7 +79,7 @@ export default async function AdminOverview() {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 800 }}>Recent Orders</h2>
-          <Link href="/admin/orders" style={{ fontSize: '0.72rem', color: 'rgba(255,77,28,0.7)', textDecoration: 'none', fontWeight: 600 }}>View all →</Link>
+          <Link href="/admin/orders" style={{ fontSize: '0.72rem', color: 'rgba(0,229,200,0.7)', textDecoration: 'none', fontWeight: 600 }}>View all →</Link>
         </div>
 
         {recent.length === 0 ? (

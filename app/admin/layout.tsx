@@ -31,13 +31,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router]);
 
   if (!allowed) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050507' }}>
       <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>Checking access...</div>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', background: '#050507', display: 'flex' }}>
       {/* Sidebar */}
       <aside style={{
         width: 210, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)',
