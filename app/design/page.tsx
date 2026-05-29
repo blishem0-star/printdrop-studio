@@ -438,7 +438,7 @@ function DesignStudio() {
                 <div>
                   <div style={LS}>Your Text</div>
                   <div style={{display:'flex',gap:6}}>
-                    <input value={textInput} onChange={e=>setTextInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addText()} placeholder="Type something..." style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'9px 11px',color:'white',fontSize:'0.83rem',outline:'none'}} onFocus={e=>(e.target.style.borderColor='rgba(0,229,200,0.5)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.1)')}/>
+                    <input value={textInput} onChange={e=>setTextInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addText()} placeholder="Type something..." maxLength={40} style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'9px 11px',color:'white',fontSize:'0.83rem',outline:'none'}} onFocus={e=>(e.target.style.borderColor='rgba(0,229,200,0.5)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.1)')}/>
                     <button onClick={addText} disabled={!textInput.trim()} style={{width:40,borderRadius:9,border:'none',background:textInput.trim()?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.05)',color:textInput.trim()?'#050507':'rgba(255,255,255,0.15)',fontSize:'1.1rem',fontWeight:700,cursor:textInput.trim()?'pointer':'default',transition:'all 0.15s'}}>+</button>
                   </div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
@@ -516,7 +516,7 @@ function DesignStudio() {
               {designTab==='ai' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <div>
                   <div style={LS}>Describe your design</div>
-                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain with bold typography EXPLORE..." rows={4} style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:10,padding:'10px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.6}}/>
+                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain with bold typography EXPLORE..." rows={4} maxLength={200} style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:10,padding:'10px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.6}}/>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
                   <button onClick={generateAI} disabled={!aiPrompt.trim()||aiLoading} style={{flex:1,padding:'10px',borderRadius:10,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#050507':'rgba(255,255,255,0.2)',fontWeight:800,fontSize:'0.82rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s'}}>
@@ -603,12 +603,12 @@ function DesignStudio() {
               </div>
               {/* Form */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                <div><div style={LS}>Full Name</div><input style={INP} value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith"/></div>
-                <div><div style={LS}>Email</div><input style={INP} type="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com"/></div>
+                <div><div style={LS}>Full Name</div><input style={INP} value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80}/></div>
+                <div><div style={LS}>Email</div><input style={INP} type="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120}/></div>
               </div>
-              <div><div style={LS}>Street Address</div><input style={INP} value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St"/></div>
+              <div><div style={LS}>Street Address</div><input style={INP} value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120}/></div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 60px 76px',gap:8}}>
-                <div><div style={LS}>City</div><input style={INP} value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York"/></div>
+                <div><div style={LS}>City</div><input style={INP} value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York" maxLength={60}/></div>
                 <div><div style={LS}>State</div>
                   <select value={shipState} onChange={e=>setShipState(e.target.value)} style={{...INP,appearance:'none',cursor:'pointer',color:shipState?'#fff':'rgba(255,255,255,0.25)'}}>
                     <option value="">ST</option>
