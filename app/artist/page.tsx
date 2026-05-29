@@ -207,7 +207,7 @@ export default function ArtistPage() {
 
         {/* ── Upload tab ── */}
         {tab === 'upload' && (
-          <div className="rsp-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
+          <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Info note */}
               <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(0,229,200,0.04)', border: '1px solid rgba(0,229,200,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
