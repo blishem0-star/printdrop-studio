@@ -22,17 +22,6 @@ function validateBody(b: Record<string, unknown>): string | null {
   return null;
 }
 
-export async function GET() {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      customer: true,
-      items: { include: { designAsset: true } },
-    },
-  });
-  return NextResponse.json(orders);
-}
-
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch {

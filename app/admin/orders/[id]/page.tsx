@@ -1,44 +1,28 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { STATUS_COLOR, type OrderStatus } from '@/lib/types';
+import { StatusButtons } from './StatusButtons';
 
-import { type Order, type OrderStatus, ORDER_STATUSES, STATUS_COLOR } from '@/lib/types';
+export const dynamic = 'force-dynamic';
 
-export default function OrderDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
-  useEffect(() => {
-    fetch(`/api/orders/${id}`)
-      .then(r => r.json())
-      .then(setOrder)
-      .finally(() => setLoading(false));
-  }, [id]);
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { customer: true, items: { include: { designAsset: true } } },
+  });
 
-  async function updateStatus(status: OrderStatus) {
-    setUpdating(true);
-    const res = await fetch(`/api/orders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    if (res.ok) setOrder(await res.json());
-    setUpdating(false);
-  }
-
-  if (loading) return <div style={{ color: 'rgba(255,255,255,0.3)', padding: '2rem' }}>Loading...</div>;
-  if (!order) return <div style={{ color: '#EF4444', padding: '2rem' }}>Order not found</div>;
+  if (!order) notFound();
 
   const design = order.items[0]?.designAsset;
 
   return (
     <div style={{ maxWidth: 860 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
-        <Link href="/admin" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>← Orders</Link>
+        <Link href="/admin/orders" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>← Orders</Link>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>/</span>
         <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>#{order.id.slice(0, 8).toUpperCase()}</span>
       </div>
@@ -103,25 +87,7 @@ export default function OrderDetailPage() {
           {/* Status */}
           <div style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.08)', padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem' }}>Status</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {ORDER_STATUSES.map(s => {
-                const active = order.status === s;
-                return (
-                  <button key={s} onClick={() => updateStatus(s)} disabled={updating || active}
-                    style={{
-                      width: '100%', padding: '0.6rem 0.875rem', borderRadius: 10, cursor: active || updating ? 'default' : 'pointer',
-                      background: active ? `${STATUS_COLOR[s]}15` : 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${active ? STATUS_COLOR[s] + '55' : 'rgba(255,255,255,0.06)'}`,
-                      color: active ? STATUS_COLOR[s] : 'rgba(255,255,255,0.35)',
-                      fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
-                      textAlign: 'left', transition: 'all 0.15s',
-                      opacity: updating && !active ? 0.4 : 1,
-                    }}>
-                    {active ? '● ' : '○ '}{s.replace('_', ' ')}
-                  </button>
-                );
-              })}
-            </div>
+            <StatusButtons orderId={order.id} currentStatus={order.status} />
           </div>
 
           {/* Summary */}
