@@ -574,7 +574,7 @@ function DesignStudio() {
                 <div style={LS}>Color — {color.name}</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:9}}>
                   {SHIRT_COLORS.map(c=>(
-                    <button key={c.id} title={c.name} onClick={()=>setColor(c)} style={{width:38,height:38,borderRadius:'50%',border:'none',background:c.hex,cursor:'pointer',outline:color.id===c.id?'3px solid #00E5C8':'2px solid rgba(255,255,255,0.09)',outlineOffset:3,boxShadow:color.id===c.id?`0 0 16px ${c.hex}aa`:'none',transition:'all 0.15s',transform:color.id===c.id?'scale(1.15)':'scale(1)'}}/>
+                    <button key={c.id} title={c.name} aria-label={`Select color: ${c.name}`} aria-pressed={color.id===c.id} onClick={()=>setColor(c)} style={{width:38,height:38,borderRadius:'50%',border:'none',background:c.hex,cursor:'pointer',outline:color.id===c.id?'3px solid #00E5C8':'2px solid rgba(255,255,255,0.09)',outlineOffset:3,boxShadow:color.id===c.id?`0 0 16px ${c.hex}aa`:'none',transition:'all 0.15s',transform:color.id===c.id?'scale(1.15)':'scale(1)'}}/>
                   ))}
                 </div>
               </div>
