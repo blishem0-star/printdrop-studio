@@ -272,7 +272,7 @@ export default function CatalogPage() {
         {/* Product type strip */}
         <div className="rsp-pad" style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
-            <button key={pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button key={pt} aria-pressed={productFilter === pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
               {pt === 'ALL' ? '✦ All Types' : `${PRODUCT_TYPE_EMOJI[pt]} ${PRODUCT_TYPE_LABELS[pt]}`}
             </button>
           ))}
