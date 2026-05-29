@@ -61,7 +61,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
 
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'] as const).map(f => (
-          <Link key={f} href={`/admin/subscriptions?filter=${f}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>
+          <Link key={f} href={`/admin/subscriptions?filter=${f}`} aria-current={activeFilter === f ? 'page' : undefined} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>
             {f === 'ALL' ? `All (${total})` : f === 'ACTIVE' ? `Active (${active})` : f}
           </Link>
         ))}

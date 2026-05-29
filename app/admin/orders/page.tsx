@@ -67,7 +67,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       {/* Status filter */}
       <div style={{ display: 'flex', gap: 6, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         {[{ label: `All`, value: '' }, ...VALID_STATUSES.map(s => ({ label: s.replace('_',' '), value: s }))].map(f => (
-          <Link key={f.value} href={`/admin/orders?status=${f.value}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: statusFilter === f.value ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: statusFilter === f.value ? 'rgba(0,229,200,0.08)' : 'transparent', color: statusFilter === f.value ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>{f.label}</Link>
+          <Link key={f.value} href={`/admin/orders?status=${f.value}`} aria-current={statusFilter === f.value ? 'page' : undefined} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: statusFilter === f.value ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: statusFilter === f.value ? 'rgba(0,229,200,0.08)' : 'transparent', color: statusFilter === f.value ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>{f.label}</Link>
         ))}
       </div>
 
