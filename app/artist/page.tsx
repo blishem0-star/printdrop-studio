@@ -150,7 +150,7 @@ export default function ArtistPage() {
       {earnings && (
         <div style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.25rem 2rem' }}>
           <div style={{ height: 1, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', position: 'absolute', top: 0, left: 0, right: 0 }} />
-          <div style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
+          <div className="rsp-2col" style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
             {[
               { label: 'Total Earned', value: `$${earnings.totalEarned.toFixed(2)}`, color: '#00E5C8' },
               { label: 'Total Sales',  value: earnings.totalSales,                    color: '#0099FF' },
@@ -207,14 +207,14 @@ export default function ArtistPage() {
 
         {/* ── Upload tab ── */}
         {tab === 'upload' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
+          <div className="rsp-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Info note */}
               <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(0,229,200,0.04)', border: '1px solid rgba(0,229,200,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
                 ✦ You earn <strong style={{ color: '#00E5C8' }}>50% of every sale</strong>. Designs go through a quick review before appearing in the catalog.
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div><label style={lbl}>Design Title *</label><input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Neon Tiger" maxLength={80} /></div>
                 <div>
                   <label style={lbl}>Category *</label>
