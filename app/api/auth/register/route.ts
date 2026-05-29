@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
   let body: { name?: string; email?: string; password?: string; role?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const { name, email, password, role } = body;
+  const { name, password, role } = body;
+  const email = body.email?.toLowerCase().trim() ?? '';
   if (!name?.trim() || !email || !password) return NextResponse.json({ error: 'All fields required' }, { status: 422 });
   if (!EMAIL_RE.test(email)) return NextResponse.json({ error: 'Invalid email address' }, { status: 422 });
   if (password.length < 8) return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 422 });
