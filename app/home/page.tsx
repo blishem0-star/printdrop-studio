@@ -316,7 +316,7 @@ export default function HomePage() {
                   <div style={LS}>Products I want</div>
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                     {ALL_TYPES.map(t => (
-                      <button key={t} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(0,229,200,0.08)' : 'transparent', color: selTypes.includes(t) ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
+                      <button key={t} aria-pressed={selTypes.includes(t)} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(0,229,200,0.08)' : 'transparent', color: selTypes.includes(t) ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
                         {PRODUCT_TYPE_EMOJI[t]} {PRODUCT_TYPE_LABELS[t]}
                       </button>
                     ))}
