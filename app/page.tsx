@@ -559,7 +559,7 @@ export default function LandingPage() {
               <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
                 {authMode === 'signup' ? 'Free account to order. Ships in 72 hours.' : 'Welcome back — continue your order.'}
               </p>
-              {error && <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.65rem 0.9rem', fontSize: '0.75rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>}
+              {error && <div role="alert" aria-live="assertive" style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.65rem 0.9rem', fontSize: '0.75rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>}
               <form onSubmit={submitAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 {authMode === 'signup' && (
                   <>
