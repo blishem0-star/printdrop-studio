@@ -497,7 +497,7 @@ function DesignStudio() {
               {designTab==='upload' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <div style={{display:'flex',gap:5}}>
                   {([['front','👕 Front',uploads.front],['back','↩️ Back',uploads.back],['chest','❤️ Chest',uploads.chest]] as [UploadSlot,string,string|null][]).map(([slot,label,img])=>(
-                    <button key={slot} onClick={()=>setUploadSlot(slot)} style={{flex:1,padding:'6px 4px',borderRadius:8,border:'1px solid',borderColor:uploadSlot===slot?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.08)',background:uploadSlot===slot?'rgba(0,229,200,0.07)':'transparent',color:uploadSlot===slot?'#00E5C8':'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
+                    <button key={slot} aria-pressed={uploadSlot===slot} onClick={()=>setUploadSlot(slot)} style={{flex:1,padding:'6px 4px',borderRadius:8,border:'1px solid',borderColor:uploadSlot===slot?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.08)',background:uploadSlot===slot?'rgba(0,229,200,0.07)':'transparent',color:uploadSlot===slot?'#00E5C8':'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:3}}>
                       {label}{img&&<span style={{width:5,height:5,borderRadius:'50%',background:'#10B981',flexShrink:0}}/>}
                     </button>
                   ))}
