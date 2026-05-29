@@ -84,6 +84,8 @@ export default function ProfilePage() {
 
   async function saveProfile() {
     if (!session?.customerId) return;
+    if (editName.trim().length < 2) { setProfileError('Name must be at least 2 characters'); return; }
+    if (editEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail)) { setProfileError('Invalid email address'); return; }
     setProfileSaving(true); setProfileError(''); setProfileSaved(false);
     try {
       const res = await fetch('/api/user/profile', {
