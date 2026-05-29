@@ -155,6 +155,10 @@ function LiquidCard({
   return (
     <div
       onClick={ready ? onClick : undefined}
+      role={ready ? 'button' : undefined}
+      tabIndex={ready ? 0 : undefined}
+      aria-pressed={selected}
+      onKeyDown={ready ? e => (e.key === 'Enter' || e.key === ' ') && onClick() : undefined}
       style={{
         position: 'relative', borderRadius: 20, overflow: 'hidden',
         aspectRatio: '3 / 4',
