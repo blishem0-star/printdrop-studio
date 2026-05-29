@@ -25,6 +25,7 @@ export default function HomePage() {
   const [session, setSession] = useState<Session | null>(null);
   const [sub, setSub] = useState<Subscription | null>(null);
   const [subLoading, setSubLoading] = useState(false);
+  const [subActionLoading, setSubActionLoading] = useState(false);
 
   // Subscribe form
   const [showForm, setShowForm] = useState(false);
@@ -65,16 +66,22 @@ export default function HomePage() {
   }
 
   async function cancelSub() {
-    if (!sub) return;
-    const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
-    if (res.ok) setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
+    if (!sub || subActionLoading) return;
+    setSubActionLoading(true);
+    try {
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
+      if (res.ok) setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
+    } catch { /* ignore network errors */ } finally { setSubActionLoading(false); }
   }
 
   async function togglePause() {
-    if (!sub) return;
+    if (!sub || subActionLoading) return;
     const newStatus: SubStatus = sub.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
-    const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
-    if (res.ok) setSub(prev => prev ? { ...prev, status: newStatus } : null);
+    setSubActionLoading(true);
+    try {
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
+      if (res.ok) setSub(prev => prev ? { ...prev, status: newStatus } : null);
+    } catch { /* ignore network errors */ } finally { setSubActionLoading(false); }
   }
 
   function signOut() {
@@ -250,10 +257,10 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={togglePause} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>
+                  <button onClick={togglePause} disabled={subActionLoading} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: subActionLoading ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 700, cursor: subActionLoading ? 'default' : 'pointer', opacity: subActionLoading ? 0.5 : 1, transition: 'opacity 0.15s' }}>
                     {sub!.status === 'PAUSED' ? '▶ Resume' : '⏸ Pause'}
                   </button>
-                  <button onClick={cancelSub} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.07)', color: '#f87171', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={cancelSub} disabled={subActionLoading} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.07)', color: '#f87171', fontSize: '0.72rem', fontWeight: 700, cursor: subActionLoading ? 'default' : 'pointer', opacity: subActionLoading ? 0.5 : 1, transition: 'opacity 0.15s' }}>Cancel</button>
                 </div>
               </div>
             )}

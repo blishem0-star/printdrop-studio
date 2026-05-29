@@ -203,7 +203,8 @@ export default function CatalogPage() {
 
   const total = PRODUCT_BASE_PRICE[drawerProductType] + SHIPPING_PRICE;
   const customizeDone = color !== null && size !== null;
-  const deliveryDone = shipName.trim().length > 1 && shipEmail.includes('@') && shipStreet.trim().length > 3 && shipCity.trim().length > 1 && shipZip.length === 5 && shipState !== '';
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipEmail);
+  const deliveryDone = shipName.trim().length > 1 && emailValid && shipStreet.trim().length > 3 && shipCity.trim().length > 1 && /^\d{5}$/.test(shipZip) && shipState !== '';
 
   async function handleOrder() {
     if (!selected || !color || !size) return;
@@ -291,7 +292,7 @@ export default function CatalogPage() {
                 <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{selected.title}</div>
                 <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
               </div>
-              <button onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+              <button aria-label="Close panel" onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
 
             {ordered ? (

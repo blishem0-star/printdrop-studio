@@ -200,7 +200,8 @@ function DesignStudio() {
   }
 
   // ── Order ─────────────────────────────────────────────────
-  const deliveryDone = shipName.trim().length>1 && shipEmail.includes('@') && shipStreet.trim().length>3 && shipCity.trim().length>1 && shipZip.length===5 && shipState!=='';
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipEmail);
+  const deliveryDone = shipName.trim().length>1 && emailValid && shipStreet.trim().length>3 && shipCity.trim().length>1 && /^\d{5}$/.test(shipZip) && shipState!=='';
   const canOrder = color && size && deliveryDone;
   const total = 24.99 + SHIPPING_PRICE;
 
@@ -518,7 +519,7 @@ function DesignStudio() {
                   </button>
                 </div>
                 {aiLoading && <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}><div style={{height:'100%',width:`${aiProgress}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999,transition:'width 0.2s'}}/></div>}
-                {aiSvg && !aiLoading && <div style={{padding:'10px',background:'rgba(16,185,129,0.05)',border:'1px solid rgba(16,185,129,0.15)',borderRadius:10,display:'flex',gap:10,alignItems:'center'}}><div style={{width:48,height:48,background:'rgba(255,255,255,0.03)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:36,height:36}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="36" height="36" ')}}/></div><div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>✓ Design ready</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.4)',marginTop:2}}>Showing on shirt preview</div></div><button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.2)',cursor:'pointer',fontSize:16}}>×</button></div>}
+                {aiSvg && !aiLoading && <div style={{padding:'10px',background:'rgba(16,185,129,0.05)',border:'1px solid rgba(16,185,129,0.15)',borderRadius:10,display:'flex',gap:10,alignItems:'center'}}><div style={{width:48,height:48,background:'rgba(255,255,255,0.03)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:36,height:36}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="36" height="36" ')}}/></div><div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>✓ Design ready</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.4)',marginTop:2}}>Showing on shirt preview</div></div><button aria-label="Clear AI design" onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.2)',cursor:'pointer',fontSize:16}}>×</button></div>}
                 <div>
                   <div style={LS}>Inspiration</div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
@@ -626,7 +627,7 @@ function DesignStudio() {
                 <div key={l.id} onClick={()=>setSelected(l.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'5px 7px',borderRadius:7,cursor:'pointer',background:selected===l.id?'rgba(0,229,200,0.09)':'rgba(255,255,255,0.03)',border:`1px solid ${selected===l.id?'rgba(0,229,200,0.22)':'rgba(255,255,255,0.04)'}`,marginBottom:3,transition:'all 0.12s'}}>
                   <span style={{fontSize:'0.7rem',width:14,textAlign:'center'}}>{l.type==='text'?'T':l.content}</span>
                   <span style={{flex:1,fontSize:'0.68rem',fontWeight:600,color:selected===l.id?'rgba(255,255,255,0.8)':'rgba(255,255,255,0.4)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.content}</span>
-                  <button onClick={e=>{e.stopPropagation();deleteLayer(l.id);}} style={{width:18,height:18,borderRadius:4,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.04)',color:'#f87171',fontSize:'0.65rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+                  <button aria-label="Remove layer" onClick={e=>{e.stopPropagation();deleteLayer(l.id);}} style={{width:18,height:18,borderRadius:4,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.04)',color:'#f87171',fontSize:'0.65rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
                 </div>
               ))}
             </div>
