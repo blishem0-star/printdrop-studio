@@ -40,21 +40,6 @@ export function buildDesignSvg(opts: {
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
 }
 
-export async function saveDesignFile(svgDataUrl: string): Promise<string | null> {
-  try {
-    const res = await fetch('/api/designs/export', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ svgDataUrl }),
-    });
-    if (!res.ok) return null;
-    const { filePath } = await res.json();
-    return filePath as string;
-  } catch {
-    return null;
-  }
-}
-
 export async function submitOrder(payload: {
   customerName: string;
   customerEmail: string;
