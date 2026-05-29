@@ -156,7 +156,7 @@ export default function HomePage() {
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '3.5rem 2rem 5rem', position: 'relative', zIndex: 1 }}>
+      <main className="rsp-pad" style={{ maxWidth: 900, margin: '0 auto', padding: '3.5rem 2rem 5rem', position: 'relative', zIndex: 1 }}>
 
         {/* Welcome */}
         <div style={{ marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: 16 }}>
