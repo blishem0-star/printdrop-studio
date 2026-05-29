@@ -620,7 +620,7 @@ function DesignStudio() {
               <div style={{padding:'8px',background:'rgba(245,158,11,0.05)',border:'1px solid rgba(245,158,11,0.12)',borderRadius:8,fontSize:'0.67rem',color:'rgba(245,158,11,0.6)',lineHeight:1.5}}>
                 🔒 Stripe/PayPal coming soon — demo mode active
               </div>
-              {orderError && <div style={{padding:'8px 10px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,fontSize:'0.72rem',color:'#f87171',fontWeight:600}}>⚠ {orderError}</div>}
+              {orderError && <div role="alert" aria-live="assertive" style={{padding:'8px 10px',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,fontSize:'0.72rem',color:'#f87171',fontWeight:600}}>⚠ {orderError}</div>}
             </div>}
           </div>
 
