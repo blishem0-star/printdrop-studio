@@ -569,6 +569,24 @@ export default function LandingPage() {
         </section>
       )}
 
+      {/* ── Marquee strip ── */}
+      {phase === 'hero' && (
+        <div style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.013)' }}>
+          <div style={{ display: 'flex', animation: 'marquee 32s linear infinite', willChange: 'transform' }}>
+            {[0, 1].map(copy => (
+              <div key={copy} style={{ display: 'flex', flexShrink: 0, alignItems: 'center', padding: '0.85rem 0' }}>
+                {['AI-POWERED DESIGN', '300 DPI PRINT', '72H DELIVERY', 'FREE RETURNS', 'UNLIMITED STYLES', 'SHIPS WORLDWIDE', 'CUSTOM SIZING', 'PREMIUM COTTON'].map((item, j) => (
+                  <span key={j} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.88rem', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.28)', paddingLeft: '1.5rem', paddingRight: '0.75rem', whiteSpace: 'nowrap' }}>{item}</span>
+                    <span style={{ color: '#00E5C8', fontSize: '0.48rem', opacity: 0.4 }}>✦</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── How it works ── */}
       {phase === 'hero' && (
         <section id="how" style={{ position: 'relative', zIndex: 1, padding: '3rem 1.5rem 6rem', maxWidth: 960, margin: '0 auto' }}>
@@ -584,8 +602,8 @@ export default function LandingPage() {
               { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.' },
               { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.' },
               { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns.' },
-            ].map(s => (
-              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem 1.25rem 1.25rem', position: 'relative', overflow: 'hidden', transition: 'border-color 0.2s, background 0.2s' }}
+            ].map((s, i) => (
+              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem 1.25rem 1.25rem', position: 'relative', overflow: 'hidden', transition: 'border-color 0.2s, background 0.2s', animation: `up 0.5s ease ${0.1 + i * 0.08}s both` }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.02)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}>
                 <div style={{ position: 'absolute', top: -12, right: 4, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '6.5rem', fontWeight: 400, color: '#00E5C8', opacity: 0.07, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.02em' }}>{s.n}</div>
@@ -605,6 +623,7 @@ export default function LandingPage() {
 
       <style>{`
         @keyframes up        { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes marquee   { from { transform:translateX(0); } to { transform:translateX(-50%); } }
         @keyframes waveSlide { from { transform:translateX(0); } to { transform:translateX(-50%); } }
         @keyframes shimBar   { from { transform:translateX(-100%); } to { transform:translateX(250%); } }
         @keyframes flashIn   { 0% { opacity:.35; } 50% { opacity:.12; } 100% { opacity:0; } }

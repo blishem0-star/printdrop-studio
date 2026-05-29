@@ -116,7 +116,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
         </div>
       </div>
       <div style={{ padding: '0.875rem 1rem' }}>
-        <div style={{ fontWeight: 800, fontSize: '0.88rem', marginBottom: 3 }}>{design.title}</div>
+        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.05rem', letterSpacing: '0.04em', lineHeight: 1.1, marginBottom: 3 }}>{design.title}</div>
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontWeight: 900, fontSize: '1rem', color: '#6366F1' }}>${design.price}</span>
@@ -236,24 +236,30 @@ export default function CatalogPage() {
   if (!session) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}><div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading...</div></div>;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808' }}>
-      {selected && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40, backdropFilter: 'blur(3px)' }} />}
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
+      {/* Background atmosphere */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', right: '10%' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 65%)', bottom: '15%', left: '2%' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+      </div>
 
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>← Back</button>
+      {selected && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40, backdropFilter: 'blur(4px)' }} />}
+
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
-        <span style={{ fontSize: 18 }}>🎨</span>
-        <span style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '-0.03em' }}>Catalog</span>
-        <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{allDesigns.length} designs</span>
+        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Catalog</span>
+        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, padding: '2px 8px' }}>{allDesigns.length} designs</span>
         <div style={{ flex: 1 }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
       </header>
 
-      <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(8,8,8,0.9)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(5,5,7,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         {/* Product type strip */}
         <div style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
-            <button key={pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(255,77,28,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(255,77,28,0.09)' : 'transparent', color: productFilter === pt ? '#FF8C40' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button key={pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
               {pt === 'ALL' ? '✦ All Types' : `${PRODUCT_TYPE_EMOJI[pt]} ${PRODUCT_TYPE_LABELS[pt]}`}
             </button>
           ))}
@@ -266,7 +272,7 @@ export default function CatalogPage() {
         </div>
       </div>
 
-      <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem' }}>
+      <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem', position: 'relative', zIndex: 1 }}>
         {filtered.map(d => <ShirtCard key={d.id} design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} />)}
         {filtered.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)', fontSize: '0.88rem' }}>No designs found</div>}
       </div>
@@ -315,9 +321,9 @@ export default function CatalogPage() {
                     <div style={lbl}>Product Type</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {(['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
-                        <button key={pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(255,77,28,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(255,77,28,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#FF8C40' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button key={pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(0,229,200,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {PRODUCT_TYPE_EMOJI[pt]} {PRODUCT_TYPE_LABELS[pt]}
-                          {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#FF8C40', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
+                          {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#00E5C8', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
                         </button>
                       ))}
                     </div>
