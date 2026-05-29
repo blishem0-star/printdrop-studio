@@ -459,7 +459,7 @@ function DesignStudio() {
                   <div style={LS}>Font</div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5}}>
                     {FONTS.map(f=>(
-                      <button key={f.id} onClick={()=>{setFontFam(f.id);if(selected)updateLayer(selected,{fontFamily:f.id});}} style={{padding:'8px',borderRadius:8,cursor:'pointer',background:fontFam===f.id?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.03)',border:`1.5px solid ${fontFam===f.id?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.07)'}`,color:fontFam===f.id?'#00E5C8':'rgba(255,255,255,0.4)',fontSize:'0.75rem',fontWeight:600,fontFamily:f.id,transition:'all 0.13s'}}>{f.label}</button>
+                      <button key={f.id} aria-pressed={fontFam===f.id} onClick={()=>{setFontFam(f.id);if(selected)updateLayer(selected,{fontFamily:f.id});}} style={{padding:'8px',borderRadius:8,cursor:'pointer',background:fontFam===f.id?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.03)',border:`1.5px solid ${fontFam===f.id?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.07)'}`,color:fontFam===f.id?'#00E5C8':'rgba(255,255,255,0.4)',fontSize:'0.75rem',fontWeight:600,fontFamily:f.id,transition:'all 0.13s'}}>{f.label}</button>
                     ))}
                   </div>
                 </div>
