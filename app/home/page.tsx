@@ -140,7 +140,7 @@ export default function HomePage() {
           <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer' }}>🎨 Artist Studio</button>
         )}
         {session.type === 'user' && (
-          <button onClick={() => router.push('/profile')}
+          <button onClick={() => router.push('/profile')} aria-label={`View profile for ${session.name}`}
             style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, background: 'transparent', border: '1px solid transparent', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
