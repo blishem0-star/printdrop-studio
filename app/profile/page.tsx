@@ -212,8 +212,8 @@ export default function ProfilePage() {
             ✏️ Edit Profile
           </div>
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <div><label style={lbl}>Full Name</label><input style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
-            <div><label style={lbl}>Email</label><input style={inp} type="email" autoComplete="email" maxLength={120} value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
+            <div><label htmlFor="prof-name" style={lbl}>Full Name</label><input id="prof-name" style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
+            <div><label htmlFor="prof-email" style={lbl}>Email</label><input id="prof-email" style={inp} type="email" autoComplete="email" maxLength={120} value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
           </div>
           {profileError && <div style={{ fontSize: '0.72rem', color: '#F87171', marginBottom: 10 }}>{profileError}</div>}
           <button onClick={saveProfile} disabled={profileSaving || !editName.trim()} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: profileSaved ? '#10B981' : editName.trim() && !profileSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: editName.trim() && !profileSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: editName.trim() && !profileSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
@@ -228,17 +228,17 @@ export default function ProfilePage() {
             <span style={{ fontWeight: 400, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Used for future orders</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
-            <div><label style={lbl}>Street Address</label><input style={inp} autoComplete="street-address" maxLength={120} value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="123 Main St" /></div>
+            <div><label htmlFor="addr-street" style={lbl}>Street Address</label><input id="addr-street" style={inp} autoComplete="street-address" maxLength={120} value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="123 Main St" /></div>
             <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px', gap: 10 }}>
-              <div><label style={lbl}>City</label><input style={inp} autoComplete="address-level2" maxLength={60} value={addrCity} onChange={e => setAddrCity(e.target.value)} placeholder="New York" /></div>
+              <div><label htmlFor="addr-city" style={lbl}>City</label><input id="addr-city" style={inp} autoComplete="address-level2" maxLength={60} value={addrCity} onChange={e => setAddrCity(e.target.value)} placeholder="New York" /></div>
               <div>
-                <label style={lbl}>State</label>
-                <select value={addrState} onChange={e => setAddrState(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: addrState ? '#fff' : 'rgba(255,255,255,0.28)' }}>
+                <label htmlFor="addr-state" style={lbl}>State</label>
+                <select id="addr-state" value={addrState} onChange={e => setAddrState(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: addrState ? '#fff' : 'rgba(255,255,255,0.28)' }}>
                   <option value="" style={{ background: '#1a1a1a', color: 'rgba(255,255,255,0.4)' }}>ST</option>
                   {US_STATES.map(s => <option key={s} value={s} style={{ background: '#1a1a1a', color: '#fff' }}>{s}</option>)}
                 </select>
               </div>
-              <div><label style={lbl}>ZIP</label><input style={{ ...inp, fontFamily: 'monospace' }} autoComplete="postal-code" inputMode="numeric" value={addrZip} onChange={e => setAddrZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
+              <div><label htmlFor="addr-zip" style={lbl}>ZIP</label><input id="addr-zip" style={{ ...inp, fontFamily: 'monospace' }} autoComplete="postal-code" inputMode="numeric" value={addrZip} onChange={e => setAddrZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
             </div>
           </div>
           <button onClick={saveAddress} disabled={addrSaving} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: addrSaved ? '#10B981' : !addrSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: !addrSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: !addrSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
