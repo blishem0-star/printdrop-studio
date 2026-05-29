@@ -6,18 +6,23 @@ export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 25;
 
-export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const { page = '1' } = await searchParams;
+const VALID_STATUSES = ['DRAFT','PAID','IN_PRODUCTION','SHIPPED','DELIVERED','CANCELLED'];
+
+export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string; status?: string }> }) {
+  const { page = '1', status = '' } = await searchParams;
   const pageNum = Math.max(1, parseInt(page) || 1);
+  const statusFilter = VALID_STATUSES.includes(status) ? (status as OrderStatus) : null;
+  const where = statusFilter ? { status: statusFilter } : undefined;
 
   const [orders, totalCount, allStats] = await Promise.all([
     prisma.order.findMany({
+      where,
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { createdAt: 'desc' },
       include: { customer: true, items: { include: { designAsset: true } } },
     }),
-    prisma.order.count(),
+    prisma.order.count({ where }),
     prisma.order.aggregate({
       _sum: { total: true },
       _count: { id: true },
@@ -56,6 +61,13 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.label}</div>
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.9rem', fontWeight: 400, letterSpacing: '0.02em', color: s.color }}>{s.value}</div>
           </div>
+        ))}
+      </div>
+
+      {/* Status filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        {[{ label: `All (${statusFilter ? '…' : totalCount})`, value: '' }, ...VALID_STATUSES.map(s => ({ label: s.replace('_',' '), value: s }))].map(f => (
+          <Link key={f.value} href={`/admin/orders?status=${f.value}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: statusFilter === f.value ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: statusFilter === f.value ? 'rgba(0,229,200,0.08)' : 'transparent', color: statusFilter === f.value ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>{f.label}</Link>
         ))}
       </div>
 
