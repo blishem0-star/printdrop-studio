@@ -37,6 +37,10 @@ const ZIP_RE   = /^\d{5}$/;
 const STATE_RE = /^[A-Z]{2}$/;
 
 export async function PATCH(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`profile-patch:${ip}`, 20, 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many requests.' }, { status: 429 });
+  }
   try {
     const { customerId, name, email, shipStreet, shipCity, shipState, shipZip } = await req.json();
     if (!customerId) return NextResponse.json({ error: 'Missing customerId' }, { status: 400 });
