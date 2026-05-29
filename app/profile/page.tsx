@@ -157,7 +157,7 @@ export default function ProfilePage() {
 
   if (!session || loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading...</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading profile…</div>
     </div>
   );
 
