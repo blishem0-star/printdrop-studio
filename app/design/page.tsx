@@ -465,7 +465,7 @@ function DesignStudio() {
                 </div>
                 <div>
                   <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Size</span><span style={{color:'#00E5C8'}}>{fontSize}px</span></div>
-                  <input type="range" min={8} max={64} value={fontSize} onChange={e=>{const v=+e.target.value;setFontSize(v);if(selected)updateLayer(selected,{fontSize:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
+                  <input type="range" aria-label="Font size" min={8} max={64} value={fontSize} onChange={e=>{const v=+e.target.value;setFontSize(v);if(selected)updateLayer(selected,{fontSize:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
                 </div>
                 <div>
                   <div style={LS}>Style</div>
@@ -488,7 +488,7 @@ function DesignStudio() {
                 {selLayer && selLayer.type==='text' && (
                   <div style={{background:'rgba(0,229,200,0.05)',border:'1px solid rgba(0,229,200,0.15)',borderRadius:9,padding:10}}>
                     <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Rotation</span><span style={{color:'#00E5C8'}}>{selLayer.rotation}°</span></div>
-                    <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
+                    <input type="range" aria-label="Rotation" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
                   </div>
                 )}
               </div>}
@@ -560,9 +560,9 @@ function DesignStudio() {
                 {selLayer && (
                   <div style={{background:'rgba(0,229,200,0.05)',border:'1px solid rgba(0,229,200,0.15)',borderRadius:9,padding:10}}>
                     <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Size</span><span style={{color:'#00E5C8'}}>{selLayer.fontSize}px</span></div>
-                    <input type="range" min={12} max={80} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
+                    <input type="range" aria-label="Font size" min={12} max={80} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
                     <div style={{marginTop:8,...LS,display:'flex',justifyContent:'space-between'}}><span>Rotation</span><span style={{color:'#00E5C8'}}>{selLayer.rotation}°</span></div>
-                    <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
+                    <input type="range" aria-label="Rotation" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
                   </div>
                 )}
               </div>}
