@@ -186,7 +186,7 @@ export default function ProfilePage() {
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
+      <main className="rsp-pad" style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
 
         {/* Identity card */}
         <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
