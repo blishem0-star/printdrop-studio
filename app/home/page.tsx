@@ -72,7 +72,7 @@ export default function HomePage() {
     if (!sub || subActionLoading) return;
     setSubActionLoading(true);
     try {
-      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, customerId: session?.customerId, status: 'CANCELLED' }) });
       if (res.ok) { setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null); showToast('Subscription cancelled.', 'info'); }
       else { showToast('Failed to cancel. Try again.', 'error'); }
     } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }
@@ -83,7 +83,7 @@ export default function HomePage() {
     const newStatus: SubStatus = sub.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
     setSubActionLoading(true);
     try {
-      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, customerId: session?.customerId, status: newStatus }) });
       if (res.ok) { setSub(prev => prev ? { ...prev, status: newStatus } : null); showToast(newStatus === 'PAUSED' ? 'Subscription paused.' : 'Subscription resumed.', 'info'); }
       else { showToast('Failed to update. Try again.', 'error'); }
     } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }

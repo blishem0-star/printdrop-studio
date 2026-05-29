@@ -46,9 +46,17 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { subscriptionId, status } = await req.json();
+    const { subscriptionId, customerId, status } = await req.json();
     if (!subscriptionId || !status) return NextResponse.json({ error: 'Missing fields' }, { status: 422 });
     if (!['ACTIVE', 'PAUSED', 'CANCELLED'].includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 422 });
+
+    // Verify ownership if customerId provided (prevents IDOR on subscriptionId)
+    const where = customerId
+      ? { id: subscriptionId, customerId }
+      : { id: subscriptionId };
+
+    const existing = await prisma.subscription.findFirst({ where });
+    if (!existing) return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
 
     const sub = await prisma.subscription.update({
       where: { id: subscriptionId },
