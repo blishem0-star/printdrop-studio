@@ -1,54 +1,36 @@
-'use client';
-import { useState, useEffect } from 'react';
-
-type DesignStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-type ArtistDesign = {
-  id: string; title: string; category: string; price: number; svg: string;
-  status: DesignStatus; salesCount: number; totalEarned: number; createdAt: string;
-  artist: { name: string; email: string };
-};
-
-const STATUS_STYLE: Record<DesignStatus, { label: string; color: string; bg: string }> = {
-  PENDING:  { label: 'Pending',  color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-  APPROVED: { label: 'Approved', color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
-  REJECTED: { label: 'Rejected', color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
-};
+import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
+import { DesignActionButtons } from './DesignActionButtons';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminArtistsPage() {
-  const [designs, setDesigns] = useState<ArtistDesign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | DesignStatus>('PENDING');
-  const [updating, setUpdating] = useState<string | null>(null);
+type FilterVal = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
 
-  useEffect(() => {
-    fetch('/api/admin/designs')
-      .then(r => r.json())
-      .then(setDesigns)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+const STATUS_STYLE = {
+  PENDING:  { label: 'Pending',  color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+  APPROVED: { label: 'Approved', color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
+  REJECTED: { label: 'Rejected', color: '#EF4444', bg: 'rgba(239,68,68,0.1)'  },
+} as const;
 
-  async function setStatus(id: string, status: 'APPROVED' | 'REJECTED') {
-    setUpdating(id);
-    try {
-      const res = await fetch(`/api/admin/designs/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setDesigns(prev => prev.map(d => d.id === id ? { ...d, status } : d));
-      }
-    } catch { /* ignore */ }
-    finally { setUpdating(null); }
-  }
+export default async function AdminArtistsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+  const { filter = 'PENDING' } = await searchParams;
+  const activeFilter = (['ALL', 'PENDING', 'APPROVED', 'REJECTED'].includes(filter) ? filter : 'PENDING') as FilterVal;
 
-  const filtered = filter === 'ALL' ? designs : designs.filter(d => d.status === filter);
-  const pending  = designs.filter(d => d.status === 'PENDING').length;
-  const approved = designs.filter(d => d.status === 'APPROVED').length;
-  const totalEarned = designs.reduce((s, d) => s + d.totalEarned, 0);
+  const [designs, counts] = await Promise.all([
+    prisma.artistDesign.findMany({
+      where: activeFilter === 'ALL' ? {} : { status: activeFilter },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      include: { artist: { select: { name: true, email: true } } },
+    }),
+    prisma.artistDesign.groupBy({ by: ['status'], _count: { id: true } }),
+  ]);
+
+  const countMap = Object.fromEntries(counts.map(c => [c.status, c._count.id]));
+  const pending  = countMap['PENDING']  ?? 0;
+  const approved = countMap['APPROVED'] ?? 0;
+  const total    = (countMap['PENDING'] ?? 0) + (countMap['APPROVED'] ?? 0) + (countMap['REJECTED'] ?? 0);
+
+  const totalEarned = await prisma.artistDesign.aggregate({ _sum: { totalEarned: true } });
 
   return (
     <div>
@@ -60,10 +42,10 @@ export default function AdminArtistsPage() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
-          { label: 'Pending Review', value: pending,         icon: '⏳', color: '#F59E0B' },
-          { label: 'Approved',       value: approved,        icon: '✅', color: '#10B981' },
-          { label: 'Total Designs',  value: designs.length,  icon: '🎨', color: '#8B5CF6' },
-          { label: 'Total Paid Out', value: `$${totalEarned.toFixed(2)}`, icon: '💰', color: '#3B82F6' },
+          { label: 'Pending Review', value: pending,          icon: '⏳', color: '#F59E0B' },
+          { label: 'Approved',       value: approved,         icon: '✅', color: '#10B981' },
+          { label: 'Total Designs',  value: total,            icon: '🎨', color: '#8B5CF6' },
+          { label: 'Total Paid Out', value: `$${(totalEarned._sum.totalEarned ?? 0).toFixed(2)}`, icon: '💰', color: '#3B82F6' },
         ].map(s => (
           <div key={s.label} style={{ padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
@@ -73,21 +55,19 @@ export default function AdminArtistsPage() {
         ))}
       </div>
 
-      {/* Filter */}
+      {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(0,229,200,0.08)' : 'transparent', color: filter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
-            {f === 'ALL' ? `All (${designs.length})` : f === 'PENDING' ? `Pending (${pending})` : f}
-          </button>
+          <Link key={f} href={`/admin/artists?filter=${f}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.08)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.15s' }}>
+            {f === 'ALL' ? `All (${total})` : f === 'PENDING' ? `Pending (${pending})` : f}
+          </Link>
         ))}
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)' }}>Loading...</div>
-      ) : filtered.length === 0 ? (
+      {designs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, color: 'rgba(255,255,255,0.15)' }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>🎨</div>
-          <p>{filter === 'PENDING' ? 'No pending designs to review' : 'No designs found'}</p>
+          <p>{activeFilter === 'PENDING' ? 'No pending designs to review' : 'No designs found'}</p>
         </div>
       ) : (
         <div style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
@@ -100,10 +80,10 @@ export default function AdminArtistsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((d, i) => {
-                const s = STATUS_STYLE[d.status];
+              {designs.map((d, i) => {
+                const s = STATUS_STYLE[d.status as keyof typeof STATUS_STYLE];
                 return (
-                  <tr key={d.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <tr key={d.id} style={{ borderBottom: i < designs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
@@ -135,14 +115,7 @@ export default function AdminArtistsPage() {
                       {new Date(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td style={{ padding: '0.875rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        {d.status !== 'APPROVED' && (
-                          <button onClick={() => setStatus(d.id, 'APPROVED')} disabled={updating === d.id} style={{ padding: '5px 12px', borderRadius: 7, border: 'none', background: 'rgba(16,185,129,0.15)', color: '#10B981', fontWeight: 700, fontSize: '0.68rem', cursor: 'pointer', opacity: updating === d.id ? 0.5 : 1 }}>✓ Approve</button>
-                        )}
-                        {d.status !== 'REJECTED' && (
-                          <button onClick={() => setStatus(d.id, 'REJECTED')} disabled={updating === d.id} style={{ padding: '5px 12px', borderRadius: 7, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontWeight: 700, fontSize: '0.68rem', cursor: 'pointer', opacity: updating === d.id ? 0.5 : 1 }}>✕ Reject</button>
-                        )}
-                      </div>
+                      <DesignActionButtons id={d.id} status={d.status} />
                     </td>
                   </tr>
                 );

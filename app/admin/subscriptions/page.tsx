@@ -1,38 +1,41 @@
-'use client';
-import { useState, useEffect } from 'react';
+import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
 import { PRODUCT_TYPE_LABELS } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 
-type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
-type Subscription = {
-  id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string; createdAt: string;
-  customer: { name: string; email: string };
-  shipments: { id: string; status: string; createdAt: string }[];
-};
+export const dynamic = 'force-dynamic';
 
-const STATUS_STYLE: Record<SubStatus, { color: string; bg: string }> = {
+const MONTHLY = 59.99;
+
+const STATUS_STYLE = {
   ACTIVE:    { color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
   PAUSED:    { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
   CANCELLED: { color: '#6B7280', bg: 'rgba(107,114,128,0.1)' },
-};
+} as const;
 
-export default function AdminSubscriptionsPage() {
-  const [subs, setSubs] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | SubStatus>('ACTIVE');
+type FilterVal = 'ALL' | 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 
-  useEffect(() => {
-    fetch('/api/admin/subscriptions')
-      .then(r => r.json())
-      .then(setSubs)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+export default async function AdminSubscriptionsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+  const { filter = 'ACTIVE' } = await searchParams;
+  const activeFilter = (['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'].includes(filter) ? filter : 'ACTIVE') as FilterVal;
 
-  const filtered = filter === 'ALL' ? subs : subs.filter(s => s.status === filter);
-  const active  = subs.filter(s => s.status === 'ACTIVE').length;
-  const paused  = subs.filter(s => s.status === 'PAUSED').length;
-  const mrr     = active * 59.99;
+  const [subs, counts] = await Promise.all([
+    prisma.subscription.findMany({
+      where: activeFilter === 'ALL' ? {} : { status: activeFilter },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        customer: { select: { name: true, email: true } },
+        shipments: { orderBy: { createdAt: 'desc' } },
+      },
+    }),
+    prisma.subscription.groupBy({ by: ['status'], _count: { id: true } }),
+  ]);
+
+  const countMap = Object.fromEntries(counts.map(c => [c.status, c._count.id]));
+  const active = countMap['ACTIVE'] ?? 0;
+  const paused = countMap['PAUSED'] ?? 0;
+  const total  = counts.reduce((s, c) => s + c._count.id, 0);
+  const mrr    = active * MONTHLY;
 
   return (
     <div>
@@ -43,9 +46,9 @@ export default function AdminSubscriptionsPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
-          { label: 'Active',  value: active,          icon: '✅', color: '#10B981' },
-          { label: 'Paused',  value: paused,          icon: '⏸',  color: '#F59E0B' },
-          { label: 'Total',   value: subs.length,     icon: '📦', color: '#8B5CF6' },
+          { label: 'Active',  value: active,              icon: '✅', color: '#10B981' },
+          { label: 'Paused',  value: paused,              icon: '⏸',  color: '#F59E0B' },
+          { label: 'Total',   value: total,               icon: '📦', color: '#8B5CF6' },
           { label: 'MRR',     value: `$${mrr.toFixed(2)}`, icon: '💰', color: '#3B82F6' },
         ].map(s => (
           <div key={s.label} style={{ padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
@@ -58,15 +61,13 @@ export default function AdminSubscriptionsPage() {
 
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: filter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: filter === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: filter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
-            {f === 'ALL' ? `All (${subs.length})` : f === 'ACTIVE' ? `Active (${active})` : f}
-          </button>
+          <Link key={f} href={`/admin/subscriptions?filter=${f}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.07)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>
+            {f === 'ALL' ? `All (${total})` : f === 'ACTIVE' ? `Active (${active})` : f}
+          </Link>
         ))}
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)' }}>Loading...</div>
-      ) : filtered.length === 0 ? (
+      {subs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, color: 'rgba(255,255,255,0.15)' }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
           <p>No subscriptions found</p>
@@ -82,11 +83,11 @@ export default function AdminSubscriptionsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((s, i) => {
+              {subs.map((s, i) => {
                 const prefs = (() => { try { return JSON.parse(s.stylePrefs); } catch { return {}; } })();
-                const ss = STATUS_STYLE[s.status];
+                const ss = STATUS_STYLE[s.status as keyof typeof STATUS_STYLE];
                 return (
-                  <tr key={s.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <tr key={s.id} style={{ borderBottom: i < subs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{s.customer.name}</div>
                       <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{s.customer.email}</div>
