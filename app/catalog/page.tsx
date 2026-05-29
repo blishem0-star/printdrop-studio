@@ -25,6 +25,8 @@ function ColorSwatch({ c, selected, onClick }: { c: TShirtColor; selected: boole
   return (
     <button
       title={c.name}
+      aria-label={`Select color: ${c.name}`}
+      aria-pressed={selected}
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
