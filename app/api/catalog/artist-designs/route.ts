@@ -5,7 +5,12 @@ export async function GET() {
   const designs = await prisma.artistDesign.findMany({
     where: { status: 'APPROVED' },
     orderBy: { createdAt: 'desc' },
-    include: { artist: { select: { name: true } } },
+    take: 200,
+    select: {
+      id: true, title: true, category: true, price: true,
+      svg: true, badge: true, artistId: true,
+      artist: { select: { name: true } },
+    },
   });
 
   const formatted = designs.map(d => ({
