@@ -260,7 +260,7 @@ export default function CatalogPage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
         <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
-        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Catalog</span>
+        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1, margin: 0 }}>Catalog</h1>
         <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, padding: '2px 8px' }}>{allDesigns.length} designs</span>
         <div style={{ flex: 1 }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." aria-label="Search designs" maxLength={80} style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
