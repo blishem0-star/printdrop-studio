@@ -172,8 +172,16 @@ function DesignStudio() {
 
   useEffect(() => {
     function onKey(e:KeyboardEvent) {
-      if((e.key==='Delete'||e.key==='Backspace')&&selected&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement)) deleteLayer(selected);
+      const notInput = !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement);
+      if((e.key==='Delete'||e.key==='Backspace')&&selected&&notInput) deleteLayer(selected);
       if(e.key==='Escape') { setSelected(null); setFullscreen(false); }
+      if(selected&&notInput) {
+        const step = e.shiftKey ? 5 : 1;
+        if(e.key==='ArrowLeft')  { e.preventDefault(); updateLayer(selected, { x: Math.max(0,   (layers.find(l=>l.id===selected)?.x??50) - step) }); }
+        if(e.key==='ArrowRight') { e.preventDefault(); updateLayer(selected, { x: Math.min(100, (layers.find(l=>l.id===selected)?.x??50) + step) }); }
+        if(e.key==='ArrowUp')    { e.preventDefault(); updateLayer(selected, { y: Math.max(0,   (layers.find(l=>l.id===selected)?.y??50) - step) }); }
+        if(e.key==='ArrowDown')  { e.preventDefault(); updateLayer(selected, { y: Math.min(100, (layers.find(l=>l.id===selected)?.y??50) + step) }); }
+      }
     }
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
