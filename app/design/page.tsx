@@ -602,7 +602,7 @@ function DesignStudio() {
                 </div>
               </div>
               {/* Form */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <div className="rsp-1col" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                 <div><div style={LS}>Full Name</div><input style={INP} name="name" autoComplete="name" value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80}/></div>
                 <div><div style={LS}>Email</div><input style={INP} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120}/></div>
               </div>
