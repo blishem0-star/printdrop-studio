@@ -608,7 +608,7 @@ export default function LandingPage() {
         <section id="how" style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem 7rem', maxWidth: 1100, margin: '0 auto' }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: '3.5rem' }}>
-            <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 0.9 }}>The Process</div>
+            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 0.9 }}>The Process</h2>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.12), transparent)' }} />
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.75rem', letterSpacing: '0.15em', color: '#00E5C8', opacity: 0.7 }}>04 STEPS</div>
           </div>
