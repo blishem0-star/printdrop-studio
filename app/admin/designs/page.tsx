@@ -4,18 +4,30 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminDesignsPage() {
-  const designs = await prisma.designAsset.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { orderItems: { include: { order: { include: { customer: true } } } } },
-  });
+const PAGE_SIZE = 24;
+
+export default async function AdminDesignsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page = '1' } = await searchParams;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+
+  const [designs, totalCount] = await Promise.all([
+    prisma.designAsset.findMany({
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      orderBy: { createdAt: 'desc' },
+      include: { orderItems: { take: 1, include: { order: { include: { customer: { select: { name: true } } } } } } },
+    }),
+    prisma.designAsset.count(),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Design Assets</h1>
         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', marginTop: 4 }}>
-          All saved design files — {designs.length} total
+          {totalCount} total · page {pageNum} of {totalPages || 1}
         </p>
       </div>
 
@@ -25,6 +37,7 @@ export default async function AdminDesignsPage() {
           <p>No designs yet. Place an order from the studio!</p>
         </div>
       ) : (
+        <>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
           {designs.map((d: (typeof designs)[number]) => {
             const order = d.orderItems[0]?.order;
@@ -79,6 +92,18 @@ export default async function AdminDesignsPage() {
             );
           })}
         </div>
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem' }}>
+            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)' }}>
+              {(pageNum - 1) * PAGE_SIZE + 1}–{Math.min(pageNum * PAGE_SIZE, totalCount)} of {totalCount}
+            </span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {pageNum > 1 && <Link href={`/admin/designs?page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
+              {pageNum < totalPages && <Link href={`/admin/designs?page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   );
