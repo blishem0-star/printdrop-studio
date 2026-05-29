@@ -58,7 +58,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 7, marginBottom: '1.5rem' }}>
         {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
-          <Link key={f} href={`/admin/artists?filter=${f}`} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.08)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.15s' }}>
+          <Link key={f} href={`/admin/artists?filter=${f}`} aria-current={activeFilter === f ? 'page' : undefined} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: activeFilter === f ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: activeFilter === f ? 'rgba(0,229,200,0.08)' : 'transparent', color: activeFilter === f ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.15s' }}>
             {f === 'ALL' ? `All (${total})` : f === 'PENDING' ? `Pending (${pending})` : f}
           </Link>
         ))}
