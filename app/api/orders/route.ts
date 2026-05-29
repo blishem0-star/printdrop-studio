@@ -68,13 +68,13 @@ export async function POST(req: NextRequest) {
 
   const customer = await prisma.customer.upsert({
     where: { email: customerEmail.toLowerCase().trim() },
-    update: { name: customerName },
-    create: { name: customerName, email: customerEmail.toLowerCase().trim() },
+    update: { name: customerName.trim() },
+    create: { name: customerName.trim(), email: customerEmail.toLowerCase().trim() },
   });
 
   const designAsset = await prisma.designAsset.create({
     data: {
-      title: design.title,
+      title: design.title.trim(),
       emoji: design.emoji ?? null,
       customText: design.customText ?? null,
       colorHex: design.colorHex,
