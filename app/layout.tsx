@@ -89,8 +89,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body suppressHydrationWarning style={{ margin: 0, backgroundColor: '#050507', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <CursorEffect />
+        <main id="main-content">
         {children}
+        </main>
       </body>
     </html>
   );
