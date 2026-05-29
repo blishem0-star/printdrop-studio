@@ -172,7 +172,7 @@ export default function ArtistPage() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem' }}>
           {([['designs', 'My Designs'], ['upload', '+ Upload New']] as const).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 18px', borderRadius: 10, border: `1.5px solid ${tab === t ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: tab === t ? 'rgba(0,229,200,0.08)' : 'transparent', color: tab === t ? '#00E5C8' : 'rgba(255,255,255,0.45)', fontFamily: tab === t ? "'Bebas Neue', Impact, sans-serif" : 'inherit', fontSize: tab === t ? '0.95rem' : '0.82rem', letterSpacing: tab === t ? '0.06em' : 'normal', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} style={{ padding: '8px 18px', borderRadius: 10, border: `1.5px solid ${tab === t ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: tab === t ? 'rgba(0,229,200,0.08)' : 'transparent', color: tab === t ? '#00E5C8' : 'rgba(255,255,255,0.45)', fontFamily: tab === t ? "'Bebas Neue', Impact, sans-serif" : 'inherit', fontSize: tab === t ? '0.95rem' : '0.82rem', letterSpacing: tab === t ? '0.06em' : 'normal', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
               {label}
               {t === 'designs' && designs.length > 0 && <span style={{ marginLeft: 6, fontSize: '0.6rem', fontWeight: 700, background: 'rgba(0,229,200,0.12)', padding: '1px 7px', borderRadius: 999, color: '#00E5C8', letterSpacing: '0.04em' }}>{designs.length}</span>}
             </button>
