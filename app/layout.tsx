@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://stylx.ai",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "STYLX.AI — AI-Powered Custom Shirt Design",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "STYLX.AI — Describe it. Wear it.",
     description: "Type a shirt idea. AI generates it in seconds. Order it printed in 72 hours.",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -44,7 +44,7 @@ const jsonLd = {
       "@id": "https://stylx.ai/#org",
       name: "STYLX.AI",
       url: "https://stylx.ai",
-      logo: "https://stylx.ai/logo.png",
+      logo: "https://stylx.ai/og-image.jpg",
       description: "AI-powered custom shirt design and printing service.",
       sameAs: [],
     },

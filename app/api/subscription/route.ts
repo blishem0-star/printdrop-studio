@@ -48,6 +48,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const { subscriptionId, status } = await req.json();
     if (!subscriptionId || !status) return NextResponse.json({ error: 'Missing fields' }, { status: 422 });
+    if (!['ACTIVE', 'PAUSED', 'CANCELLED'].includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 422 });
 
     const sub = await prisma.subscription.update({
       where: { id: subscriptionId },

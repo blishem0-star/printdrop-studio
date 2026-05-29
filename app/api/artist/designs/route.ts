@@ -18,19 +18,26 @@ export async function POST(req: NextRequest) {
     if (!artistId || !title?.trim() || !category || !svg?.trim()) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
     }
+    const safePrice = typeof price === 'number' ? Math.min(Math.max(price, 9.99), 999.99) : 29.99;
 
     const artist = await prisma.customer.findUnique({ where: { id: artistId } });
     if (!artist || artist.role !== 'ARTIST') {
       return NextResponse.json({ error: 'Artist not found' }, { status: 403 });
     }
 
+    // Strip script tags and event handlers from SVG to prevent XSS
+    const safeSvg = svg
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/javascript:/gi, '');
+
     const design = await prisma.artistDesign.create({
       data: {
         artistId,
         title: title.trim(),
         category,
-        price: price ?? 29.99,
-        svg,
+        price: safePrice,
+        svg: safeSvg,
         badge: badge ?? null,
         status: 'PENDING',
       },
