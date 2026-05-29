@@ -366,7 +366,7 @@ export default function CatalogPage() {
                   <div style={{ marginBottom: '1.15rem' }}>
                     <div style={lbl}>Size {size && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {size}</span>}</div>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      {SHIRT_SIZES.map(s => <button key={s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
+                      {SHIRT_SIZES.map(s => <button key={s} aria-pressed={size === s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
                     </div>
                   </div>
                   {/* Text */}
