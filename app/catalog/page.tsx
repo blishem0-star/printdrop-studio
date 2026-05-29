@@ -268,7 +268,7 @@ export default function CatalogPage() {
 
       <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(5,5,7,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         {/* Product type strip */}
-        <div style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="rsp-pad" style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
             <button key={pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
               {pt === 'ALL' ? '✦ All Types' : `${PRODUCT_TYPE_EMOJI[pt]} ${PRODUCT_TYPE_LABELS[pt]}`}
@@ -276,7 +276,7 @@ export default function CatalogPage() {
           ))}
         </div>
         {/* Category filter */}
-        <div style={{ padding: '0.625rem 2rem 0.75rem', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="rsp-pad" style={{ padding: '0.625rem 2rem 0.75rem', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {CATALOG_CATEGORIES.map(c => (
             <button key={c} onClick={() => setCatFilter(c)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: catFilter === c ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)', background: catFilter === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: catFilter === c ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>{c}</button>
           ))}
