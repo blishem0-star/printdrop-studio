@@ -167,6 +167,8 @@ export default function ArtistPage() {
       )}
 
       <div className="rsp-pad" style={{ maxWidth: 860, margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 1 }}>
+        <h1 className="sr-only">Artist Studio — Manage and upload your designs</h1>
+
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem' }}>
           {([['designs', 'My Designs'], ['upload', '+ Upload New']] as const).map(([t, label]) => (
