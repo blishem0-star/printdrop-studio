@@ -228,7 +228,7 @@ export default function ProfilePage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
             <div><label style={lbl}>Street Address</label><input style={inp} autoComplete="street-address" maxLength={120} value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="123 Main St" /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px', gap: 10 }}>
+            <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px', gap: 10 }}>
               <div><label style={lbl}>City</label><input style={inp} autoComplete="address-level2" maxLength={60} value={addrCity} onChange={e => setAddrCity(e.target.value)} placeholder="New York" /></div>
               <div>
                 <label style={lbl}>State</label>
