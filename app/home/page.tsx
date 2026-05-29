@@ -70,6 +70,7 @@ export default function HomePage() {
 
   async function cancelSub() {
     if (!sub || subActionLoading) return;
+    if (!window.confirm('Cancel your subscription? You will still receive boxes already shipped.')) return;
     setSubActionLoading(true);
     try {
       const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, customerId: session?.customerId, status: 'CANCELLED' }) });
