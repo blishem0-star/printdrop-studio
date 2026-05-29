@@ -368,6 +368,11 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 /* ── Text reveal ── */
 .text-reveal { animation: text-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
 /* ── Mobile responsive utilities ── */
 @media (max-width: 600px) {
   .rsp-1col  { grid-template-columns: 1fr !important; }
