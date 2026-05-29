@@ -382,7 +382,7 @@ function DesignStudio() {
           {/* Front/Back toggle */}
           <div style={{position:'absolute',top:16,left:16,background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:3,display:'flex',gap:3,backdropFilter:'blur(8px)'}}>
             {['Front','Back'].map(s=>(
-              <button key={s} onClick={e=>{e.stopPropagation();setShowBack(s==='Back');}} style={{padding:'5px 12px',borderRadius:7,border:'none',cursor:'pointer',background:(s==='Back')===showBack?'rgba(255,255,255,0.1)':'transparent',color:(s==='Back')===showBack?'white':'rgba(255,255,255,0.3)',fontSize:'0.67rem',fontWeight:700,letterSpacing:'0.05em'}}>{s}</button>
+              <button key={s} aria-pressed={(s==='Back')===showBack} onClick={e=>{e.stopPropagation();setShowBack(s==='Back');}} style={{padding:'5px 12px',borderRadius:7,border:'none',cursor:'pointer',background:(s==='Back')===showBack?'rgba(255,255,255,0.1)':'transparent',color:(s==='Back')===showBack?'white':'rgba(255,255,255,0.3)',fontSize:'0.67rem',fontWeight:700,letterSpacing:'0.05em'}}>{s}</button>
             ))}
           </div>
 
