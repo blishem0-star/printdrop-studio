@@ -5,18 +5,21 @@ export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 30;
 
-export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const { page = '1' } = await searchParams;
+export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
+  const { page = '1', q = '' } = await searchParams;
   const pageNum = Math.max(1, parseInt(page) || 1);
+  const query = q.trim().slice(0, 100);
+  const where = query ? { OR: [{ name: { contains: query } }, { email: { contains: query } }] } : undefined;
 
   const [customers, totalCount] = await Promise.all([
     prisma.customer.findMany({
+      where,
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { createdAt: 'desc' },
       include: { orders: true },
     }),
-    prisma.customer.count(),
+    prisma.customer.count({ where }),
   ]);
 
   const [withOrdersCount, totalRevResult] = await Promise.all([
@@ -32,11 +35,18 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
 
   return (
     <div>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Customers</h1>
-        <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>
-          {totalCount} registered · page {pageNum} of {totalPages || 1}
-        </p>
+      <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Customers</h1>
+          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>
+            {totalCount} {query ? `results for "${query}"` : 'registered'} · page {pageNum} of {totalPages || 1}
+          </p>
+        </div>
+        <form method="GET" action="/admin/customers" style={{ display: 'flex', gap: 6 }}>
+          <input name="q" defaultValue={query} placeholder="Search name or email…" maxLength={100} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', color: '#fff', fontSize: '0.78rem', outline: 'none', width: 220 }} />
+          <button type="submit" style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.08)', color: '#00E5C8', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Search</button>
+          {query && <Link href="/admin/customers" style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>✕</Link>}
+        </form>
       </div>
 
       {/* Stats */}
