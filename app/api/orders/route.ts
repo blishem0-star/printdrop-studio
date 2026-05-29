@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rateLimit';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,6 +28,11 @@ function validateBody(b: Record<string, unknown>): string | null {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`order:${ip}`, 10, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many orders. Try again in an hour.' }, { status: 429 });
+  }
+
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
