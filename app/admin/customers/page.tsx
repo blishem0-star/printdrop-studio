@@ -17,7 +17,11 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { createdAt: 'desc' },
-      include: { orders: true },
+      include: {
+        orders: {
+          select: { id: true, status: true, total: true },
+        },
+      },
     }),
     prisma.customer.count({ where }),
   ]);
