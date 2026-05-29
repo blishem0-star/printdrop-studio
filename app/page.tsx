@@ -514,7 +514,7 @@ export default function LandingPage() {
           )}
 
           {/* ── 3 Liquid cards ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+          <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
             {SHIRTS.map((shirt, i) => (
               <LiquidCard
                 key={shirt.id}
