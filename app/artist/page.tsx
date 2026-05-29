@@ -215,7 +215,7 @@ export default function ArtistPage() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><label style={lbl}>Design Title *</label><input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Neon Tiger" /></div>
+                <div><label style={lbl}>Design Title *</label><input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Neon Tiger" maxLength={80} /></div>
                 <div>
                   <label style={lbl}>Category *</label>
                   <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: category ? '#fff' : 'rgba(255,255,255,0.28)' }}>
