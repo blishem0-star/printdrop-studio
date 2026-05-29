@@ -187,6 +187,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="rsp-pad" style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
+        <h1 className="sr-only">Your Profile — {profile?.name ?? session.name}</h1>
 
         {/* Identity card */}
         <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
