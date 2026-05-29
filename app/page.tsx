@@ -371,8 +371,9 @@ export default function LandingPage() {
 
   async function submitAuth(e: React.FormEvent) {
     e.preventDefault();
-    if (authMode === 'signup' && !name) { setError('Name required'); return; }
+    if (authMode === 'signup' && !name.trim()) { setError('Name required'); return; }
     if (!email || !password) { setError('Fill in all fields'); return; }
+    if (authMode === 'signup' && password.length < 8) { setError('Password must be at least 8 characters'); return; }
     setLoading(true); setError('');
     try {
       const res = await fetch(authMode === 'signup' ? '/api/auth/register' : '/api/auth/login', {
