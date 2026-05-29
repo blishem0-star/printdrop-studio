@@ -621,7 +621,7 @@ export default function LandingPage() {
               { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.', accent: '#7B61FF' },
               { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns guaranteed.', accent: '#00E5C8' },
             ].map((s, i) => (
-              <div key={s.n} className="scan-card" style={{
+              <div key={s.n} className="scan-card rsp-1col" style={{
                 display: 'grid', gridTemplateColumns: '5rem 1fr auto',
                 alignItems: 'center', gap: '2rem',
                 padding: '1.75rem 0',
