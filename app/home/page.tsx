@@ -274,7 +274,7 @@ export default function HomePage() {
 
             {/* ── Success message ── */}
             {subSuccess && !showForm && (
-              <div style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '1rem', textAlign: 'center' }}>
+              <div role="status" aria-live="polite" style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '1rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>🎉</div>
                 <div style={{ fontWeight: 800, marginBottom: 4 }}>You&apos;re in!</div>
                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Your first box ships on the 1st. We&apos;ll email you a tracking number.</div>
