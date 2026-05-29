@@ -25,5 +25,7 @@ export async function GET() {
     artistName: d.artist.name,
   }));
 
-  return NextResponse.json(formatted);
+  return NextResponse.json(formatted, {
+    headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
+  });
 }
