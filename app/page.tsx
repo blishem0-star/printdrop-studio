@@ -388,14 +388,15 @@ export default function LandingPage() {
   const msgIdx = Math.min(Math.floor((mainPct / 100) * MAIN_MSGS.length), MAIN_MSGS.length - 1);
 
   return (
-    <main style={{ minHeight: '100vh', background: '#050507', overflowX: 'hidden' }}>
+    <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #050507 0%, #060610 100%)', overflowX: 'hidden' }}>
 
       {/* ── Background ── */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.016) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.06) 0%, transparent 65%)', top: '20%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'orb1 20s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.05) 0%, transparent 65%)', bottom: '15%', right: '8%', animation: 'orb2 25s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 3px)', opacity: 0.35 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+        <div style={{ position: 'absolute', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.08) 0%, transparent 60%)', top: '15%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'orb1 20s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.06) 0%, transparent 65%)', bottom: '20%', right: '5%', animation: 'orb2 25s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(123,97,255,0.05) 0%, transparent 65%)', top: '60%', left: '5%' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 3px)', opacity: 0.4 }} />
       </div>
 
       {/* ── Navbar ── */}
@@ -403,7 +404,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, color: '#050507' }}>S</div>
-            <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', letterSpacing: '-0.03em' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></span>
+            <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.3rem', fontWeight: 400, color: '#fff', letterSpacing: '0.04em' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></span>
           </div>
           <button onClick={enterGuest} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', cursor: 'pointer' }}>Browse as guest</button>
         </div>
@@ -419,7 +420,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <h1 style={{ fontSize: 'clamp(3rem, 9vw, 7.5rem)', fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.88, marginBottom: '1.4rem', animation: 'up 0.5s ease 0.2s both' }}>
+        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(5.5rem, 16vw, 13rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.88, marginBottom: '1.2rem', animation: 'up 0.5s ease 0.2s both' }}>
           <span style={{ display: 'block', color: '#fff' }}>Describe it.</span>
           <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 45%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Wear it.</span>
         </h1>
@@ -575,7 +576,7 @@ export default function LandingPage() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1rem' }}>
               <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>How it works</span>
             </div>
-            <h2 style={{ fontSize: 'clamp(1.6rem,3.5vw,2.5rem)', fontWeight: 900, letterSpacing: '-0.035em', color: '#fff' }}>From idea to doorstep</h2>
+            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 1 }}>From idea to doorstep</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: '1rem' }}>
             {[
@@ -584,10 +585,13 @@ export default function LandingPage() {
               { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.' },
               { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns.' },
             ].map(s => (
-              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem' }}>
-                <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', marginBottom: '0.65rem' }}>{s.n}</div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#fff', marginBottom: '0.45rem', letterSpacing: '-0.02em' }}>{s.t}</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.32)', lineHeight: 1.65 }}>{s.b}</div>
+              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem 1.25rem 1.25rem', position: 'relative', overflow: 'hidden', transition: 'border-color 0.2s, background 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.02)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}>
+                <div style={{ position: 'absolute', top: -12, right: 4, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '6.5rem', fontWeight: 400, color: '#00E5C8', opacity: 0.07, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.02em' }}>{s.n}</div>
+                <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.75rem', opacity: 0.8 }}>{s.n}</div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.65rem', fontWeight: 400, color: '#fff', marginBottom: '0.4rem', letterSpacing: '0.025em', lineHeight: 1 }}>{s.t}</div>
+                <div style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.32)', lineHeight: 1.65, fontFamily: "'Outfit', system-ui, sans-serif" }}>{s.b}</div>
               </div>
             ))}
           </div>

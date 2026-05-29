@@ -15,6 +15,8 @@
   --radius: 16px;
   --radius-sm: 10px;
   --radius-lg: 24px;
+  --font-display: 'Bebas Neue', 'Impact', sans-serif;
+  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,10 +26,22 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   line-height: 1.5;
+}
+
+html::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.028;
+  mix-blend-mode: overlay;
 }
 
 ::selection { background: var(--accent); color: white; }
@@ -38,9 +52,10 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
 /* ── Typography ── */
-.display { font-size: clamp(3rem, 7vw, 6rem); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; }
+.display { font-family: var(--font-display); font-size: clamp(4rem, 10vw, 9rem); font-weight: 400; letter-spacing: 0.02em; line-height: 0.92; }
+.display-sm { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 400; letter-spacing: 0.025em; line-height: 1; }
 .heading { font-size: clamp(1.75rem, 3.5vw, 2.75rem); font-weight: 800; letter-spacing: -0.03em; }
-.subheading { font-size: 1.1rem; color: var(--text-2); line-height: 1.65; }
+.subheading { font-size: 1.1rem; color: var(--text-2); line-height: 1.65; font-family: var(--font-body); }
 .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
 
 /* ── Gradient text ── */
@@ -202,6 +217,16 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 
 /* ── Mobile utility ── */
 @media (max-width: 480px) {
-  .display { font-size: clamp(2.25rem, 10vw, 3.5rem); }
+  .display { font-size: clamp(3rem, 14vw, 5rem); }
   .heading { font-size: clamp(1.5rem, 6vw, 2rem); }
 }
+
+/* ── Hover lift ── */
+.hover-lift { transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s; }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.45); }
+
+/* ── Glow border ── */
+.glow-border-teal { box-shadow: 0 0 0 1px rgba(0,229,200,0.3), 0 0 24px rgba(0,229,200,0.1); }
+
+/* ── Text glow ── */
+.text-glow-teal { text-shadow: 0 0 20px rgba(0,229,200,0.5); }

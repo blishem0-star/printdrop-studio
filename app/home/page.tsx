@@ -91,11 +91,17 @@ export default function HomePage() {
   const hasActiveSub = sub && sub.status !== 'CANCELLED';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', color: 'white' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', color: 'white', position: 'relative' }}>
+      {/* Background atmosphere */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', left: '55%' }} />
+        <div style={{ position: 'absolute', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.035) 0%, transparent 65%)', bottom: '10%', left: '-8%' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+      </div>
 
       {/* Navbar */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
-        <span style={{ fontWeight: 900, fontSize: '1.05rem', letterSpacing: '-0.03em', marginRight: 16, color: '#fff' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.04em', marginRight: 16, color: '#fff' }}>
           STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
         </span>
 
@@ -136,34 +142,47 @@ export default function HomePage() {
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '3.5rem 2rem 5rem' }}>
+      <main style={{ maxWidth: 900, margin: '0 auto', padding: '3.5rem 2rem 5rem', position: 'relative', zIndex: 1 }}>
 
         {/* Welcome */}
-        <div style={{ marginBottom: '3rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 8 }}>
-            Hey {session.name === 'Guest' ? 'there' : session.name} 👋
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.9rem' }}>What do you want to do today?</p>
+        <div style={{ marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, rgba(0,229,200,0.15), rgba(0,153,255,0.1))', border: '1px solid rgba(0,229,200,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.35rem', fontWeight: 900, color: '#00E5C8', flexShrink: 0, fontFamily: "'Outfit', system-ui, sans-serif" }}>
+            {session.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.2rem, 6vw, 3.5rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 5 }}>
+              Hey {session.name === 'Guest' ? 'there' : session.name}
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.88rem', letterSpacing: '0.01em' }}>What do you want to create today?</p>
+          </div>
         </div>
 
         {/* Quick actions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
-          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))', border: '1px solid rgba(0,229,200,0.18)', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.35)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.1),rgba(0,229,200,0.04))'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.18)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))'; }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>✏️</div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Design Studio</div>
-            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Design from scratch &mdash; add text, upload images, or generate with AI</div>
-            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#00E5C8' }}>Open studio &rarr;</div>
+          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))', border: '1px solid rgba(0,229,200,0.18)', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.38)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.11),rgba(0,229,200,0.04))'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(0,229,200,0.1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.18)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,229,200,0.1)', border: '1px solid rgba(0,229,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>✏️</div>
+              <div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.6rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 6 }}>Design Studio</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.55 }}>Design from scratch — add text, upload images, or generate with AI</div>
+              </div>
+            </div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.03em' }}>Open studio →</div>
           </button>
 
-          <button onClick={() => router.push('/catalog')} style={{ padding: '1.75rem', borderRadius: 18, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.4)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.05))'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))'; }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🎨</div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 5 }}>Browse catalog</div>
-            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
-            <div style={{ marginTop: 14, fontSize: '0.72rem', fontWeight: 700, color: '#818CF8' }}>Browse →</div>
+          <button onClick={() => router.push('/catalog')} style={{ padding: '1.75rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.42)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.13),rgba(99,102,241,0.05))'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(99,102,241,0.1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🎨</div>
+              <div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.6rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 6 }}>Browse catalog</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.55 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
+              </div>
+            </div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#818CF8', letterSpacing: '0.03em' }}>Browse →</div>
           </button>
         </div>
 
@@ -179,7 +198,7 @@ export default function HomePage() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.6rem', fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: '#00E5C8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
                   ✨ Monthly Box
                 </div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 6 }}>
+                <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 1.1, marginBottom: 6 }}>
                   3 pieces, curated for your style
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', lineHeight: 1.6, maxWidth: 440 }}>
@@ -187,7 +206,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${MONTHLY}</div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '3rem', fontWeight: 400, letterSpacing: '0.02em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>${MONTHLY}</div>
                 <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month · cancel anytime</div>
               </div>
             </div>

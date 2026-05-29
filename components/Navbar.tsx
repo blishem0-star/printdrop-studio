@@ -30,7 +30,7 @@ export default function Navbar() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 13, fontWeight: 900, color: '#050507',
           }}>S</div>
-          <span style={{ fontWeight: 900, fontSize: '1.05rem', color: 'white', letterSpacing: '-0.03em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, color: 'white', letterSpacing: '0.04em' }}>
             STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
           </span>
         </Link>
