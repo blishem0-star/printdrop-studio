@@ -384,7 +384,7 @@ export default function CatalogPage() {
                           <div style={lbl}>Position</div>
                           <div style={{ display: 'flex', gap: 6 }}>
                             {(['top', 'center', 'bottom'] as TextPos[]).map(p => (
-                              <button key={p} onClick={() => showBack ? setBackPos(p) : setFrontPos(p)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.07)' : 'transparent', color: (showBack ? backPos : frontPos) === p ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'capitalize' }}>{p}</button>
+                              <button key={p} aria-pressed={(showBack ? backPos : frontPos) === p} onClick={() => showBack ? setBackPos(p) : setFrontPos(p)} style={{ flex: 1, padding: '6px 0', borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${(showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: (showBack ? backPos : frontPos) === p ? 'rgba(0,229,200,0.07)' : 'transparent', color: (showBack ? backPos : frontPos) === p ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'capitalize' }}>{p}</button>
                             ))}
                           </div>
                         </div>
