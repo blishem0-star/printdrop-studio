@@ -163,7 +163,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
                   const pg = pageNum <= 3 ? i + 1 : pageNum - 2 + i;
                   if (pg < 1 || pg > totalPages) return null;
                   return (
-                    <Link key={pg} href={`/admin/customers?page=${pg}`} style={{ padding: '5px 11px', borderRadius: 8, border: `1px solid ${pg === pageNum ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: pg === pageNum ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.03)', color: pg === pageNum ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>{pg}</Link>
+                    <Link key={pg} href={`/admin/customers?page=${pg}`} aria-current={pg === pageNum ? 'page' : undefined} style={{ padding: '5px 11px', borderRadius: 8, border: `1px solid ${pg === pageNum ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: pg === pageNum ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.03)', color: pg === pageNum ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>{pg}</Link>
                   );
                 })}
                 {pageNum < totalPages && (
