@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Artist not found' }, { status: 403 });
     }
 
+    // Rate limit: max 50 designs per artist
+    const existingCount = await prisma.artistDesign.count({ where: { artistId } });
+    if (existingCount >= 50) {
+      return NextResponse.json({ error: 'Maximum design limit reached (50)' }, { status: 422 });
+    }
+
     // Strip script tags and event handlers from SVG to prevent XSS
     const safeSvg = svg
       .replace(/<script[\s\S]*?<\/script>/gi, '')

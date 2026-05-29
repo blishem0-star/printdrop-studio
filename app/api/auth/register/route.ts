@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { OWNER_EMAIL } from '@/lib/owner';
+import { rateLimit } from '@/lib/rateLimit';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`register:${ip}`, 5, 15 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many attempts. Try again in 15 minutes.' }, { status: 429 });
+  }
+
   let body: { name?: string; email?: string; password?: string; role?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
