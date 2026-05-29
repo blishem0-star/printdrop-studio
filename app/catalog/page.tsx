@@ -348,7 +348,7 @@ export default function CatalogPage() {
                     <div style={lbl}>Product Type</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {(['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
-                        <button key={pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(0,229,200,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button key={pt} aria-pressed={drawerProductType === pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(0,229,200,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {PRODUCT_TYPE_EMOJI[pt]} {PRODUCT_TYPE_LABELS[pt]}
                           {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#00E5C8', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
                         </button>
