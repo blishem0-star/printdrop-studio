@@ -513,7 +513,7 @@ function DesignStudio() {
                   <div style={LS}>Position</div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
                     {(Object.keys(POS_LABELS) as ImagePos[]).map(p=>(
-                      <button key={p} onClick={()=>setImgPos(prev=>({...prev,[uploadSlot==='front'?'front':'back']:p}))} style={{padding:'4px 10px',borderRadius:999,border:'1px solid',borderColor:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.45)':'rgba(255,255,255,0.08)',background:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.08)':'transparent',color:imgPos[uploadSlot==='front'?'front':'back']===p?'#00E5C8':'rgba(255,255,255,0.35)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',transition:'all 0.13s'}}>{POS_LABELS[p]}</button>
+                      <button key={p} aria-pressed={imgPos[uploadSlot==='front'?'front':'back']===p} onClick={()=>setImgPos(prev=>({...prev,[uploadSlot==='front'?'front':'back']:p}))} style={{padding:'4px 10px',borderRadius:999,border:'1px solid',borderColor:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.45)':'rgba(255,255,255,0.08)',background:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.08)':'transparent',color:imgPos[uploadSlot==='front'?'front':'back']===p?'#00E5C8':'rgba(255,255,255,0.35)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',transition:'all 0.13s'}}>{POS_LABELS[p]}</button>
                     ))}
                   </div>
                 </div>}
