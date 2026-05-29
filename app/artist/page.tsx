@@ -118,50 +118,57 @@ export default function ArtistPage() {
   const lbl: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6, display: 'block' };
 
   if (!session) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)' }}>Loading...</div>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
+      <div style={{ color: 'rgba(255,255,255,0.1)', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading...</div>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
+      {/* Atmosphere */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.05) 0%, transparent 60%)', top: '-8%', right: '5%' }} />
+        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.04) 0%, transparent 65%)', bottom: '5%', left: '-5%' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+      </div>
+
       {/* Header */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(8,8,8,0.96)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>← Back</button>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
-        <span style={{ fontSize: 18 }}>🎨</span>
-        <span style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.03em' }}>Artist Studio</span>
-        <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(139,92,246,0.1)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}>Artist</span>
+        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Artist<span style={{ color: '#00E5C8' }}>.</span>Studio</span>
+        <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', color: '#00E5C8', border: '1px solid rgba(0,229,200,0.2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Artist</span>
         <div style={{ flex: 1 }} />
         <button onClick={() => router.push('/profile')} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>My Profile</button>
       </header>
 
       {/* Earnings banner */}
       {earnings && (
-        <div style={{ background: 'linear-gradient(135deg,rgba(139,92,246,0.06),rgba(99,102,241,0.06))', borderBottom: '1px solid rgba(139,92,246,0.12)', padding: '1.25rem 2rem' }}>
-          <div style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+        <div style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.25rem 2rem' }}>
+          <div style={{ height: 1, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', position: 'absolute', top: 0, left: 0, right: 0 }} />
+          <div style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
             {[
-              { label: 'Total Earned', value: `$${earnings.totalEarned.toFixed(2)}`, icon: '💰', color: '#10B981' },
-              { label: 'Total Sales',  value: earnings.totalSales,  icon: '🛒', color: '#3B82F6' },
-              { label: 'Approved',     value: earnings.approved,    icon: '✅', color: '#A78BFA' },
-              { label: 'Pending',      value: earnings.pending,     icon: '⏳', color: '#F59E0B' },
-            ].map(s => (
-              <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{s.icon} {s.label}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: s.color, letterSpacing: '-0.03em' }}>{s.value}</div>
+              { label: 'Total Earned', value: `$${earnings.totalEarned.toFixed(2)}`, color: '#00E5C8' },
+              { label: 'Total Sales',  value: earnings.totalSales,                    color: '#0099FF' },
+              { label: 'Approved',     value: earnings.approved,                      color: '#10B981' },
+              { label: 'Pending',      value: earnings.pending,                       color: '#F59E0B' },
+            ].map((s, i) => (
+              <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <div style={{ fontSize: '0.56rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.label}</div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.8rem', fontWeight: 400, letterSpacing: '0.03em', color: s.color, lineHeight: 1 }}>{s.value}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 1 }}>
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem' }}>
-          {([['designs', '🖼 My Designs'], ['upload', '+ Upload New Design']] as const).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 18px', borderRadius: 10, border: `1.5px solid ${tab === t ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`, background: tab === t ? 'rgba(139,92,246,0.1)' : 'transparent', color: tab === t ? '#A78BFA' : 'rgba(255,255,255,0.45)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+          {([['designs', 'My Designs'], ['upload', '+ Upload New']] as const).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 18px', borderRadius: 10, border: `1.5px solid ${tab === t ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: tab === t ? 'rgba(0,229,200,0.08)' : 'transparent', color: tab === t ? '#00E5C8' : 'rgba(255,255,255,0.45)', fontFamily: tab === t ? "'Bebas Neue', Impact, sans-serif" : 'inherit', fontSize: tab === t ? '0.95rem' : '0.82rem', letterSpacing: tab === t ? '0.06em' : 'normal', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
               {label}
-              {t === 'designs' && designs.length > 0 && <span style={{ marginLeft: 6, fontSize: '0.65rem', fontWeight: 800, background: 'rgba(139,92,246,0.2)', padding: '1px 7px', borderRadius: 999, color: '#A78BFA' }}>{designs.length}</span>}
+              {t === 'designs' && designs.length > 0 && <span style={{ marginLeft: 6, fontSize: '0.6rem', fontWeight: 700, background: 'rgba(0,229,200,0.12)', padding: '1px 7px', borderRadius: 999, color: '#00E5C8', letterSpacing: '0.04em' }}>{designs.length}</span>}
             </button>
           ))}
         </div>
@@ -182,7 +189,7 @@ export default function ArtistPage() {
                 <div style={{ fontSize: 48, marginBottom: 12 }}>🎨</div>
                 <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 8 }}>No designs yet</div>
                 <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', marginBottom: '1.25rem' }}>Upload your first design and start earning 50% on every sale.</div>
-                <button onClick={() => setTab('upload')} style={{ padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', color: '#fff', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer' }}>Upload First Design</button>
+                <button onClick={() => setTab('upload')} style={{ padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer' }}>Upload First Design</button>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: '1rem' }}>
@@ -199,8 +206,8 @@ export default function ArtistPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Info note */}
-              <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                💜 You earn <strong style={{ color: '#A78BFA' }}>50% of every sale</strong>. Designs go through a quick review before appearing in the catalog.
+              <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(0,229,200,0.04)', border: '1px solid rgba(0,229,200,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
+                ✦ You earn <strong style={{ color: '#00E5C8' }}>50% of every sale</strong>. Designs go through a quick review before appearing in the catalog.
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -228,7 +235,7 @@ export default function ArtistPage() {
                 <label style={lbl}>Design Artwork *</label>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                   {(['file', 'paste'] as const).map(m => (
-                    <button key={m} onClick={() => setUploadMode(m)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: uploadMode === m ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)', background: uploadMode === m ? 'rgba(139,92,246,0.08)' : 'transparent', color: uploadMode === m ? '#A78BFA' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
+                    <button key={m} onClick={() => setUploadMode(m)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: uploadMode === m ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: uploadMode === m ? 'rgba(0,229,200,0.08)' : 'transparent', color: uploadMode === m ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
                       {m === 'file' ? '📁 Upload file' : '📋 Paste SVG code'}
                     </button>
                   ))}
@@ -241,7 +248,7 @@ export default function ArtistPage() {
                     onDragOver={e => e.preventDefault()}
                     onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
                     onClick={() => fileRef.current?.click()}
-                    style={{ border: `2px dashed ${dragging ? 'rgba(139,92,246,0.5)' : previewUrl ? 'rgba(16,185,129,0.35)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 14, padding: '2rem', textAlign: 'center', cursor: 'pointer', background: dragging ? 'rgba(139,92,246,0.04)' : 'rgba(255,255,255,0.01)', transition: 'all 0.2s' }}
+                    style={{ border: `2px dashed ${dragging ? 'rgba(0,229,200,0.5)' : previewUrl ? 'rgba(16,185,129,0.35)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 14, padding: '2rem', textAlign: 'center', cursor: 'pointer', background: dragging ? 'rgba(0,229,200,0.04)' : 'rgba(255,255,255,0.01)', transition: 'all 0.2s' }}
                   >
                     <input ref={fileRef} type="file" accept=".svg,image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
                     {previewUrl ? (
@@ -276,7 +283,7 @@ export default function ArtistPage() {
               <button
                 onClick={submitDesign}
                 disabled={submitting || !title.trim() || !category || !svgContent.trim()}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: !submitting && title.trim() && category && svgContent.trim() ? 'linear-gradient(135deg,#8B5CF6,#6366F1)' : 'rgba(255,255,255,0.05)', color: !submitting && title.trim() && category && svgContent.trim() ? '#fff' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: !submitting && title.trim() && category && svgContent.trim() ? 'pointer' : 'default', transition: 'all 0.2s', boxShadow: !submitting && title.trim() ? '0 6px 20px rgba(139,92,246,0.25)' : 'none' }}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: !submitting && title.trim() && category && svgContent.trim() ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: !submitting && title.trim() && category && svgContent.trim() ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: !submitting && title.trim() && category && svgContent.trim() ? 'pointer' : 'default', transition: 'all 0.2s', boxShadow: !submitting && title.trim() ? '0 6px 20px rgba(0,229,200,0.25)' : 'none' }}
               >
                 {submitting ? 'Submitting...' : 'Submit for Review →'}
               </button>
@@ -298,7 +305,7 @@ export default function ArtistPage() {
               </div>
               {title && <div style={{ marginTop: '0.75rem', fontSize: '0.78rem', fontWeight: 700 }}>{title}</div>}
               {category && <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{category}</div>}
-              {price && <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#A78BFA', marginTop: 6 }}>${parseFloat(price || '0').toFixed(2)}</div>}
+              {price && <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#00E5C8', marginTop: 6 }}>${parseFloat(price || '0').toFixed(2)}</div>}
               {price && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)}</div>}
             </div>
           </div>
@@ -311,8 +318,12 @@ export default function ArtistPage() {
 function DesignCard({ design }: { design: ArtistDesign }) {
   const s = STATUS_STYLE[design.status];
   return (
-    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
-      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+    <div className="scan-card holo-card" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', transition: 'transform 0.2s, border-color 0.2s', cursor: 'default' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,229,200,0.2)'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
+    >
+      <div style={{ background: 'rgba(0,0,0,0.35)', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg,transparent,rgba(0,229,200,0.15),transparent)' }} />
         <div style={{ position: 'relative', width: 100, height: 100 }}>
           <svg width="100" height="100" viewBox="0 0 200 200" fill="none">
             <path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill="#2a2a2a" stroke="rgba(255,255,255,0.08)" strokeWidth="2"/>
@@ -330,17 +341,17 @@ function DesignCard({ design }: { design: ArtistDesign }) {
         </span>
       </div>
       <div style={{ padding: '0.875rem' }}>
-        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: 2 }}>{design.title}</div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>{design.category}</div>
+        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1rem', letterSpacing: '0.04em', marginBottom: 2 }}>{design.title}</div>
+        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 900, color: '#A78BFA', fontSize: '0.9rem' }}>${design.price.toFixed(2)}</span>
+          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.1rem', letterSpacing: '0.03em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price.toFixed(2)}</span>
           {design.status === 'APPROVED' && (
-            <span style={{ fontSize: '0.62rem', color: '#10B981', fontWeight: 600 }}>{design.salesCount} sold · ${design.totalEarned.toFixed(2)} earned</span>
+            <span style={{ fontSize: '0.58rem', color: '#10B981', fontWeight: 700 }}>{design.salesCount} sold · ${design.totalEarned.toFixed(2)}</span>
           )}
         </div>
         {design.status === 'REJECTED' && (
           <div style={{ marginTop: 8, fontSize: '0.65rem', color: '#F87171', padding: '5px 8px', background: 'rgba(239,68,68,0.06)', borderRadius: 6 }}>
-            Design was not approved. Please review our guidelines and try again.
+            Not approved. Review guidelines and resubmit.
           </div>
         )}
       </div>

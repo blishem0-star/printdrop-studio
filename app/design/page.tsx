@@ -312,10 +312,12 @@ function DesignStudio() {
 
   // ── Order success ──────────────────────────────────────────
   if (ordered) return (
-    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#08080c'}}>
-      <div style={{textAlign:'center',maxWidth:380}}>
+    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.06) 0%,transparent 60%)',top:'-15%',right:'5%',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,100,255,0.04) 0%,transparent 65%)',bottom:'0%',left:'-5%',pointerEvents:'none'}}/>
+      <div style={{textAlign:'center',maxWidth:380,position:'relative',zIndex:1}}>
         <div style={{fontSize:64,marginBottom:16}}>🎉</div>
-        <h1 style={{fontSize:'1.9rem',fontWeight:900,letterSpacing:'-0.04em',marginBottom:8}}>Order placed!</h1>
+        <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'2.8rem',fontWeight:400,letterSpacing:'0.04em',marginBottom:8}}>Order placed!</h1>
         <p style={{color:'rgba(255,255,255,0.4)',marginBottom:4}}>{color?.name} · Size {size}</p>
         {orderId && <p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:28}}>#{orderId.slice(0,8).toUpperCase()}</p>}
         <div style={{display:'flex',gap:10,justifyContent:'center'}}>
@@ -328,7 +330,7 @@ function DesignStudio() {
 
   // ──────────────────────────────────────────────────────────
   return (
-    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'#08080c',color:'white',overflow:'hidden'}}>
+    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'linear-gradient(180deg,#050507,#060610)',color:'white',overflow:'hidden'}}>
 
       {/* Fullscreen */}
       {fullscreen && (
@@ -343,10 +345,10 @@ function DesignStudio() {
       )}
 
       {/* Header */}
-      <header style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 20px',gap:12,background:'rgba(8,8,12,0.97)',backdropFilter:'blur(12px)'}}>
+      <header style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 20px',gap:12,background:'rgba(5,5,7,0.92)',backdropFilter:'blur(20px)'}}>
         <Link href="/catalog" style={{color:'rgba(255,255,255,0.25)',fontSize:'0.76rem',textDecoration:'none',fontWeight:600}}>← Back</Link>
         <div style={{width:1,height:16,background:'rgba(255,255,255,0.08)'}}/>
-        <span style={{fontWeight:900,fontSize:'0.92rem',letterSpacing:'-0.03em',flex:1}}>✏️ Create your shirt</span>
+        <span style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontWeight:400,fontSize:'1.35rem',letterSpacing:'0.06em',lineHeight:1,flex:1}}>Design<span style={{color:'#00E5C8'}}>.</span>Studio</span>
         {layers.length>0 && <span style={{background:'rgba(0,229,200,0.12)',border:'1px solid rgba(0,229,200,0.2)',borderRadius:20,padding:'3px 10px',fontSize:'0.62rem',fontWeight:700,color:'#00E5C8'}}>{layers.length} layer{layers.length!==1?'s':''}</span>}
         <button onClick={()=>setFullscreen(true)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'5px 13px',color:'rgba(255,255,255,0.5)',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.04em'}}>⛶ PREVIEW</button>
       </header>
@@ -357,6 +359,9 @@ function DesignStudio() {
         {/* ── CANVAS ────────────────────────────────────── */}
         <div style={{background:'radial-gradient(ellipse at 50% 35%,rgba(18,18,28,1) 0%,rgba(5,5,9,1) 100%)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}
           onClick={()=>setSelected(null)}>
+          {/* Atmosphere */}
+          <div style={{position:'absolute',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.04) 0%,transparent 60%)',top:'-10%',right:'-5%',pointerEvents:'none'}}/>
+          <div style={{position:'absolute',width:350,height:350,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,100,255,0.03) 0%,transparent 65%)',bottom:'-5%',left:'-5%',pointerEvents:'none'}}/>
           {/* Grid */}
           <div style={{position:'absolute',inset:0,pointerEvents:'none',opacity:0.035,backgroundImage:'linear-gradient(rgba(255,255,255,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.6) 1px,transparent 1px)',backgroundSize:'36px 36px'}}/>
 
@@ -399,7 +404,7 @@ function DesignStudio() {
         </div>
 
         {/* ── RIGHT PANEL ───────────────────────────────── */}
-        <div style={{borderLeft:'1px solid rgba(255,255,255,0.07)',display:'flex',flexDirection:'column',background:'rgba(9,9,14,1)',overflow:'hidden'}}>
+        <div style={{borderLeft:'1px solid rgba(255,255,255,0.07)',display:'flex',flexDirection:'column',background:'rgba(5,5,9,0.98)',overflow:'hidden'}}>
 
           {/* Main tabs */}
           <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
@@ -531,7 +536,7 @@ function DesignStudio() {
                   <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5}}>
                     {EMOJIS.map(e=>(
                       <button key={e} onClick={()=>addGfx(e)} style={{padding:'9px 2px',borderRadius:9,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',fontSize:'1.25rem',transition:'all 0.12s',lineHeight:1}}
-                        onMouseEnter={x=>{(x.currentTarget.style.background='rgba(255,77,28,0.12)');(x.currentTarget.style.transform='scale(1.12)');}}
+                        onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.12)');(x.currentTarget.style.transform='scale(1.12)');}}
                         onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.04)');(x.currentTarget.style.transform='scale(1)');}}>
                         {e}
                       </button>
@@ -628,7 +633,7 @@ function DesignStudio() {
           )}
 
           {/* Order CTA */}
-          <div style={{padding:'11px 13px',borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(4,4,8,0.9)',flexShrink:0}}>
+          <div style={{padding:'11px 13px',borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(5,5,7,0.95)',flexShrink:0}}>
             {canOrder ? (
               <button onClick={handleOrder} disabled={submitting} style={{width:'100%',padding:'13px',borderRadius:11,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontWeight:800,fontSize:'0.87rem',cursor:submitting?'default':'pointer',boxShadow:'0 6px 20px rgba(0,229,200,0.25)',transition:'all 0.15s',opacity:submitting?0.7:1}}>
                 {submitting?'⏳ Placing order...':(`Place Order — $${total.toFixed(2)}`)}
@@ -665,7 +670,7 @@ function DesignStudio() {
 
 export default function DesignPage() {
   return (
-    <Suspense fallback={<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#08080c',color:'rgba(255,255,255,0.18)',fontSize:'0.82rem'}}>Loading...</div>}>
+    <Suspense fallback={<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',color:'rgba(255,255,255,0.18)',fontSize:'0.82rem'}}>Loading...</div>}>
       <DesignStudio/>
     </Suspense>
   );
