@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { OWNER_EMAIL } from '@/lib/owner';
+import { useToast } from '@/components/Toast';
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_BASE_PRICE, buildProductSvg } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 
@@ -26,6 +27,7 @@ export default function HomePage() {
   const [sub, setSub] = useState<Subscription | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [subActionLoading, setSubActionLoading] = useState(false);
+  const { show: showToast, element: toastEl } = useToast();
 
   // Subscribe form
   const [showForm, setShowForm] = useState(false);
@@ -61,8 +63,9 @@ export default function HomePage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerId: session.customerId, stylePrefs: { style: selStyle, productTypes: selTypes, size: prefSize } }),
       });
-      if (res.ok) { setSub(await res.json()); setSubSuccess(true); setShowForm(false); }
-    } catch { /* ignore */ } finally { setSubmitting(false); }
+      if (res.ok) { setSub(await res.json()); setSubSuccess(true); setShowForm(false); showToast('Subscription activated! 🎉', 'success'); }
+      else { showToast('Failed to subscribe. Try again.', 'error'); }
+    } catch { showToast('Network error.', 'error'); } finally { setSubmitting(false); }
   }
 
   async function cancelSub() {
@@ -70,8 +73,9 @@ export default function HomePage() {
     setSubActionLoading(true);
     try {
       const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
-      if (res.ok) setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
-    } catch { /* ignore network errors */ } finally { setSubActionLoading(false); }
+      if (res.ok) { setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null); showToast('Subscription cancelled.', 'info'); }
+      else { showToast('Failed to cancel. Try again.', 'error'); }
+    } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }
   }
 
   async function togglePause() {
@@ -80,8 +84,9 @@ export default function HomePage() {
     setSubActionLoading(true);
     try {
       const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
-      if (res.ok) setSub(prev => prev ? { ...prev, status: newStatus } : null);
-    } catch { /* ignore network errors */ } finally { setSubActionLoading(false); }
+      if (res.ok) { setSub(prev => prev ? { ...prev, status: newStatus } : null); showToast(newStatus === 'PAUSED' ? 'Subscription paused.' : 'Subscription resumed.', 'info'); }
+      else { showToast('Failed to update. Try again.', 'error'); }
+    } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }
   }
 
   function signOut() {
@@ -99,6 +104,7 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', color: 'white', position: 'relative' }}>
+      {toastEl}
       {/* Background atmosphere */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', left: '55%' }} />

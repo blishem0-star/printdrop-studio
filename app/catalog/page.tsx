@@ -7,6 +7,7 @@ import type { ProductType } from '@/lib/productTypes';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
+import { useToast } from '@/components/Toast';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string };
 type TextPos = 'top' | 'center' | 'bottom';
@@ -159,6 +160,7 @@ export default function CatalogPage() {
   const [submitting, setSubmitting] = useState(false);
   const [ordered, setOrdered] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const { show: showToast, element: toastEl } = useToast();
 
   useEffect(() => {
     try {
@@ -227,8 +229,11 @@ export default function CatalogPage() {
           try { localStorage.setItem('pd_shipping', JSON.stringify({ street: shipStreet, city: shipCity, zip: shipZip, state: shipState })); } catch { /* ignore */ }
         }
         setOrderId(result.id); setOrdered(true);
+        showToast('Order placed! 🎉', 'success');
+      } else {
+        showToast('Failed to place order. Try again.', 'error');
       }
-    } catch { /* ignore */ }
+    } catch { showToast('Network error. Check your connection.', 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -238,6 +243,7 @@ export default function CatalogPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
+      {toastEl}
       {/* Background atmosphere */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', right: '10%' }} />

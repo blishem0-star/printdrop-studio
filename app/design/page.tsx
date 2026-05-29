@@ -6,6 +6,7 @@ import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { submitOrder } from '@/lib/exportDesign';
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
 
 // ─── Types ───────────────────────────────────────────────────
 type Layer = { id: string; type: 'text' | 'gfx'; content: string; x: number; y: number; fontSize: number; fontFamily: string; color: string; fontWeight: 'normal'|'bold'; italic: boolean; rotation: number };
@@ -103,6 +104,7 @@ function DesignStudio() {
   const [ordered,   setOrdered]   = useState(false);
   const [orderId,   setOrderId]   = useState<string|null>(null);
   const [orderError,setOrderError]= useState<string|null>(null);
+  const { show: showToast, element: toastEl } = useToast();
 
   // Restore session shipping
   useEffect(() => {
@@ -219,10 +221,12 @@ function DesignStudio() {
       if (result) {
         try { localStorage.setItem('pd_shipping',JSON.stringify({street:shipStreet,city:shipCity,zip:shipZip,state:shipState})); } catch{/**/}
         setOrderId(result.id); setOrdered(true);
+        showToast('Order placed! 🎉', 'success');
       } else {
         setOrderError('Order failed. Please try again.');
+        showToast('Order failed. Please try again.', 'error');
       }
-    } catch { setOrderError('Network error. Please try again.'); } finally { setSubmitting(false); }
+    } catch { setOrderError('Network error. Please try again.'); showToast('Network error. Check your connection.', 'error'); } finally { setSubmitting(false); }
   }
 
   // ── SVG canvas helpers ─────────────────────────────────────
@@ -332,6 +336,7 @@ function DesignStudio() {
   // ──────────────────────────────────────────────────────────
   return (
     <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'linear-gradient(180deg,#050507,#060610)',color:'white',overflow:'hidden'}}>
+      {toastEl}
 
       {/* Fullscreen */}
       {fullscreen && (
