@@ -303,7 +303,7 @@ export default function HomePage() {
                   <div style={LS}>Your style</div>
                   <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {STYLES.map(s => (
-                      <button key={s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
+                      <button key={s.id} aria-pressed={selStyle === s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
                         <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: selStyle === s.id ? 'white' : 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{s.label}</div>
                         <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)', lineHeight: 1.4 }}>{s.desc}</div>
