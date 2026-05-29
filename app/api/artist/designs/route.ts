@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
     if (!artistId || !title?.trim() || !category || !svg?.trim()) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
     }
+    if (title.trim().length > 80) return NextResponse.json({ error: 'Title too long (max 80 chars)' }, { status: 422 });
+    if (svg.length > 500_000) return NextResponse.json({ error: 'SVG file too large (max 500KB)' }, { status: 422 });
     const safePrice = typeof price === 'number' ? Math.min(Math.max(price, 9.99), 999.99) : 29.99;
 
     const artist = await prisma.customer.findUnique({ where: { id: artistId } });

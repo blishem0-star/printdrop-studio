@@ -27,21 +27,29 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(customer);
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ZIP_RE   = /^\d{5}$/;
+const STATE_RE = /^[A-Z]{2}$/;
+
 export async function PATCH(req: NextRequest) {
   try {
     const { customerId, name, email, shipStreet, shipCity, shipState, shipZip } = await req.json();
     if (!customerId) return NextResponse.json({ error: 'Missing customerId' }, { status: 400 });
+    if (name !== undefined && name.trim().length < 2) return NextResponse.json({ error: 'Name too short' }, { status: 422 });
+    if (email !== undefined && !EMAIL_RE.test(email)) return NextResponse.json({ error: 'Invalid email' }, { status: 422 });
+    if (shipZip !== undefined && shipZip !== '' && !ZIP_RE.test(shipZip)) return NextResponse.json({ error: 'Invalid ZIP' }, { status: 422 });
+    if (shipState !== undefined && shipState !== '' && !STATE_RE.test(shipState)) return NextResponse.json({ error: 'Invalid state' }, { status: 422 });
 
     if (email) {
-      const existing = await prisma.customer.findFirst({ where: { email, NOT: { id: customerId } } });
+      const existing = await prisma.customer.findFirst({ where: { email: email.toLowerCase().trim(), NOT: { id: customerId } } });
       if (existing) return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
     }
 
     const updated = await prisma.customer.update({
       where: { id: customerId },
       data: {
-        ...(name && { name }),
-        ...(email && { email }),
+        ...(name && { name: name.trim() }),
+        ...(email && { email: email.toLowerCase().trim() }),
         ...(shipStreet !== undefined && { shipStreet }),
         ...(shipCity !== undefined && { shipCity }),
         ...(shipState !== undefined && { shipState }),
