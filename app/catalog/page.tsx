@@ -263,7 +263,7 @@ export default function CatalogPage() {
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1, margin: 0 }}>Catalog</h1>
         <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, padding: '2px 8px' }}>{allDesigns.length} designs</span>
         <div style={{ flex: 1 }} />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." aria-label="Search designs" maxLength={80} style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
+        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search designs..." aria-label="Search designs" maxLength={80} style={{ ...inp, width: 200, padding: '0.45rem 0.75rem', fontSize: '0.78rem', borderRadius: 8 }} />
       </header>
 
       <div style={{ position: 'sticky', top: 56, zIndex: 45, background: 'rgba(5,5,7,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
