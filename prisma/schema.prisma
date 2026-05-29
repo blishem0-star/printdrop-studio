@@ -69,7 +69,7 @@ model Customer {
 model ArtistDesign {
   id          String       @id @default(cuid())
   artistId    String
-  artist      Customer     @relation(fields: [artistId], references: [id])
+  artist      Customer     @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   title       String
   category    String
@@ -93,7 +93,7 @@ model ArtistDesign {
 model Subscription {
   id             String             @id @default(cuid())
   customerId     String
-  customer       Customer           @relation(fields: [customerId], references: [id])
+  customer       Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
   status         SubscriptionStatus @default(ACTIVE)
   // JSON: { style, productTypes, size, colorPref }
   stylePrefs     String
@@ -109,7 +109,7 @@ model Subscription {
 model SubscriptionShipment {
   id             String       @id @default(cuid())
   subscriptionId String
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   // PENDING | SHIPPED | DELIVERED
   status         String       @default("PENDING")
   // JSON array of items
@@ -135,7 +135,7 @@ model DesignAsset {
 
 model Order {
   id            String      @id @default(cuid())
-  customer      Customer    @relation(fields: [customerId], references: [id])
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId    String
   status        OrderStatus @default(DRAFT)
   total         Float
@@ -156,7 +156,7 @@ model Order {
 
 model OrderItem {
   id            String      @id @default(cuid())
-  order         Order       @relation(fields: [orderId], references: [id])
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId       String
   designAsset   DesignAsset @relation(fields: [designAssetId], references: [id])
   designAssetId String

@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
   if (!name?.trim() || !email || !password) return NextResponse.json({ error: 'All fields required' }, { status: 422 });
   if (!EMAIL_RE.test(email)) return NextResponse.json({ error: 'Invalid email address' }, { status: 422 });
   if (password.length < 8) return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 422 });
+  if (password.length > 128) return NextResponse.json({ error: 'Password too long (max 128 characters)' }, { status: 422 });
 
   const existing = await prisma.customer.findUnique({ where: { email } });
   if (existing) return NextResponse.json({ error: 'Email already registered' }, { status: 409 });

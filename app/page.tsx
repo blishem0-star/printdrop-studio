@@ -454,6 +454,8 @@ export default function LandingPage() {
               onKeyDown={e => e.key === 'Enter' && phase === 'hero' && generate()}
               placeholder={PROMPT_EXAMPLES[phIdx]}
               disabled={phase !== 'hero'}
+              maxLength={200}
+              aria-label="Describe your shirt design"
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '1rem 1.2rem', fontFamily: 'inherit' }}
             />
             <button

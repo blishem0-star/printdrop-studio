@@ -44,11 +44,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Maximum design limit reached (50)' }, { status: 422 });
     }
 
-    // Strip script tags and event handlers from SVG to prevent XSS
+    // Strip dangerous SVG content to prevent XSS
     const safeSvg = svg
       .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<iframe[\s\S]*?(?:<\/iframe>|\/?>)/gi, '')
+      .replace(/<embed[\s\S]*?(?:<\/embed>|\/?>)/gi, '')
+      .replace(/<object[\s\S]*?(?:<\/object>|\/?>)/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<use[\s\S]*?href\s*=\s*["'][^"']*["']/gi, '') // blocks external resource loading
       .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/javascript:/gi, '');
+      .replace(/\son\w+\s*=\s*\{[^}]*\}/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/data:text\/html/gi, '');
 
     const design = await prisma.artistDesign.create({
       data: {
