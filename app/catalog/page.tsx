@@ -316,7 +316,7 @@ export default function CatalogPage() {
             </div>
 
             {ordered ? (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '2rem' }}>
+              <div role="status" aria-live="polite" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '2rem' }}>
                 <div style={{ fontSize: 52 }}>🎉</div>
                 <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order confirmed!</div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} · {color?.name} · Size {size}</div>
