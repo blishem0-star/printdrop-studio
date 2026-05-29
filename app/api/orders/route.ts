@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-const US_STATE_RE = /^[A-Z]{2}$/;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const US_STATE_RE  = /^[A-Z]{2}$/;
+const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HEX_RE       = /^#[0-9A-Fa-f]{6}$/;
+const VALID_SIZES  = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const SHIPPING_PRICE = 4.99;
 const CUSTOM_DESIGN_PRICE = 24.99;
 
@@ -17,8 +19,10 @@ function validateBody(b: Record<string, unknown>): string | null {
   if (!US_STATE_RE.test(str('shippingState'))) return 'Invalid state';
   const d = b.design as Record<string, unknown> | undefined;
   if (!d || typeof d.title !== 'string' || !d.title.trim()) return 'Invalid design title';
-  if (typeof d.colorHex !== 'string' || !d.colorHex) return 'Invalid design color';
-  if (typeof d.size !== 'string' || !d.size) return 'Invalid design size';
+  if ((d.title as string).length > 120) return 'Design title too long';
+  if (typeof d.colorHex !== 'string' || !HEX_RE.test(d.colorHex as string)) return 'Invalid design color';
+  if (typeof d.size !== 'string' || !VALID_SIZES.includes(d.size as string)) return 'Invalid design size';
+  if (d.customText && typeof d.customText === 'string' && (d.customText as string).length > 200) return 'Custom text too long';
   return null;
 }
 
