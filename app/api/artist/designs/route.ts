@@ -19,6 +19,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`artist-design-post:${ip}`, 10, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many submissions. Try again in an hour.' }, { status: 429 });
+  }
   try {
     const { artistId, title, category, price, svg, badge } = await req.json();
     if (!artistId || !title?.trim() || !category || !svg?.trim()) {
