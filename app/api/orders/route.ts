@@ -3,22 +3,22 @@ import { prisma } from '@/lib/prisma';
 
 const US_STATE_RE = /^[A-Z]{2}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SHIPPING_PRICE = 4.99;
+const CUSTOM_DESIGN_PRICE = 24.99;
 
 function validateBody(b: Record<string, unknown>): string | null {
   const str = (k: string) => (typeof b[k] === 'string' ? (b[k] as string).trim() : '');
-  if (str('customerName').length < 2)      return 'Invalid name';
+  if (str('customerName').length < 2)       return 'Invalid name';
   if (!EMAIL_RE.test(str('customerEmail'))) return 'Invalid email';
-  if (str('shippingName').length < 2)      return 'Invalid shipping name';
-  if (str('shippingAddr').length < 5)      return 'Invalid address';
-  if (str('shippingCity').length < 2)      return 'Invalid city';
+  if (str('shippingName').length < 2)       return 'Invalid shipping name';
+  if (str('shippingAddr').length < 5)       return 'Invalid address';
+  if (str('shippingCity').length < 2)       return 'Invalid city';
   if (!/^\d{5}$/.test(str('shippingZip'))) return 'Invalid ZIP (must be 5 digits)';
   if (!US_STATE_RE.test(str('shippingState'))) return 'Invalid state';
-  if (typeof b.total !== 'number' || b.total <= 0) return 'Invalid total';
   const d = b.design as Record<string, unknown> | undefined;
   if (!d || typeof d.title !== 'string' || !d.title.trim()) return 'Invalid design title';
   if (typeof d.colorHex !== 'string' || !d.colorHex) return 'Invalid design color';
   if (typeof d.size !== 'string' || !d.size) return 'Invalid design size';
-  if (typeof d.price !== 'number' || d.price <= 0) return 'Invalid design price';
   return null;
 }
 
@@ -34,19 +34,32 @@ export async function POST(req: NextRequest) {
   const {
     customerName, customerEmail,
     shippingName, shippingAddr, shippingCity, shippingZip, shippingState,
-    total, design,
+    design,
   } = body as {
     customerName: string; customerEmail: string;
     shippingName: string; shippingAddr: string; shippingCity: string;
     shippingZip: string; shippingState: string;
-    total: number;
-    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
+    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price?: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
   };
 
+  // Server-side price calculation — never trust client total
+  let authorizedPrice: number;
+  if (design.artistDesignId) {
+    const artistDesign = await prisma.artistDesign.findUnique({
+      where: { id: design.artistDesignId, status: 'APPROVED' },
+      select: { price: true },
+    });
+    if (!artistDesign) return NextResponse.json({ error: 'Design not available' }, { status: 422 });
+    authorizedPrice = artistDesign.price;
+  } else {
+    authorizedPrice = CUSTOM_DESIGN_PRICE;
+  }
+  const total = parseFloat((authorizedPrice + SHIPPING_PRICE).toFixed(2));
+
   const customer = await prisma.customer.upsert({
-    where: { email: customerEmail },
+    where: { email: customerEmail.toLowerCase().trim() },
     update: { name: customerName },
-    create: { name: customerName, email: customerEmail },
+    create: { name: customerName, email: customerEmail.toLowerCase().trim() },
   });
 
   const designAsset = await prisma.designAsset.create({
@@ -67,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (design.artistDesignId) {
     await prisma.artistDesign.update({
       where: { id: design.artistDesignId },
-      data: { salesCount: { increment: 1 }, totalEarned: { increment: design.price * 0.5 } },
+      data: { salesCount: { increment: 1 }, totalEarned: { increment: authorizedPrice * 0.5 } },
     }).catch(() => null);
   }
 
@@ -81,7 +94,7 @@ export async function POST(req: NextRequest) {
       shippingZip,
       shippingState,
       status: 'PAID',
-      items: { create: { designAssetId: designAsset.id, qty: 1, unitPrice: design.price } },
+      items: { create: { designAssetId: designAsset.id, qty: 1, unitPrice: authorizedPrice } },
     },
     include: { customer: true, items: { include: { designAsset: true } } },
   });
