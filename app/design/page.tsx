@@ -549,7 +549,7 @@ function DesignStudio() {
                   <div style={LS}>Emoji & Icons</div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5}}>
                     {EMOJIS.map(e=>(
-                      <button key={e} onClick={()=>addGfx(e)} style={{padding:'9px 2px',borderRadius:9,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',fontSize:'1.25rem',transition:'all 0.12s',lineHeight:1}}
+                      <button key={e} aria-label={`Add ${e} emoji`} onClick={()=>addGfx(e)} style={{padding:'9px 2px',borderRadius:9,cursor:'pointer',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',fontSize:'1.25rem',transition:'all 0.12s',lineHeight:1}}
                         onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.12)');(x.currentTarget.style.transform='scale(1.12)');}}
                         onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.04)');(x.currentTarget.style.transform='scale(1)');}}>
                         {e}
