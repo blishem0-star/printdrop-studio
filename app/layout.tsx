@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   keywords: ["ai shirt design", "custom t-shirts", "ai fashion", "print on demand", "personalized shirts", "ai generated clothing"],
   metadataBase: new URL("https://stylx.ai"),
   alternates: { canonical: "https://stylx.ai" },
+  icons: { icon: '/favicon.ico', shortcut: '/favicon.ico' },
   openGraph: {
     title: "STYLX.AI — Describe it. Wear it.",
     description: "Describe your perfect shirt and AI generates it instantly. Fashion-tech printing, shipped in 72 hours.",
