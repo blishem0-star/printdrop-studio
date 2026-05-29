@@ -327,7 +327,7 @@ export default function HomePage() {
                   <div style={LS}>Default size</div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {['XS','S','M','L','XL','XXL'].map(s => (
-                      <button key={s} onClick={() => setPrefSize(s)} style={{ width: 44, height: 44, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.08)'}`, background: prefSize === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.13s' }}>{s}</button>
+                      <button key={s} aria-pressed={prefSize === s} onClick={() => setPrefSize(s)} style={{ width: 44, height: 44, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.08)'}`, background: prefSize === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: prefSize === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.78rem', transition: 'all 0.13s' }}>{s}</button>
                     ))}
                   </div>
                 </div>
