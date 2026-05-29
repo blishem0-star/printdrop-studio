@@ -52,7 +52,7 @@ export default async function AdminOverview() {
       </div>
 
       {/* Quick links */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: '2.5rem' }}>
+      <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: '2.5rem' }}>
         {[
           { href: '/admin/orders',    icon: '📦', label: 'Manage Orders',  desc: `${orderCount} total` },
           { href: '/admin/customers', icon: '👥', label: 'Customers',      desc: `${customerCount} registered` },
