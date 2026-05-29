@@ -1,6 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import CursorEffect from '@/components/CursorEffect';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#050507',
+};
 
 export const metadata: Metadata = {
   title: { default: "STYLX.AI — Describe it. Wear it.", template: "%s | STYLX.AI" },
