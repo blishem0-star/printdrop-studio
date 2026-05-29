@@ -114,7 +114,7 @@ export default function HomePage() {
       </div>
 
       {/* Navbar */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+      <header role="banner" style={{ position: 'sticky', top: 0, zIndex: 50, height: 58, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 8, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
         <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.04em', marginRight: 16, color: '#fff' }}>
           STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
         </span>
