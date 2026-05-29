@@ -40,7 +40,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
+      <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
           { label: 'Pending Review', value: pending,          icon: '⏳', color: '#F59E0B' },
           { label: 'Approved',       value: approved,         icon: '✅', color: '#10B981' },

@@ -44,7 +44,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
         <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>Manage monthly box subscribers</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
+      <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
           { label: 'Active',  value: active,              icon: '✅', color: '#10B981' },
           { label: 'Paused',  value: paused,              icon: '⏸',  color: '#F59E0B' },

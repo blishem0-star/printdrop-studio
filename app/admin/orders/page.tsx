@@ -49,7 +49,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
+      <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
           { label: 'Total orders', value: totalCount,                                           color: '#3B82F6' },
           { label: 'Revenue',      value: `$${(allStats._sum.total ?? 0).toFixed(2)}`,          color: '#10B981' },
