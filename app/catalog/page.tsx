@@ -105,10 +105,10 @@ function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, fr
 function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selected: boolean; onClick: () => void }) {
   const [hover, setHover] = useState(false);
   return (
-    <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s', position: 'relative', border: `1.5px solid ${selected ? '#6366F1' : hover ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(99,102,241,0.06)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 24px rgba(99,102,241,0.2)' : hover ? '0 8px 32px rgba(0,0,0,0.3)' : 'none', transform: hover ? 'translateY(-3px)' : 'none' }}>
+    <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="scan-card holo-card" style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 30 : 10, left: 10, zIndex: 2, fontSize: '0.48rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(139,92,246,0.85)', color: '#fff', letterSpacing: '0.04em' }}>🎨 {design.artistName}</div>}
-      {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff' }}>✓</div>}
+      {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#050507', fontWeight: 900, boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}>✓</div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
           <svg width="120" height="120" viewBox="0 0 200 200" fill="none"><path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill="#2a2a2a" stroke="rgba(255,255,255,0.08)" strokeWidth="2"/></svg>
@@ -119,7 +119,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.05rem', letterSpacing: '0.04em', lineHeight: 1.1, marginBottom: 3 }}>{design.title}</div>
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 900, fontSize: '1rem', color: '#6366F1' }}>${design.price}</span>
+          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price}</span>
           <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontWeight: 600 }}>+ ${SHIPPING_PRICE} ship</span>
         </div>
       </div>
@@ -273,7 +273,11 @@ export default function CatalogPage() {
       </div>
 
       <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem', position: 'relative', zIndex: 1 }}>
-        {filtered.map(d => <ShirtCard key={d.id} design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} />)}
+        {filtered.map((d, i) => (
+          <div key={d.id} style={{ animation: `up 0.45s ease ${Math.min(i * 0.05, 0.5)}s both` }}>
+            <ShirtCard design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} />
+          </div>
+        ))}
         {filtered.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)', fontSize: '0.88rem' }}>No designs found</div>}
       </div>
 
@@ -445,3 +449,4 @@ export default function CatalogPage() {
 
 const lbl: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 };
 const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0.55rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' };
+

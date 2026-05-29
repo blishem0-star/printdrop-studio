@@ -159,37 +159,49 @@ export default function HomePage() {
 
         {/* Quick actions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
-          <button onClick={() => router.push('/design')} style={{ padding: '1.75rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))', border: '1px solid rgba(0,229,200,0.18)', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.38)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.11),rgba(0,229,200,0.04))'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(0,229,200,0.1)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.18)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(0,229,200,0.07),rgba(0,229,200,0.02))'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,229,200,0.1)', border: '1px solid rgba(0,229,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>✏️</div>
+          {/* Design Studio card */}
+          <button onClick={() => router.push('/design')} className="scan-card holo-card" style={{ padding: '2rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,229,200,0.015))', border: '1px solid rgba(0,229,200,0.16)', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', overflow: 'hidden' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,229,200,0.42)'; el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 20px 60px rgba(0,229,200,0.12), 0 0 0 1px rgba(0,229,200,0.1)'; }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,229,200,0.16)'; el.style.transform = 'none'; el.style.boxShadow = 'none'; }}>
+            {/* Ghost label */}
+            <div style={{ position: 'absolute', bottom: -8, right: 8, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', color: 'rgba(0,229,200,0.05)', letterSpacing: '0.02em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>01</div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,229,200,0.1)', border: '1px solid rgba(0,229,200,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>✏️</div>
               <div>
-                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.6rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 6 }}>Design Studio</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.55 }}>Design from scratch — add text, upload images, or generate with AI</div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Design Studio</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch — add text, upload images, or generate with AI</div>
               </div>
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.03em' }}>Open studio →</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Open studio
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="#00E5C8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
           </button>
 
-          <button onClick={() => router.push('/catalog')} style={{ padding: '1.75rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.42)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.13),rgba(99,102,241,0.05))'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(99,102,241,0.1)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.2)'; (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🎨</div>
+          {/* Catalog card */}
+          <button onClick={() => router.push('/catalog')} className="scan-card holo-card" style={{ padding: '2rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,153,255,0.06),rgba(123,97,255,0.03))', border: '1px solid rgba(0,153,255,0.18)', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', overflow: 'hidden' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,153,255,0.42)'; el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 20px 60px rgba(0,153,255,0.12), 0 0 0 1px rgba(0,153,255,0.1)'; }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,153,255,0.18)'; el.style.transform = 'none'; el.style.boxShadow = 'none'; }}>
+            {/* Ghost label */}
+            <div style={{ position: 'absolute', bottom: -8, right: 8, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', color: 'rgba(0,153,255,0.05)', letterSpacing: '0.02em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>02</div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,153,255,0.1)', border: '1px solid rgba(0,153,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🎨</div>
               <div>
-                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.6rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 6 }}>Browse catalog</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.55 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Browse Catalog</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
               </div>
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#818CF8', letterSpacing: '0.03em' }}>Browse →</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 700, color: '#0099FF', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Browse collection
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="#0099FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
           </button>
         </div>
 
         {/* ── Premium subscription section ── */}
-        <div style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.15)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.03) 100%)' }}>
+        <div className="glow-animated" style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.18)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.025) 50%,rgba(123,97,255,0.02) 100%)' }}>
           {/* Top accent line */}
-          <div style={{ height: 2, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)' }} />
+          <div style={{ height: 2, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', backgroundSize: '200% 100%', animation: 'gradient-move 4s ease infinite' }} />
 
           <div style={{ padding: '2rem 2rem 1.75rem' }}>
             {/* Header */}

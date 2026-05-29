@@ -392,11 +392,21 @@ export default function LandingPage() {
 
       {/* ── Background ── */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
-        <div style={{ position: 'absolute', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.08) 0%, transparent 60%)', top: '15%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'orb1 20s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.06) 0%, transparent 65%)', bottom: '20%', right: '5%', animation: 'orb2 25s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(123,97,255,0.05) 0%, transparent 65%)', top: '60%', left: '5%' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 3px)', opacity: 0.4 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+        <div style={{ position: 'absolute', width: 900, height: 900, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.07) 0%, transparent 60%)', top: '10%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'orb1 22s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 550, height: 550, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,100,255,0.06) 0%, transparent 65%)', bottom: '15%', right: '5%', animation: 'orb2 28s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle, rgba(123,97,255,0.05) 0%, transparent 65%)', top: '55%', left: '3%' }} />
+        {/* Scan lines */}
+        <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)', opacity: 0.35 }} />
+        {/* Floating scan line sweep */}
+        <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(0,229,200,0.18), rgba(0,153,255,0.12), transparent)', animation: 'scan-line 12s linear infinite', animationDelay: '2s' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(123,97,255,0.12), rgba(0,229,200,0.1), transparent)', animation: 'scan-line 18s linear infinite', animationDelay: '7s' }} />
+        {/* Particles */}
+        <div className="particle" style={{ width: 4, height: 4, top: '25%', left: '15%', '--dur': '7s', '--delay': '0s' } as React.CSSProperties} />
+        <div className="particle" style={{ width: 3, height: 3, top: '60%', left: '82%', '--dur': '9s', '--delay': '2s' } as React.CSSProperties} />
+        <div className="particle" style={{ width: 5, height: 5, top: '40%', left: '72%', '--dur': '6s', '--delay': '4s' } as React.CSSProperties} />
+        <div className="particle" style={{ width: 3, height: 3, top: '75%', left: '28%', '--dur': '8s', '--delay': '1.5s' } as React.CSSProperties} />
+        <div className="particle" style={{ width: 4, height: 4, top: '15%', left: '88%', '--dur': '11s', '--delay': '3s' } as React.CSSProperties} />
       </div>
 
       {/* ── Navbar ── */}
@@ -420,9 +430,9 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(5.5rem, 16vw, 13rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.88, marginBottom: '1.2rem', animation: 'up 0.5s ease 0.2s both' }}>
-          <span style={{ display: 'block', color: '#fff' }}>Describe it.</span>
-          <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 45%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Wear it.</span>
+        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(5.5rem, 16vw, 13rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.88, marginBottom: '1.2rem' }}>
+          <span style={{ display: 'block', color: '#fff', animation: 'up 0.5s ease 0.2s both' }}>Describe it.</span>
+          <span className="glitch-in" style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 45%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animationDelay: '0.4s' }}>Wear it.</span>
         </h1>
 
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.9rem,2vw,1.05rem)', lineHeight: 1.7, maxWidth: 440, marginBottom: '2.5rem', animation: 'up 0.5s ease 0.3s both' }}>
@@ -443,7 +453,8 @@ export default function LandingPage() {
             <button
               onClick={generate}
               disabled={phase !== 'hero' || !prompt.trim()}
-              style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
+              className={phase === 'hero' && prompt.trim() ? 'btn-holo' : ''}
+              style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
             >
               {phase === 'generating'
                 ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ animation: 'spin 1s linear infinite' }}>⟳</span>{Math.round(mainPct)}%</span>
@@ -454,11 +465,11 @@ export default function LandingPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'flex', gap: 'clamp(1.5rem,4vw,3rem)', marginTop: '3rem', flexWrap: 'wrap', justifyContent: 'center', animation: 'up 0.5s ease 0.5s both' }}>
-          {[['72h','Delivery'],['300dpi','Print'],['50+','Designs'],['Free','Returns']].map(([n,l]) => (
-            <div key={l} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{n}</div>
-              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginTop: 3, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{l}</div>
+        <div style={{ display: 'flex', gap: '0', marginTop: '3.5rem', flexWrap: 'wrap', justifyContent: 'center', animation: 'up 0.5s ease 0.5s both', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
+          {[['72h','Delivery'],['300dpi','Print'],['50K+','Shirts'],['Free','Returns']].map(([n,l], i) => (
+            <div key={l} style={{ textAlign: 'center', padding: '1rem 2rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none', position: 'relative' }}>
+              <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
+              <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>
             </div>
           ))}
         </div>
@@ -571,14 +582,14 @@ export default function LandingPage() {
 
       {/* ── Marquee strip ── */}
       {phase === 'hero' && (
-        <div style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.013)' }}>
-          <div style={{ display: 'flex', animation: 'marquee 32s linear infinite', willChange: 'transform' }}>
+        <div style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(90deg, rgba(0,229,200,0.025), rgba(0,153,255,0.015), rgba(123,97,255,0.02))' }}>
+          <div style={{ display: 'flex', animation: 'marquee 28s linear infinite', willChange: 'transform' }}>
             {[0, 1].map(copy => (
-              <div key={copy} style={{ display: 'flex', flexShrink: 0, alignItems: 'center', padding: '0.85rem 0' }}>
-                {['AI-POWERED DESIGN', '300 DPI PRINT', '72H DELIVERY', 'FREE RETURNS', 'UNLIMITED STYLES', 'SHIPS WORLDWIDE', 'CUSTOM SIZING', 'PREMIUM COTTON'].map((item, j) => (
+              <div key={copy} style={{ display: 'flex', flexShrink: 0, alignItems: 'center', padding: '0.75rem 0' }}>
+                {['AI-POWERED DESIGN', '300 DPI PRINT', '72H DELIVERY', 'FREE RETURNS', 'UNLIMITED STYLES', 'SHIPS WORLDWIDE', 'CUSTOM SIZING', 'PREMIUM COTTON', 'DTG PRINTING'].map((item, j) => (
                   <span key={j} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.88rem', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.28)', paddingLeft: '1.5rem', paddingRight: '0.75rem', whiteSpace: 'nowrap' }}>{item}</span>
-                    <span style={{ color: '#00E5C8', fontSize: '0.48rem', opacity: 0.4 }}>✦</span>
+                    <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.82rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.22)', paddingLeft: '1.75rem', paddingRight: '0.875rem', whiteSpace: 'nowrap' }}>{item}</span>
+                    <span style={{ display: 'inline-block', width: 3, height: 3, borderRadius: '50%', background: '#00E5C8', opacity: 0.5 }} />
                   </span>
                 ))}
               </div>
@@ -589,27 +600,39 @@ export default function LandingPage() {
 
       {/* ── How it works ── */}
       {phase === 'hero' && (
-        <section id="how" style={{ position: 'relative', zIndex: 1, padding: '3rem 1.5rem 6rem', maxWidth: 960, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>How it works</span>
-            </div>
-            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 1 }}>From idea to doorstep</h2>
+        <section id="how" style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem 7rem', maxWidth: 1100, margin: '0 auto' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: '3.5rem' }}>
+            <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 0.9 }}>The Process</div>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.12), transparent)' }} />
+            <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.75rem', letterSpacing: '0.15em', color: '#00E5C8', opacity: 0.7 }}>04 STEPS</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: '1rem' }}>
+
+          {/* Steps */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {[
-              { n: '01', t: 'Describe', b: 'Type a vibe, a concept, a feeling. AI understands context and nuance.' },
-              { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.' },
-              { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.' },
-              { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns.' },
+              { n: '01', t: 'Describe', b: 'Type a vibe, a concept, a feeling. AI understands context and nuance.', accent: '#00E5C8' },
+              { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.', accent: '#0099FF' },
+              { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.', accent: '#7B61FF' },
+              { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns guaranteed.', accent: '#00E5C8' },
             ].map((s, i) => (
-              <div key={s.n} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 18, padding: '1.5rem 1.25rem 1.25rem', position: 'relative', overflow: 'hidden', transition: 'border-color 0.2s, background 0.2s', animation: `up 0.5s ease ${0.1 + i * 0.08}s both` }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,229,200,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.02)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}>
-                <div style={{ position: 'absolute', top: -12, right: 4, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '6.5rem', fontWeight: 400, color: '#00E5C8', opacity: 0.07, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.02em' }}>{s.n}</div>
-                <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.75rem', opacity: 0.8 }}>{s.n}</div>
-                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.65rem', fontWeight: 400, color: '#fff', marginBottom: '0.4rem', letterSpacing: '0.025em', lineHeight: 1 }}>{s.t}</div>
-                <div style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.32)', lineHeight: 1.65, fontFamily: "'Outfit', system-ui, sans-serif" }}>{s.b}</div>
+              <div key={s.n} className="scan-card" style={{
+                display: 'grid', gridTemplateColumns: '5rem 1fr auto',
+                alignItems: 'center', gap: '2rem',
+                padding: '1.75rem 0',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                animation: `up 0.5s ease ${0.1 + i * 0.1}s both`,
+                transition: 'background 0.2s',
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.015)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+              >
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.8rem,5vw,4rem)', fontWeight: 400, color: s.accent, opacity: 0.25, lineHeight: 1, letterSpacing: '0.02em' }}>{s.n}</div>
+                <div>
+                  <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.6rem,3.5vw,2.5rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, color: '#fff', marginBottom: '0.35rem' }}>{s.t}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6, maxWidth: 480 }}>{s.b}</div>
+                </div>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.accent, boxShadow: `0 0 12px ${s.accent}`, opacity: 0.6 }} />
               </div>
             ))}
           </div>

@@ -17,11 +17,13 @@
   --radius-lg: 24px;
   --font-display: 'Bebas Neue', 'Impact', sans-serif;
   --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+  --gradient-holo: linear-gradient(135deg, #00E5C8, #0099FF, #7B61FF, #00E5C8);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; cursor: none; }
+input, textarea, select { cursor: text !important; }
 
 body {
   background: var(--bg);
@@ -187,6 +189,9 @@ html::after {
 .fade-up { animation: fade-up 0.4s ease both; }
 .spin-slow { animation: spin-slow 18s linear infinite; }
 
+/* ── Universal enter animation ── */
+@keyframes up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
 /* ── Noise ── */
 .noise::after {
   content:''; position:absolute; inset:0; pointer-events:none;
@@ -230,3 +235,118 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 
 /* ── Text glow ── */
 .text-glow-teal { text-shadow: 0 0 20px rgba(0,229,200,0.5); }
+
+/* ── Scan sweep on hover ── */
+.scan-card { position: relative; overflow: hidden; }
+.scan-card::after {
+  content: '';
+  position: absolute;
+  top: -100%; left: 0; right: 0;
+  height: 100%;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,229,200,0.055) 50%, transparent 100%);
+  transition: top 0.75s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  z-index: 5;
+}
+.scan-card:hover::after { top: 100%; }
+
+/* ── Holographic shimmer overlay ── */
+.holo-card { position: relative; overflow: hidden; }
+.holo-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(0,229,200,0.06) 47%,
+    rgba(0,153,255,0.05) 53%,
+    rgba(123,97,255,0.04) 60%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: holo-shift 5s ease infinite;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 2;
+}
+.holo-card:hover::before { opacity: 1; }
+
+/* ── Holographic animated CTA button ── */
+.btn-holo {
+  background: linear-gradient(135deg, #00E5C8, #0099FF, #7B61FF, #00E5C8) !important;
+  background-size: 300% 300% !important;
+  animation: gradient-move 2.8s ease infinite !important;
+  color: #050507 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 24px rgba(0,229,200,0.4), 0 0 0 1px rgba(0,229,200,0.2) !important;
+}
+.btn-holo:hover {
+  box-shadow: 0 8px 44px rgba(0,229,200,0.6), 0 0 0 1px rgba(0,229,200,0.45) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* ── Animated glow border ── */
+.glow-animated { animation: border-pulse 3s ease-in-out infinite; }
+
+/* ── Glitch reveal ── */
+.glitch-in { animation: glitch-in 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── New keyframes ── */
+@keyframes glitch-in {
+  0%   { opacity:0; transform: translateX(-10px) skewX(-4deg); filter: blur(5px); }
+  20%  { opacity:1; transform: translateX(5px) skewX(2deg); filter: blur(0); }
+  40%  { transform: translateX(-3px) skewX(-1deg); }
+  65%  { transform: translateX(1.5px) skewX(0.5deg); }
+  100% { transform: translateX(0) skewX(0); }
+}
+
+@keyframes holo-shift {
+  0%   { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+@keyframes border-pulse {
+  0%,100% { box-shadow: 0 0 0 1px rgba(0,229,200,0.22), 0 0 16px rgba(0,229,200,0.07); }
+  50%      { box-shadow: 0 0 0 1px rgba(0,229,200,0.55), 0 0 36px rgba(0,229,200,0.18); }
+}
+
+@keyframes float-particle {
+  0%,100% { transform: translateY(0) translateX(0); opacity: 0.25; }
+  33%     { transform: translateY(-22px) translateX(6px); opacity: 0.55; }
+  66%     { transform: translateY(-10px) translateX(-4px); opacity: 0.2; }
+}
+
+@keyframes scan-line {
+  from { transform: translateY(-100vh); }
+  to   { transform: translateY(100vh); }
+}
+
+@keyframes text-reveal {
+  from { opacity:0; transform: translateY(20px) skewY(1deg); filter: blur(6px); }
+  to   { opacity:1; transform: translateY(0) skewY(0); filter: blur(0); }
+}
+
+/* ── Particle dots ── */
+.particle {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,229,200,0.5) 0%, transparent 70%);
+  animation: float-particle var(--dur, 6s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  pointer-events: none;
+}
+
+/* ── Scan line decoration ── */
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,200,0.25), transparent);
+  animation: scan-line var(--dur, 8s) linear infinite;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ── Text reveal ── */
+.text-reveal { animation: text-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }

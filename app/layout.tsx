@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import CursorEffect from '@/components/CursorEffect';
 
 export const metadata: Metadata = {
   title: { default: "STYLX.AI — Describe it. Wear it.", template: "%s | STYLX.AI" },
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body suppressHydrationWarning style={{ margin: 0, backgroundColor: '#080808', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <CursorEffect />
         {children}
       </body>
     </html>
