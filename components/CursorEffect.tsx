@@ -6,6 +6,9 @@ export default function CursorEffect() {
   const ring = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // No cursor effect on touch devices
+    if (window.matchMedia('(hover: none)').matches) return;
+
     const d = dot.current, r = ring.current;
     if (!d || !r) return;
 

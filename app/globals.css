@@ -23,6 +23,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; cursor: none; }
+@media (hover: none) { html, * { cursor: auto !important; } }
 input, textarea, select { cursor: text !important; }
 
 body {
