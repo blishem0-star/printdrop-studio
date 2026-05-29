@@ -1,7 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rateLimit';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`catalog-designs:${ip}`, 60, 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many requests.' }, { status: 429 });
+  }
   const designs = await prisma.artistDesign.findMany({
     where: { status: 'APPROVED' },
     orderBy: { createdAt: 'desc' },
