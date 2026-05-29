@@ -354,7 +354,7 @@ function DesignStudio() {
       <header style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',padding:'0 20px',gap:12,background:'rgba(5,5,7,0.92)',backdropFilter:'blur(20px)'}}>
         <Link href="/catalog" style={{color:'rgba(255,255,255,0.25)',fontSize:'0.76rem',textDecoration:'none',fontWeight:600}}>← Back</Link>
         <div style={{width:1,height:16,background:'rgba(255,255,255,0.08)'}}/>
-        <span style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontWeight:400,fontSize:'1.35rem',letterSpacing:'0.06em',lineHeight:1,flex:1}}>Design<span style={{color:'#00E5C8'}}>.</span>Studio</span>
+        <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontWeight:400,fontSize:'1.35rem',letterSpacing:'0.06em',lineHeight:1,flex:1,margin:0}}>Design<span style={{color:'#00E5C8'}}>.</span>Studio</h1>
         {layers.length>0 && <span style={{background:'rgba(0,229,200,0.12)',border:'1px solid rgba(0,229,200,0.2)',borderRadius:20,padding:'3px 10px',fontSize:'0.62rem',fontWeight:700,color:'#00E5C8'}}>{layers.length} layer{layers.length!==1?'s':''}</span>}
         <button onClick={()=>setFullscreen(true)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'5px 13px',color:'rgba(255,255,255,0.5)',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.04em'}}>⛶ PREVIEW</button>
       </header>
