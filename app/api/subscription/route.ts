@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rateLimit';
 
 function nextShipmentDate(): Date {
   const d = new Date();
@@ -20,6 +21,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  if (!rateLimit(`sub-create:${ip}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many requests.' }, { status: 429 });
+  }
   try {
     const { customerId, stylePrefs } = await req.json();
     if (!customerId || !stylePrefs) return NextResponse.json({ error: 'Missing fields' }, { status: 422 });
