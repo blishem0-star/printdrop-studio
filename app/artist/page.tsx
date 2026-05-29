@@ -249,6 +249,8 @@ export default function ArtistPage() {
 
                 {uploadMode === 'file' ? (
                   <div
+                    role="button" tabIndex={0} aria-label="Upload design file — drag and drop or click to browse"
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && fileRef.current?.click()}
                     onDragEnter={e => { e.preventDefault(); setDragging(true); }}
                     onDragLeave={() => setDragging(false)}
                     onDragOver={e => e.preventDefault()}
