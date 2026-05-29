@@ -205,7 +205,7 @@ export default function ProfilePage() {
           <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
             ✏️ Edit Profile
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div><label style={lbl}>Full Name</label><input style={inp} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
             <div><label style={lbl}>Email</label><input style={inp} type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
           </div>

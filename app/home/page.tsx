@@ -105,7 +105,7 @@ export default function HomePage() {
           STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
         </span>
 
-        <button onClick={() => router.push('/design')} style={navBtn('orange')}
+        <button onClick={() => router.push('/design')} style={navBtn('teal')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.14)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.07)'; }}>
           ✏️ Design Studio
@@ -150,7 +150,7 @@ export default function HomePage() {
             {session.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.2rem, 6vw, 3.5rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 5 }}>
+            <h1 className="text-reveal" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(2.2rem, 6vw, 3.5rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 5 }}>
               Hey {session.name === 'Guest' ? 'there' : session.name}
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.88rem', letterSpacing: '0.01em' }}>What do you want to create today?</p>
@@ -158,7 +158,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
+        <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
           {/* Design Studio card */}
           <button onClick={() => router.push('/design')} className="scan-card holo-card" style={{ padding: '2rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,229,200,0.015))', border: '1px solid rgba(0,229,200,0.16)', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', overflow: 'hidden' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,229,200,0.42)'; el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 20px 60px rgba(0,229,200,0.12), 0 0 0 1px rgba(0,229,200,0.1)'; }}
@@ -287,7 +287,7 @@ export default function HomePage() {
 
                 <div>
                   <div style={LS}>Your style</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {STYLES.map(s => (
                       <button key={s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
                         <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
@@ -338,8 +338,8 @@ export default function HomePage() {
   );
 }
 
-function navBtn(accent: 'orange' | 'indigo'): React.CSSProperties {
-  const c = accent === 'orange'
+function navBtn(accent: 'teal' | 'indigo'): React.CSSProperties {
+  const c = accent === 'teal'
     ? { bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)' }
     : { bg: 'rgba(99,102,241,0.07)', border: 'rgba(99,102,241,0.25)', color: 'rgba(129,140,248,0.9)' };
   return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };

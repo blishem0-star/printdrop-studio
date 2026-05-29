@@ -406,7 +406,7 @@ export default function CatalogPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <div><div style={lbl}>Full Name</div><input style={inp} value={shipName} onChange={e => setShipName(e.target.value)} placeholder="Jane Smith" /></div>
                       <div><div style={lbl}>Email</div><input style={inp} type="email" value={shipEmail} onChange={e => setShipEmail(e.target.value)} placeholder="you@example.com" /></div>
                     </div>

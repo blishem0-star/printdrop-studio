@@ -45,10 +45,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         position: 'sticky', top: 0, height: '100vh', gap: 2,
       }}>
         <div style={{ marginBottom: '1.75rem', padding: '0 0.625rem' }}>
-          <div style={{ fontWeight: 900, fontSize: '0.95rem', letterSpacing: '-0.03em', color: '#fff' }}>
+          <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.4rem', letterSpacing: '0.06em', lineHeight: 1, color: '#fff' }}>
             STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
           </div>
-          <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', fontWeight: 700, marginTop: 1, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</div>
+          <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', fontWeight: 700, marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</div>
         </div>
 
         {NAV.map(n => {
@@ -58,12 +58,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return (
             <Link key={n.href} href={n.href} style={{
               display: 'flex', alignItems: 'center', gap: 9,
-              padding: '0.575rem 0.75rem', borderRadius: 10,
-              color: active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.38)',
+              padding: '0.575rem 0.75rem', paddingLeft: active ? 'calc(0.75rem - 2px)' : '0.75rem',
+              borderRadius: 10,
+              color: active ? '#fff' : 'rgba(255,255,255,0.38)',
               fontSize: '0.82rem', fontWeight: active ? 700 : 500,
               textDecoration: 'none', transition: 'all 0.15s',
-              background: active ? 'rgba(255,255,255,0.07)' : 'transparent',
-              border: `1px solid ${active ? 'rgba(255,255,255,0.1)' : 'transparent'}`,
+              background: active ? 'rgba(0,229,200,0.07)' : 'transparent',
+              border: `1px solid ${active ? 'rgba(0,229,200,0.18)' : 'transparent'}`,
+              borderLeft: active ? '2px solid #00E5C8' : '2px solid transparent',
             }}>
               <span style={{ fontSize: 14 }}>{n.icon}</span>
               {n.label}

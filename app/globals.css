@@ -350,3 +350,15 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 
 /* ── Text reveal ── */
 .text-reveal { animation: text-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Mobile responsive utilities ── */
+@media (max-width: 600px) {
+  .rsp-1col  { grid-template-columns: 1fr !important; }
+  .rsp-2col  { grid-template-columns: repeat(2, 1fr) !important; }
+  .rsp-pad   { padding: 2rem 1rem !important; }
+  .rsp-stack { flex-direction: column !important; }
+  .rsp-hide  { display: none !important; }
+}
+@media (max-width: 400px) {
+  .rsp-2col  { grid-template-columns: 1fr !important; }
+}
