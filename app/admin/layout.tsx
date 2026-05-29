@@ -39,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ minHeight: '100vh', background: '#050507', display: 'flex' }}>
       {/* Sidebar */}
-      <aside style={{
+      <aside aria-label="Admin navigation" style={{
         width: 210, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)',
         padding: '1.5rem 0.875rem', display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh', gap: 2,
@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ? path === '/admin'
             : path.startsWith(n.href);
           return (
-            <Link key={n.href} href={n.href} style={{
+            <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined} style={{
               display: 'flex', alignItems: 'center', gap: 9,
               padding: '0.575rem 0.75rem', paddingLeft: active ? 'calc(0.75rem - 2px)' : '0.75rem',
               borderRadius: 10,
