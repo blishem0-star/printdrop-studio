@@ -173,7 +173,7 @@ function DesignStudio() {
   useEffect(() => {
     function onKey(e:KeyboardEvent) {
       if((e.key==='Delete'||e.key==='Backspace')&&selected&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement)) deleteLayer(selected);
-      if(e.key==='Escape') setSelected(null);
+      if(e.key==='Escape') { setSelected(null); setFullscreen(false); }
     }
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);

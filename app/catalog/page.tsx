@@ -186,8 +186,12 @@ export default function CatalogPage() {
     function handle(e: MouseEvent) {
       if (selected && drawerRef.current && !drawerRef.current.contains(e.target as Node)) closeDrawer();
     }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && selected) closeDrawer();
+    }
     document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
+    document.addEventListener('keydown', handleKey);
+    return () => { document.removeEventListener('mousedown', handle); document.removeEventListener('keydown', handleKey); };
   }, [selected]);
 
   function openDesign(d: CatalogDesign) {
