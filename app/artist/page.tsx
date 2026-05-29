@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/Toast';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
 type DesignStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -41,6 +42,7 @@ export default function ArtistPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { show: showToast, element: toastEl } = useToast();
 
   useEffect(() => {
     try {
@@ -99,14 +101,15 @@ export default function ArtistPage() {
           svg: svgContent,
         }),
       });
-      if (!res.ok) { const d = await res.json(); setSubmitError(d.error ?? 'Failed to submit'); return; }
+      if (!res.ok) { const d = await res.json(); const msg = d.error ?? 'Failed to submit'; setSubmitError(msg); showToast(msg, 'error'); return; }
       const newDesign = await res.json();
       setDesigns(prev => [newDesign, ...prev]);
       setTitle(''); setCategory(''); setPrice('29.99'); setSvgContent(''); setPreviewUrl(null);
       setSubmitSuccess(true);
       setTab('designs');
+      showToast('Design submitted for review! 🎉', 'success');
       setTimeout(() => setSubmitSuccess(false), 3000);
-    } catch { setSubmitError('Network error'); }
+    } catch { setSubmitError('Network error'); showToast('Network error.', 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -125,6 +128,7 @@ export default function ArtistPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
+      {toastEl}
       {/* Atmosphere */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.05) 0%, transparent 60%)', top: '-8%', right: '5%' }} />
