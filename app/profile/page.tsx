@@ -27,7 +27,7 @@ type Profile = {
 };
 
 const ROLE_BADGE: Record<Role, { label: string; color: string; bg: string }> = {
-  OWNER:  { label: 'Owner',  color: '#FF8C40', bg: 'rgba(255,77,28,0.12)' },
+  OWNER:  { label: 'Owner',  color: '#00E5C8', bg: 'rgba(0,229,200,0.12)' },
   ARTIST: { label: 'Artist', color: '#A78BFA', bg: 'rgba(139,92,246,0.12)' },
   USER:   { label: 'Member', color: '#60A5FA', bg: 'rgba(59,130,246,0.1)' },
 };
@@ -167,7 +167,7 @@ export default function ProfilePage() {
           <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', color: '#A78BFA', cursor: 'pointer' }}>🎨 Artist Studio</button>
         )}
         {session.email === OWNER_EMAIL && (
-          <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,77,28,0.08)', border: '1px solid rgba(255,77,28,0.22)', color: 'rgba(255,140,64,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
+          <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
             <div><label style={lbl}>Email</label><input style={inp} type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
           </div>
           {profileError && <div style={{ fontSize: '0.72rem', color: '#F87171', marginBottom: 10 }}>{profileError}</div>}
-          <button onClick={saveProfile} disabled={profileSaving || !editName.trim()} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: profileSaved ? '#10B981' : editName.trim() && !profileSaving ? '#FF4D1C' : 'rgba(255,255,255,0.05)', color: editName.trim() && !profileSaving ? '#fff' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: editName.trim() && !profileSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
+          <button onClick={saveProfile} disabled={profileSaving || !editName.trim()} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: profileSaved ? '#10B981' : editName.trim() && !profileSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: editName.trim() && !profileSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: editName.trim() && !profileSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
             {profileSaved ? '✓ Saved' : profileSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
@@ -242,7 +242,7 @@ export default function ProfilePage() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1rem' }}>
                 <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(orderCount / 3) * 100}%`, background: 'linear-gradient(90deg,#FF4D1C,#FF8C40)', borderRadius: 999, transition: 'width 0.4s' }} />
+                  <div style={{ height: '100%', width: `${(orderCount / 3) * 100}%`, background: 'linear-gradient(90deg,#00E5C8,#0099FF)', borderRadius: 999, transition: 'width 0.4s' }} />
                 </div>
                 <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', fontWeight: 700, flexShrink: 0 }}>{orderCount}/3 orders</span>
               </div>
@@ -253,7 +253,7 @@ export default function ProfilePage() {
           ) : profile?.aiProfile ? (
             <AiProfileView data={profile.aiProfile} />
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '1rem', background: 'rgba(255,77,28,0.04)', borderRadius: 12, border: '1px solid rgba(255,77,28,0.12)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '1rem', background: 'rgba(0,229,200,0.04)', borderRadius: 12, border: '1px solid rgba(0,229,200,0.12)' }}>
               <div style={{ fontSize: 28 }}>🤖</div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: 3 }}>AI is analyzing your style...</div>
@@ -316,7 +316,7 @@ function AiProfileView({ data }: { data: string }) {
             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Recommended For You</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {profile.recommendations.map((r: string, i: number) => (
-                <span key={i} style={{ padding: '4px 12px', borderRadius: 999, background: 'rgba(255,77,28,0.08)', border: '1px solid rgba(255,77,28,0.2)', color: '#FF8C40', fontSize: '0.72rem', fontWeight: 600 }}>{r}</span>
+                <span key={i} style={{ padding: '4px 12px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.2)', color: '#00E5C8', fontSize: '0.72rem', fontWeight: 600 }}>{r}</span>
               ))}
             </div>
           </div>

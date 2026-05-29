@@ -45,7 +45,7 @@ function ShirtSVG({ shirt, prompt }: { shirt: typeof SHIRTS[0]; prompt: string }
   const shirtPath = 'M 122,14 C 107,30 88,60 80,82 L 8,56 L 0,86 L 0,168 L 80,152 L 80,432 L 280,432 L 280,152 L 360,168 L 360,86 L 352,56 L 280,82 C 272,60 253,30 238,14 Q 222,54 200,68 Q 178,54 162,34 Q 145,18 122,14 Z';
 
   return (
-    <svg viewBox="0 0 360 445" width="100%" style={{ display: 'block', filter: 'drop-shadow(0 18px 32px rgba(0,0,0,0.55))' }}>
+    <svg viewBox="0 0 360 445" width="100%" role="img" aria-label={`${shirt.label} custom shirt design${prompt ? ` — ${prompt}` : ''}`} style={{ display: 'block', filter: 'drop-shadow(0 18px 32px rgba(0,0,0,0.55))' }}>
       <defs>
         {/* Side-to-side gradient for 3D depth */}
         <linearGradient id={`sf${shirt.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
