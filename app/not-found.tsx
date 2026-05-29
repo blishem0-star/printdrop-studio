@@ -5,6 +5,7 @@ export default function NotFound() {
     <main style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
       justifyContent: 'center', padding: '2rem', textAlign: 'center',
+      background: 'linear-gradient(180deg,#050507,#060610)', color: '#fff',
     }}>
       <div style={{ maxWidth: 460 }}>
         <div style={{ fontSize: 72, marginBottom: 16 }}>👕</div>
