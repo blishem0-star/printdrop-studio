@@ -1,5 +1,9 @@
 'use client';
 
+function escapeXml(s: string): string {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 export function buildDesignSvg(opts: {
   colorHex: string;
   textColor: string;
@@ -10,13 +14,13 @@ export function buildDesignSvg(opts: {
   const { colorHex, textColor, emoji, label, customText } = opts;
 
   const emojiLine = emoji
-    ? `<text x="100" y="140" text-anchor="middle" font-size="42" dominant-baseline="middle">${emoji}</text>`
+    ? `<text x="100" y="140" text-anchor="middle" font-size="42" dominant-baseline="middle">${escapeXml(emoji)}</text>`
     : '';
   const labelLine = label
-    ? `<text x="100" y="${emoji ? 168 : 145}" text-anchor="middle" font-size="12" fill="${textColor}" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="1" dominant-baseline="middle" opacity="0.9">${label.toUpperCase()}</text>`
+    ? `<text x="100" y="${emoji ? 168 : 145}" text-anchor="middle" font-size="12" fill="${escapeXml(textColor)}" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="1" dominant-baseline="middle" opacity="0.9">${escapeXml(label.toUpperCase())}</text>`
     : '';
   const customLine = customText
-    ? `<text x="100" y="${emoji || label ? 192 : 145}" text-anchor="middle" font-size="9" fill="${textColor}" font-family="system-ui, sans-serif" font-weight="800" letter-spacing="2" dominant-baseline="middle" opacity="0.65">${customText.toUpperCase().slice(0, 22)}</text>`
+    ? `<text x="100" y="${emoji || label ? 192 : 145}" text-anchor="middle" font-size="9" fill="${escapeXml(textColor)}" font-family="system-ui, sans-serif" font-weight="800" letter-spacing="2" dominant-baseline="middle" opacity="0.65">${escapeXml(customText.toUpperCase().slice(0, 22))}</text>`
     : '';
 
   const svg = `<svg width="200" height="230" viewBox="0 0 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">
