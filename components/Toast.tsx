@@ -26,7 +26,8 @@ export function Toast({ message, type = 'info', duration = 3000, onDone }: Toast
   }, [duration, onDone]);
 
   return (
-    <div style={{
+    <div role="alert" aria-live={type === 'error' ? 'assertive' : 'polite'} aria-atomic="true"
+      style={{
       position: 'fixed', bottom: 24, left: '50%', transform: `translateX(-50%) translateY(${visible ? 0 : 16}px)`,
       opacity: visible ? 1 : 0, transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
       zIndex: 9999, pointerEvents: 'none',
