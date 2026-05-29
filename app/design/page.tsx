@@ -603,19 +603,19 @@ function DesignStudio() {
               </div>
               {/* Form */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                <div><div style={LS}>Full Name</div><input style={INP} value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80}/></div>
-                <div><div style={LS}>Email</div><input style={INP} type="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120}/></div>
+                <div><div style={LS}>Full Name</div><input style={INP} name="name" autoComplete="name" value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80}/></div>
+                <div><div style={LS}>Email</div><input style={INP} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120}/></div>
               </div>
-              <div><div style={LS}>Street Address</div><input style={INP} value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120}/></div>
+              <div><div style={LS}>Street Address</div><input style={INP} name="street-address" autoComplete="street-address" value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120}/></div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 60px 76px',gap:8}}>
-                <div><div style={LS}>City</div><input style={INP} value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York" maxLength={60}/></div>
+                <div><div style={LS}>City</div><input style={INP} name="city" autoComplete="address-level2" value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York" maxLength={60}/></div>
                 <div><div style={LS}>State</div>
                   <select value={shipState} onChange={e=>setShipState(e.target.value)} style={{...INP,appearance:'none',cursor:'pointer',color:shipState?'#fff':'rgba(255,255,255,0.25)'}}>
                     <option value="">ST</option>
                     {US_STATES.map(s=><option key={s} value={s} style={{background:'#1a1a1a'}}>{s}</option>)}
                   </select>
                 </div>
-                <div><div style={LS}>ZIP</div><input style={{...INP,fontFamily:'monospace'}} value={shipZip} onChange={e=>setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001"/></div>
+                <div><div style={LS}>ZIP</div><input style={{...INP,fontFamily:'monospace'}} name="postal-code" autoComplete="postal-code" inputMode="numeric" value={shipZip} onChange={e=>setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001"/></div>
               </div>
               <div style={{padding:'8px',background:'rgba(245,158,11,0.05)',border:'1px solid rgba(245,158,11,0.12)',borderRadius:8,fontSize:'0.67rem',color:'rgba(245,158,11,0.6)',lineHeight:1.5}}>
                 🔒 Stripe/PayPal coming soon — demo mode active
