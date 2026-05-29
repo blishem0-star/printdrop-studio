@@ -582,7 +582,7 @@ function DesignStudio() {
                 <div style={LS}>Size {size&&<span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:500}}>— {size}</span>}</div>
                 <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                   {SHIRT_SIZES.map(s=>(
-                    <button key={s} onClick={()=>setSize(s)} style={{width:48,height:48,borderRadius:10,cursor:'pointer',border:`1.5px solid ${size===s?'#00E5C8':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(0,229,200,0.12)':'rgba(255,255,255,0.02)',color:size===s?'#00E5C8':'rgba(255,255,255,0.4)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.08)':'scale(1)'}}>{s}</button>
+                    <button key={s} aria-pressed={size===s} onClick={()=>setSize(s)} style={{width:48,height:48,borderRadius:10,cursor:'pointer',border:`1.5px solid ${size===s?'#00E5C8':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(0,229,200,0.12)':'rgba(255,255,255,0.02)',color:size===s?'#00E5C8':'rgba(255,255,255,0.4)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.08)':'scale(1)'}}>{s}</button>
                   ))}
                 </div>
                 <p style={{marginTop:7,fontSize:'0.6rem',color:'rgba(255,255,255,0.2)'}}>Unisex · 100% ring-spun cotton · Pre-shrunk</p>
