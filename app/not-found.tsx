@@ -10,7 +10,7 @@ export default function NotFound() {
         <div style={{ fontSize: 72, marginBottom: 16 }}>👕</div>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, letterSpacing: '-0.05em', marginBottom: 8 }}>
           <span style={{
-            background: 'linear-gradient(135deg,#FF6B3D,#FF9A00)',
+            background: 'linear-gradient(135deg,#00E5C8,#0099FF)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
           }}>404</span>
         </h1>
