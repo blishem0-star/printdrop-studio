@@ -85,6 +85,9 @@ model ArtistDesign {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([artistId])
+  @@index([status])
 }
 
 model Subscription {
@@ -98,6 +101,9 @@ model Subscription {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   shipments      SubscriptionShipment[]
+
+  @@index([customerId])
+  @@index([status])
 }
 
 model SubscriptionShipment {
@@ -142,6 +148,10 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   items         OrderItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
