@@ -119,13 +119,13 @@ export default function HomePage() {
           STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
         </span>
 
-        <button onClick={() => router.push('/design')} style={navBtn('teal')}
+        <button onClick={() => router.push('/design')} aria-label="Open Design Studio" style={navBtn('teal')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.14)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.07)'; }}>
           ✏️ Design Studio
         </button>
 
-        <button onClick={() => router.push('/catalog')} style={navBtn('indigo')}
+        <button onClick={() => router.push('/catalog')} aria-label="Open Catalog" style={navBtn('indigo')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.14)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)'; }}>
           🎨 Catalog
