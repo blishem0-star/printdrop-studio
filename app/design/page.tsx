@@ -341,7 +341,8 @@ function DesignStudio() {
         <div style={{fontSize:64,marginBottom:16}}>🎉</div>
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'2.8rem',fontWeight:400,letterSpacing:'0.04em',marginBottom:8}}>Order placed!</h1>
         <p style={{color:'rgba(255,255,255,0.4)',marginBottom:4}}>{color?.name} · Size {size}</p>
-        {orderId && <p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:28}}>#{orderId.slice(0,8).toUpperCase()}</p>}
+        {orderId && <p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:8}}>#{orderId.slice(0,8).toUpperCase()}</p>}
+        <p style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.3)',marginBottom:20,lineHeight:1.5}}>Track your order on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile page</Link>.</p>
         <div style={{display:'flex',gap:10,justifyContent:'center'}}>
           <button onClick={()=>{setOrdered(false);setLayers([]);setAiSvg(null);setUploads({front:null,back:null,chest:null});}} style={{padding:'0.8rem 1.5rem',borderRadius:12,border:'none',background:'rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.7)',fontWeight:700,cursor:'pointer'}}>Design another</button>
           <Link href="/catalog" style={{padding:'0.8rem 1.5rem',borderRadius:12,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontWeight:800,textDecoration:'none',display:'inline-flex',alignItems:'center'}}>Browse catalog</Link>
