@@ -490,8 +490,8 @@ function DesignStudio() {
                     {TEXT_COLORS.map(c=>(
                       <button key={c} aria-label={`Text color ${c}`} aria-pressed={textColor===c} onClick={()=>{setTextColor(c);if(selected)updateLayer(selected,{color:c});}} style={{width:28,height:28,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.08)',outlineOffset:2,transition:'all 0.12s',transform:textColor===c?'scale(1.18)':'scale(1)'}}/>
                     ))}
-                    <label style={{width:28,height:28,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.12)',fontSize:'0.85rem',position:'relative'}}>
-                      +<input type="color" value={textColor} onChange={e=>{setTextColor(e.target.value);if(selected)updateLayer(selected,{color:e.target.value});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
+                    <label aria-label="Custom text color" style={{width:28,height:28,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.12)',fontSize:'0.85rem',position:'relative'}}>
+                      +<input type="color" aria-hidden="true" tabIndex={-1} value={textColor} onChange={e=>{setTextColor(e.target.value);if(selected)updateLayer(selected,{color:e.target.value});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
                     </label>
                   </div>
                 </div>
