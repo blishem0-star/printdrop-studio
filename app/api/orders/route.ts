@@ -11,10 +11,10 @@ const CUSTOM_DESIGN_PRICE = 24.99;
 
 function validateBody(b: Record<string, unknown>): string | null {
   const str = (k: string) => (typeof b[k] === 'string' ? (b[k] as string).trim() : '');
-  if (str('customerName').length < 2)       return 'Invalid name';
+  if (str('customerName').length < 2 || str('customerName').length > 80)       return 'Invalid name';
   if (!EMAIL_RE.test(str('customerEmail'))) return 'Invalid email';
-  if (str('shippingName').length < 2)       return 'Invalid shipping name';
-  if (str('shippingAddr').length < 5)       return 'Invalid address';
+  if (str('shippingName').length < 2 || str('shippingName').length > 80)       return 'Invalid shipping name';
+  if (str('shippingAddr').length < 5 || str('shippingAddr').length > 120)      return 'Invalid address';
   if (str('shippingCity').length < 2)       return 'Invalid city';
   if (!/^\d{5}$/.test(str('shippingZip'))) return 'Invalid ZIP (must be 5 digits)';
   if (!US_STATE_RE.test(str('shippingState'))) return 'Invalid state';
