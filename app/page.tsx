@@ -565,7 +565,7 @@ export default function LandingPage() {
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       {(['USER','ARTIST'] as RegisterRole[]).map(r => (
-                        <button key={r} type="button" onClick={() => setRole(r)} style={{ padding: '0.65rem', borderRadius: 9, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${role === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: role === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
+                        <button key={r} type="button" aria-pressed={role === r} onClick={() => setRole(r)} style={{ padding: '0.65rem', borderRadius: 9, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${role === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: role === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '0.78rem', fontWeight: 700, color: role === r ? '#00E5C8' : 'rgba(255,255,255,0.45)' }}>{r === 'USER' ? '🛒 Customer' : '🎨 Artist'}</div>
                           <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{r === 'USER' ? 'Order shirts' : 'Sell designs'}</div>
                         </button>
