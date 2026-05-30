@@ -24,7 +24,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
         <Link href="/admin/orders" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>← Orders</Link>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>/</span>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>#{order.id.slice(0, 8).toUpperCase()}</span>
+        <h1 style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>#{order.id.slice(0, 8).toUpperCase()}</h1>
       </div>
 
       <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
