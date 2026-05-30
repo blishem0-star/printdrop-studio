@@ -97,7 +97,7 @@ export default function HomePage() {
 
   if (!session) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading...</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading…</div>
     </div>
   );
 
