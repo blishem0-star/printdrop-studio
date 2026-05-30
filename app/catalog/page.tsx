@@ -312,7 +312,7 @@ export default function CatalogPage() {
               {drawerStep === 'delivery' && !ordered && <button aria-label="Back to customize" onClick={() => setDrawerStep('customize')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>←</button>}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{selected.title}</div>
-                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
+                <div aria-live="polite" style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
               </div>
               <button aria-label="Close panel" onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
