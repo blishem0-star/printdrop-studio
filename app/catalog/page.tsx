@@ -430,8 +430,8 @@ export default function CatalogPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                     <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <div><div style={lbl}>Full Name</div><input style={inp} name="name" autoComplete="name" value={shipName} onChange={e => setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80} /></div>
-                      <div><div style={lbl}>Email</div><input style={inp} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e => setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120} /></div>
+                      <div><div style={lbl}>Full Name</div><input aria-invalid={shipName.trim().length > 0 && shipName.trim().length < 2} style={inp} name="name" autoComplete="name" value={shipName} onChange={e => setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80} /></div>
+                      <div><div style={lbl}>Email</div><input aria-invalid={shipEmail.length > 0 && !emailValid} style={inp} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e => setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120} /></div>
                     </div>
                     <div><div style={lbl}>Street Address</div><input style={inp} name="street-address" autoComplete="street-address" value={shipStreet} onChange={e => setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120} /></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 68px 80px', gap: 10 }}>
