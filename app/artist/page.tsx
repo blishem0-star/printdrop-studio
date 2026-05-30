@@ -148,7 +148,7 @@ export default function ArtistPage() {
 
       {/* Earnings banner */}
       {earnings && (
-        <div style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.25rem 2rem' }}>
+        <section aria-label="Your earnings summary" style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.25rem 2rem' }}>
           <div style={{ height: 1, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', position: 'absolute', top: 0, left: 0, right: 0 }} />
           <div className="rsp-2col" style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
             {[
@@ -163,7 +163,7 @@ export default function ArtistPage() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       <div className="rsp-pad" style={{ maxWidth: 860, margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 1 }}>
