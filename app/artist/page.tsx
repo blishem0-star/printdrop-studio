@@ -217,10 +217,10 @@ export default function ArtistPage() {
               </div>
 
               <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><label style={lbl}>Design Title *</label><input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Neon Tiger" maxLength={80} /></div>
+                <div><label htmlFor="art-title" style={lbl}>Design Title *</label><input id="art-title" style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Neon Tiger" maxLength={80} /></div>
                 <div>
-                  <label style={lbl}>Category *</label>
-                  <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: category ? '#fff' : 'rgba(255,255,255,0.28)' }}>
+                  <label htmlFor="art-category" style={lbl}>Category *</label>
+                  <select id="art-category" value={category} onChange={e => setCategory(e.target.value)} style={{ ...inp, appearance: 'none', cursor: 'pointer', color: category ? '#fff' : 'rgba(255,255,255,0.28)' }}>
                     <option value="" style={{ background: '#1a1a1a', color: 'rgba(255,255,255,0.4)' }}>Select category</option>
                     {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#1a1a1a', color: '#fff' }}>{c}</option>)}
                   </select>
@@ -228,10 +228,10 @@ export default function ArtistPage() {
               </div>
 
               <div style={{ maxWidth: 160 }}>
-                <label style={lbl}>Your Price (USD) *</label>
+                <label htmlFor="art-price" style={lbl}>Your Price (USD) *</label>
                 <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>$</span>
-                  <input style={{ ...inp, paddingLeft: '1.5rem' }} value={price} onChange={e => setPrice(e.target.value)} type="number" min="9.99" max="99.99" step="0.01" />
+                  <span aria-hidden="true" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>$</span>
+                  <input id="art-price" style={{ ...inp, paddingLeft: '1.5rem' }} value={price} onChange={e => setPrice(e.target.value)} type="number" min="9.99" max="99.99" step="0.01" />
                 </div>
                 <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 5 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)} per sale</div>
               </div>
