@@ -461,6 +461,7 @@ export default function LandingPage() {
             {prompt.length > 160 && <span aria-live="polite" style={{ fontSize: '0.6rem', color: prompt.length > 190 ? '#f87171' : 'rgba(255,255,255,0.3)', alignSelf: 'center', paddingRight: 8, flexShrink: 0 }}>{200 - prompt.length}</span>}
             <button
               onClick={generate}
+              aria-label={phase === 'generating' ? `Generating — ${Math.round(mainPct)}%` : 'Generate shirt designs'}
               disabled={phase !== 'hero' || !prompt.trim()}
               className={phase === 'hero' && prompt.trim() ? 'btn-holo' : ''}
               style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
