@@ -20,14 +20,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const design = order.items[0]?.designAsset;
 
   return (
-    <div style={{ maxWidth: 860 }}>
+    <div style={{ maxWidth: 860 }} aria-label={`Order #${order.id.slice(0, 8).toUpperCase()} details`}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
         <Link href="/admin/orders" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>← Orders</Link>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>/</span>
         <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>#{order.id.slice(0, 8).toUpperCase()}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
+      <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
         {/* Left */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
