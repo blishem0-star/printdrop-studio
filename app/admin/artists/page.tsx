@@ -12,21 +12,29 @@ const STATUS_STYLE = {
   REJECTED: { label: 'Rejected', color: '#EF4444', bg: 'rgba(239,68,68,0.1)'  },
 } as const;
 
-export default async function AdminArtistsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
-  const { filter = 'PENDING' } = await searchParams;
-  const activeFilter = (['ALL', 'PENDING', 'APPROVED', 'REJECTED'].includes(filter) ? filter : 'PENDING') as FilterVal;
+const PAGE_SIZE = 30;
 
-  const [designs, counts] = await Promise.all([
+export default async function AdminArtistsPage({ searchParams }: { searchParams: Promise<{ filter?: string; page?: string }> }) {
+  const { filter = 'PENDING', page = '1' } = await searchParams;
+  const activeFilter = (['ALL', 'PENDING', 'APPROVED', 'REJECTED'].includes(filter) ? filter : 'PENDING') as FilterVal;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const where = activeFilter === 'ALL' ? {} : { status: activeFilter };
+
+  const [designs, counts, totalCount] = await Promise.all([
     prisma.artistDesign.findMany({
-      where: activeFilter === 'ALL' ? {} : { status: activeFilter },
+      where,
       orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: { artist: { select: { name: true, email: true } } },
     }),
     prisma.artistDesign.groupBy({ by: ['status'], _count: { id: true } }),
+    prisma.artistDesign.count({ where }),
   ]);
 
   const countMap = Object.fromEntries(counts.map(c => [c.status, c._count.id]));
   const pending  = countMap['PENDING']  ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const approved = countMap['APPROVED'] ?? 0;
   const total    = (countMap['PENDING'] ?? 0) + (countMap['APPROVED'] ?? 0) + (countMap['REJECTED'] ?? 0);
 
@@ -122,6 +130,14 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', gap: 6, marginTop: '1.25rem', justifyContent: 'center' }}>
+          {pageNum > 1 && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
+          <span style={{ padding: '5px 14px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{pageNum} / {totalPages}</span>
+          {pageNum < totalPages && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
         </div>
       )}
     </div>
