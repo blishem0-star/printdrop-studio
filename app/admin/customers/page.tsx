@@ -80,7 +80,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                   {['Customer', 'Email', 'Account', 'Orders', 'Revenue', 'Joined', ''].map(h => (
-                    <th key={h} style={{ padding: '0.875rem 1rem', textAlign: 'left', fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</th>
+                    <th key={h} scope="col" style={{ padding: '0.875rem 1rem', textAlign: 'left', fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
