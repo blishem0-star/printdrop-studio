@@ -170,6 +170,15 @@ function DesignStudio() {
     return ()=>{window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);};
   }, []);
 
+  // Warn before leaving if unsaved layers exist
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (layersRef.current.length > 0) { e.preventDefault(); }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
+
   useEffect(() => {
     function onKey(e:KeyboardEvent) {
       const notInput = !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement);
