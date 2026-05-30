@@ -286,7 +286,7 @@ export default function ArtistPage() {
                 )}
               </div>
 
-              {submitError && <div style={{ padding: '0.7rem 1rem', background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, fontSize: '0.78rem', color: '#F87171' }}>{submitError}</div>}
+              {submitError && <div role="alert" aria-live="assertive" style={{ padding: '0.7rem 1rem', background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, fontSize: '0.78rem', color: '#F87171' }}>{submitError}</div>}
 
               <button
                 onClick={submitDesign}
