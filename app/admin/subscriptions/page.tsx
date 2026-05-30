@@ -15,20 +15,27 @@ const STATUS_STYLE = {
 
 type FilterVal = 'ALL' | 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 
-export default async function AdminSubscriptionsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
-  const { filter = 'ACTIVE' } = await searchParams;
-  const activeFilter = (['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'].includes(filter) ? filter : 'ACTIVE') as FilterVal;
+const PAGE_SIZE = 30;
 
-  const [subs, counts] = await Promise.all([
+export default async function AdminSubscriptionsPage({ searchParams }: { searchParams: Promise<{ filter?: string; page?: string }> }) {
+  const { filter = 'ACTIVE', page = '1' } = await searchParams;
+  const activeFilter = (['ALL', 'ACTIVE', 'PAUSED', 'CANCELLED'].includes(filter) ? filter : 'ACTIVE') as FilterVal;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const where = activeFilter === 'ALL' ? {} : { status: activeFilter };
+
+  const [subs, counts, totalCount] = await Promise.all([
     prisma.subscription.findMany({
-      where: activeFilter === 'ALL' ? {} : { status: activeFilter },
+      where,
       orderBy: { createdAt: 'desc' },
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: {
         customer: { select: { name: true, email: true } },
-        shipments: { orderBy: { createdAt: 'desc' } },
+        shipments: { select: { id: true }, orderBy: { createdAt: 'desc' } },
       },
     }),
     prisma.subscription.groupBy({ by: ['status'], _count: { id: true } }),
+    prisma.subscription.count({ where }),
   ]);
 
   const countMap = Object.fromEntries(counts.map(c => [c.status, c._count.id]));
@@ -36,6 +43,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
   const paused = countMap['PAUSED'] ?? 0;
   const total  = counts.reduce((s, c) => s + c._count.id, 0);
   const mrr    = active * MONTHLY;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div>
@@ -115,6 +123,14 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', gap: 6, marginTop: '1.25rem', justifyContent: 'center' }}>
+          {pageNum > 1 && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
+          <span style={{ padding: '5px 14px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{pageNum} / {totalPages}</span>
+          {pageNum < totalPages && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
         </div>
       )}
     </div>
