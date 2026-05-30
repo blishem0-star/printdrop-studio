@@ -446,7 +446,8 @@ export default function CatalogPage() {
                     {/* Save checkbox — only for registered users */}
                     {session.type === 'user' && (
                       <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginTop: 4 }}>
-                        <div onClick={() => setSaveAddress(v => !v)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#00E5C8' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#00E5C8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={saveAddress} onChange={e => setSaveAddress(e.target.checked)} className="sr-only" />
+                        <div aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#00E5C8' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#00E5C8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer', pointerEvents: 'none' }}>
                           {saveAddress && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
                         </div>
                         <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>Save delivery details for next time</span>
