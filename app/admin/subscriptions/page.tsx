@@ -82,7 +82,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
         </div>
       ) : (
         <div style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table aria-label="Subscriptions list" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                 {['Customer', 'Style Prefs', 'Status', 'Next Shipment', 'Boxes Sent', 'Since'].map(h => (
