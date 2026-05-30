@@ -11,7 +11,7 @@ export function StatusButtons({ orderId, currentStatus }: { orderId: string; cur
       {ORDER_STATUSES.map(s => {
         const active = currentStatus === s;
         return (
-          <button key={s} disabled={pending || active}
+          <button key={s} aria-pressed={active} disabled={pending || active}
             onClick={() => startTransition(() => updateOrderStatus(orderId, s))}
             style={{
               width: '100%', padding: '0.6rem 0.875rem', borderRadius: 10, cursor: active || pending ? 'default' : 'pointer',
