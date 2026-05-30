@@ -394,7 +394,7 @@ function DesignStudio() {
           </button>
 
           {/* Shirt */}
-          <div ref={canvasRef} style={{filter:'drop-shadow(0 36px 64px rgba(0,0,0,0.8))',animation:'shirtIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
+          <div ref={canvasRef} role="img" aria-label="Shirt design canvas — drag elements to position them" style={{filter:'drop-shadow(0 36px 64px rgba(0,0,0,0.8))',animation:'shirtIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
             <ShirtCanvas w={340} h={391}/>
           </div>
 
