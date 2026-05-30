@@ -533,7 +533,8 @@ function DesignStudio() {
               {designTab==='ai' && <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <div>
                   <div style={LS}>Describe your design</div>
-                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain with bold typography EXPLORE..." rows={4} maxLength={200} style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:10,padding:'10px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.6}}/>
+                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain with bold typography EXPLORE..." rows={4} maxLength={200} aria-label="AI design prompt" style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:10,padding:'10px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.6}}/>
+                  {aiPrompt.length > 160 && <span aria-live="polite" style={{fontSize:'0.6rem',color:aiPrompt.length>190?'#f87171':'rgba(255,255,255,0.3)',textAlign:'right',display:'block',marginTop:3}}>{200-aiPrompt.length} chars left</span>}
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
                   <button onClick={generateAI} disabled={!aiPrompt.trim()||aiLoading} style={{flex:1,padding:'10px',borderRadius:10,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#050507':'rgba(255,255,255,0.2)',fontWeight:800,fontSize:'0.82rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s'}}>
