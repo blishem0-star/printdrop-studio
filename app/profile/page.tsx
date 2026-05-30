@@ -210,9 +210,9 @@ export default function ProfilePage() {
 
         {/* Edit Profile */}
         <div style={sectionStyle}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
             ✏️ Edit Profile
-          </div>
+          </h2>
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div><label htmlFor="prof-name" style={lbl}>Full Name</label><input id="prof-name" aria-invalid={!!profileError && editName.trim().length < 2} style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
             <div><label htmlFor="prof-email" style={lbl}>Email</label><input id="prof-email" aria-invalid={!!profileError && !!editEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail)} style={inp} type="email" autoComplete="email" maxLength={120} value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
@@ -225,10 +225,10 @@ export default function ProfilePage() {
 
         {/* Shipping Address */}
         <div style={sectionStyle}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>
             📦 Shipping Address
             <span style={{ fontWeight: 400, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Used for future orders</span>
-          </div>
+          </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
             <div><label htmlFor="addr-street" style={lbl}>Street Address</label><input id="addr-street" style={inp} autoComplete="street-address" maxLength={120} value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="123 Main St" /></div>
             <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px', gap: 10 }}>
@@ -283,7 +283,7 @@ export default function ProfilePage() {
         {/* Order History */}
         {profile && profile.orders.length > 0 && (
           <div style={sectionStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>📦 Recent Orders</div>
+            <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>📦 Recent Orders</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {profile.orders.map(order => (
                 <div key={order.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
