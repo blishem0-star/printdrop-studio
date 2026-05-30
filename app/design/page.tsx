@@ -455,7 +455,7 @@ function DesignStudio() {
                 <div>
                   <div style={LS}>Your Text</div>
                   <div style={{display:'flex',gap:6}}>
-                    <input value={textInput} onChange={e=>setTextInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addText()} placeholder="Type something..." maxLength={40} style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'9px 11px',color:'white',fontSize:'0.83rem',outline:'none'}} onFocus={e=>(e.target.style.borderColor='rgba(0,229,200,0.5)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.1)')}/>
+                    <input aria-label="Text to add to design" value={textInput} onChange={e=>setTextInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addText()} placeholder="Type something..." maxLength={40} style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:9,padding:'9px 11px',color:'white',fontSize:'0.83rem',outline:'none'}} onFocus={e=>(e.target.style.borderColor='rgba(0,229,200,0.5)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.1)')}/>
                     <button onClick={addText} disabled={!textInput.trim()} style={{width:40,borderRadius:9,border:'none',background:textInput.trim()?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.05)',color:textInput.trim()?'#050507':'rgba(255,255,255,0.15)',fontSize:'1.1rem',fontWeight:700,cursor:textInput.trim()?'pointer':'default',transition:'all 0.15s'}}>+</button>
                   </div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
