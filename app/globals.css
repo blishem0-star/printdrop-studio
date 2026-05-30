@@ -384,3 +384,10 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 @media (max-width: 400px) {
   .rsp-2col  { grid-template-columns: 1fr !important; }
 }
+
+/* ── Print ── */
+@media print {
+  .skip-link, [data-cursor], #cursor-dot, #cursor-ring { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  a { color: #000 !important; text-decoration: underline; }
+}
