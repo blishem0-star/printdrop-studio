@@ -52,9 +52,9 @@ function SvgPreview({ svg, color, size = 56 }: { svg: string; color: string; siz
   return <div style={{ width: size, height: size, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: colored.replace('<svg ', `<svg width="${size}" height="${size}" `) }} />;
 }
 
-function StateSelect({ value, onChange, style }: { value: string; onChange: (v: string) => void; style?: React.CSSProperties }) {
+function StateSelect({ id, value, onChange, style }: { id?: string; value: string; onChange: (v: string) => void; style?: React.CSSProperties }) {
   return (
-    <select value={value} onChange={e => onChange(e.target.value)} style={{ ...style, color: value ? '#fff' : 'rgba(255,255,255,0.28)' }}>
+    <select id={id} value={value} onChange={e => onChange(e.target.value)} style={{ ...style, color: value ? '#fff' : 'rgba(255,255,255,0.28)' }}>
       <option value="" style={{ background: '#1a1a1a', color: 'rgba(255,255,255,0.4)' }}>ST</option>
       {US_STATES.map(s => <option key={s} value={s} style={{ background: '#1a1a1a', color: '#fff' }}>{s}</option>)}
     </select>
@@ -431,17 +431,17 @@ export default function CatalogPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                     <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <div><div style={lbl}>Full Name</div><input aria-invalid={shipName.trim().length > 0 && shipName.trim().length < 2} style={inp} name="name" autoComplete="name" value={shipName} onChange={e => setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80} /></div>
-                      <div><div style={lbl}>Email</div><input aria-invalid={shipEmail.length > 0 && !emailValid} style={inp} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e => setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120} /></div>
+                      <div><label htmlFor="cat-name" style={lbl}>Full Name</label><input id="cat-name" aria-invalid={shipName.trim().length > 0 && shipName.trim().length < 2} style={inp} name="name" autoComplete="name" value={shipName} onChange={e => setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80} /></div>
+                      <div><label htmlFor="cat-email" style={lbl}>Email</label><input id="cat-email" aria-invalid={shipEmail.length > 0 && !emailValid} style={inp} type="email" name="email" autoComplete="email" value={shipEmail} onChange={e => setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120} /></div>
                     </div>
-                    <div><div style={lbl}>Street Address</div><input style={inp} name="street-address" autoComplete="street-address" value={shipStreet} onChange={e => setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120} /></div>
+                    <div><label htmlFor="cat-street" style={lbl}>Street Address</label><input id="cat-street" style={inp} name="street-address" autoComplete="street-address" value={shipStreet} onChange={e => setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120} /></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 68px 80px', gap: 10 }}>
-                      <div><div style={lbl}>City</div><input style={inp} name="city" autoComplete="address-level2" value={shipCity} onChange={e => setShipCity(e.target.value)} placeholder="New York" maxLength={60} /></div>
+                      <div><label htmlFor="cat-city" style={lbl}>City</label><input id="cat-city" style={inp} name="city" autoComplete="address-level2" value={shipCity} onChange={e => setShipCity(e.target.value)} placeholder="New York" maxLength={60} /></div>
                       <div>
-                        <div style={lbl}>State</div>
-                        <StateSelect value={shipState} onChange={setShipState} style={{ ...inp, appearance: 'none', cursor: 'pointer' }} />
+                        <label htmlFor="cat-state" style={lbl}>State</label>
+                        <StateSelect id="cat-state" value={shipState} onChange={setShipState} style={{ ...inp, appearance: 'none', cursor: 'pointer' }} />
                       </div>
-                      <div><div style={lbl}>ZIP</div><input style={{ ...inp, fontFamily: 'monospace' }} name="postal-code" autoComplete="postal-code" inputMode="numeric" value={shipZip} onChange={e => setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
+                      <div><label htmlFor="cat-zip" style={lbl}>ZIP</label><input id="cat-zip" style={{ ...inp, fontFamily: 'monospace' }} name="postal-code" autoComplete="postal-code" inputMode="numeric" value={shipZip} onChange={e => setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
                     </div>
 
                     {/* Save checkbox — only for registered users */}
