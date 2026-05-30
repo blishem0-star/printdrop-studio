@@ -213,7 +213,7 @@ export default function HomePage() {
         </div>
 
         {/* ── Premium subscription section ── */}
-        <div className="glow-animated" style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.18)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.025) 50%,rgba(123,97,255,0.02) 100%)' }}>
+        <section aria-label="Monthly subscription box" className="glow-animated" style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.18)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.025) 50%,rgba(123,97,255,0.02) 100%)' }}>
           {/* Top accent line */}
           <div style={{ height: 2, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', backgroundSize: '200% 100%', animation: 'gradient-move 4s ease infinite' }} />
 
@@ -345,7 +345,7 @@ export default function HomePage() {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
       </main>
     </div>
