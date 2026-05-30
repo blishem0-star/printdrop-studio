@@ -323,7 +323,8 @@ export default function CatalogPage() {
                 <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order confirmed!</div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} · {color?.name} · Size {size}</div>
                 {orderId && <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontFamily: 'monospace' }}>#{orderId.slice(0,8).toUpperCase()}</div>}
-                <button onClick={() => { setOrdered(false); setSelected(null); }} style={{ marginTop: 8, padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', boxShadow: '0 6px 20px rgba(0,229,200,0.3)' }}>Back to catalog</button>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', maxWidth: 280, lineHeight: 1.5 }}>Check your order status in your <Link href="/profile" style={{ color: '#00E5C8', textDecoration: 'none' }}>profile page</Link>.</p>
+                <button onClick={() => { setOrdered(false); setSelected(null); }} style={{ marginTop: 4, padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', boxShadow: '0 6px 20px rgba(0,229,200,0.3)' }}>Back to catalog</button>
               </div>
             ) : drawerStep === 'customize' ? (
               <>
