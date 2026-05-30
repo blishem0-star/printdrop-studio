@@ -550,7 +550,7 @@ export default function LandingPage() {
           <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 22, overflow: 'hidden', animation: 'up 0.4s ease both' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               {(['signup','signin'] as AuthMode[]).map(m => (
-                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} style={{ padding: '0.875rem', border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.02em', background: authMode === m ? 'rgba(0,229,200,0.07)' : 'transparent', color: authMode === m ? '#00E5C8' : 'rgba(255,255,255,0.3)', borderBottom: `2px solid ${authMode === m ? '#00E5C8' : 'transparent'}`, transition: 'all 0.15s' }}>
+                <button key={m} role="tab" aria-selected={authMode === m} onClick={() => { setAuthMode(m); setError(''); }} style={{ padding: '0.875rem', border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.02em', background: authMode === m ? 'rgba(0,229,200,0.07)' : 'transparent', color: authMode === m ? '#00E5C8' : 'rgba(255,255,255,0.3)', borderBottom: `2px solid ${authMode === m ? '#00E5C8' : 'transparent'}`, transition: 'all 0.15s' }}>
                   {m === 'signup' ? 'Create Account' : 'Sign In'}
                 </button>
               ))}
