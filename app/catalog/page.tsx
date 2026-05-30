@@ -373,6 +373,7 @@ export default function CatalogPage() {
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
                     <div style={lbl}>Text — {showBack ? 'Back' : 'Front'} <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(255,255,255,0.2)' }}>(optional)</span></div>
                     <input
+                      aria-label={`Custom text on ${showBack ? 'back' : 'front'} of shirt`}
                       value={showBack ? backText : frontText}
                       onChange={e => showBack ? setBackText(e.target.value) : setFrontText(e.target.value)}
                       maxLength={28} placeholder="e.g. YOUR NAME..."
