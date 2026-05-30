@@ -172,7 +172,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick actions */}
-        <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
+        <section aria-label="Quick actions" className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '3.5rem' }}>
           {/* Design Studio card */}
           <button onClick={() => router.push('/design')} className="scan-card holo-card" style={{ padding: '2rem', borderRadius: 20, cursor: 'pointer', textAlign: 'left', background: 'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,229,200,0.015))', border: '1px solid rgba(0,229,200,0.16)', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', overflow: 'hidden' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(0,229,200,0.42)'; el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 20px 60px rgba(0,229,200,0.12), 0 0 0 1px rgba(0,229,200,0.1)'; }}
@@ -210,7 +210,7 @@ export default function HomePage() {
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="#0099FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
           </button>
-        </div>
+        </section>
 
         {/* ── Premium subscription section ── */}
         <section aria-label="Monthly subscription box" className="glow-animated" style={{ borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,229,200,0.18)', background: 'linear-gradient(135deg,rgba(0,229,200,0.04) 0%,rgba(0,153,255,0.025) 50%,rgba(123,97,255,0.02) 100%)' }}>
