@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
