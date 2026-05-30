@@ -281,6 +281,8 @@ export default function ArtistPage() {
                     onChange={e => { setSvgContent(e.target.value); if (e.target.value.trim().startsWith('<svg')) { try { setPreviewUrl(`data:image/svg+xml;base64,${btoa(e.target.value)}`); } catch { setPreviewUrl(null); } } }}
                     placeholder={'<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">\n  <!-- Your design here -->\n</svg>'}
                     rows={8}
+                    aria-label="Paste SVG code"
+                    maxLength={500_000}
                     style={{ ...inp, resize: 'vertical', fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.5 }}
                   />
                 )}
