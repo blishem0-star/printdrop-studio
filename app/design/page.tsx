@@ -433,7 +433,7 @@ function DesignStudio() {
           {/* Main tabs */}
           <div style={{display:'flex',borderBottom:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
             {([['design','✏','Design'],['shirt','👕','Shirt'],['order','🛒','Order']] as const).map(([id,icon,label])=>(
-              <button key={id} onClick={()=>setRightTab(id)} style={{flex:1,padding:'12px 4px',border:'none',background:'none',cursor:'pointer',color:rightTab===id?'white':'rgba(255,255,255,0.28)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',borderBottom:`2px solid ${rightTab===id?'#00E5C8':'transparent'}`,marginBottom:-1,transition:'all 0.15s',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+              <button key={id} role="tab" aria-selected={rightTab===id} onClick={()=>setRightTab(id)} style={{flex:1,padding:'12px 4px',border:'none',background:'none',cursor:'pointer',color:rightTab===id?'white':'rgba(255,255,255,0.28)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',borderBottom:`2px solid ${rightTab===id?'#00E5C8':'transparent'}`,marginBottom:-1,transition:'all 0.15s',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
                 <span style={{fontSize:'0.95rem'}}>{icon}</span>{label}
               </button>
             ))}
