@@ -241,7 +241,7 @@ export default function ArtistPage() {
                 <label style={lbl}>Design Artwork *</label>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                   {(['file', 'paste'] as const).map(m => (
-                    <button key={m} onClick={() => setUploadMode(m)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: uploadMode === m ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: uploadMode === m ? 'rgba(0,229,200,0.08)' : 'transparent', color: uploadMode === m ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
+                    <button key={m} role="tab" aria-selected={uploadMode === m} onClick={() => setUploadMode(m)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: uploadMode === m ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: uploadMode === m ? 'rgba(0,229,200,0.08)' : 'transparent', color: uploadMode === m ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
                       {m === 'file' ? '📁 Upload file' : '📋 Paste SVG code'}
                     </button>
                   ))}
