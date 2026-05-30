@@ -664,7 +664,7 @@ export default function LandingPage() {
         </section>
       )}
 
-      <footer style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
+      <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
         <div style={{ fontWeight: 900, fontSize: '0.88rem', letterSpacing: '-0.03em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
         <div style={{ color: 'rgba(255,255,255,0.14)', fontSize: '0.66rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
       </footer>
