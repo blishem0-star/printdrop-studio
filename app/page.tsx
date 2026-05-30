@@ -458,6 +458,7 @@ export default function LandingPage() {
               aria-label="Describe your shirt design"
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '1rem 1.2rem', fontFamily: 'inherit' }}
             />
+            {prompt.length > 160 && <span aria-live="polite" style={{ fontSize: '0.6rem', color: prompt.length > 190 ? '#f87171' : 'rgba(255,255,255,0.3)', alignSelf: 'center', paddingRight: 8, flexShrink: 0 }}>{200 - prompt.length}</span>}
             <button
               onClick={generate}
               disabled={phase !== 'hero' || !prompt.trim()}
