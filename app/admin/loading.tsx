@@ -1,7 +1,7 @@
 export default function AdminLoading() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 200 }}>
-      <div style={{ display: 'flex', gap: 6 }}>
+    <div role="status" aria-label="Loading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 200 }}>
+      <div aria-hidden="true" style={{ display: 'flex', gap: 6 }}>
         {[0,1,2].map(i => (
           <div key={i} style={{
             width: 6, height: 6, borderRadius: '50%', background: '#00E5C8',
