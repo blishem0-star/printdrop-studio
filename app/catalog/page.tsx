@@ -309,7 +309,7 @@ export default function CatalogPage() {
         {selected && (
           <>
             <div style={{ height: 54, display: 'flex', alignItems: 'center', padding: '0 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, gap: 10 }}>
-              {drawerStep === 'delivery' && !ordered && <button onClick={() => setDrawerStep('customize')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>←</button>}
+              {drawerStep === 'delivery' && !ordered && <button aria-label="Back to customize" onClick={() => setDrawerStep('customize')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>←</button>}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{selected.title}</div>
                 <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
