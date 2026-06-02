@@ -1,13 +1,28 @@
 # STYLX — Design Decisions & Memory
 
-> **Living memory for the `stylx-designer` agent.** Read this fully at the start of every design task. Append new decisions at the bottom of the log. This file is the source of continuity between sessions — the agent is stateless without it.
-> Tokens below are mirrored from `app/globals.css` `:root`. If they ever disagree, **globals.css is the source of truth** — re-read it and update this file.
+> **Living memory for the `stylx-designer` agent.** This file is the source of continuity between sessions — the agent is stateless without it.
+> Tokens below are mirrored from `app/globals.css` `:root`. If they ever disagree, **globals.css is the source of truth**.
 
 ---
 
-## 1. Canonical Design Tokens (from `app/globals.css`)
+## 0. QUICK REF (read this every time — saves re-reading globals.css)
 
-### Color
+```
+bg:      #050507 → #060610 gradient
+accent:  #00E5C8 (teal) · #0099FF (blue) · #7B61FF (purple, holo only)
+surface: rgba(255,255,255,0.03)   border: rgba(255,255,255,0.07)
+text:    #fff · rgba(255,255,255,0.55) · rgba(255,255,255,0.25)
+radius:  16px / 10px / 24px       gap: 12–14px   pad: 2rem
+font:    Bebas Neue (display, weight:400, ls:0.02–0.03em) + Outfit (body)
+holo:    linear-gradient(135deg,#00E5C8,#0099FF,#7B61FF,#00E5C8)
+```
+
+**Read `app/globals.css` only when:** (a) editing tokens/classes, (b) checking a class you don't see in section 2 below, (c) something looks wrong. For everything else, use this Quick Ref.
+
+---
+
+## 1. Canonical Design Tokens (full — from `app/globals.css`)
+
 | Token | Value | Use |
 |---|---|---|
 | `--bg` | `#050507` | page background base |
@@ -18,58 +33,72 @@
 | `--accent` | `#00E5C8` | primary teal |
 | `--accent-2` | `#0099FF` | blue |
 | `--accent-glow` | `rgba(0,229,200,0.22)` | glow tint |
-| `--text` / `--text-2` / `--text-3` | `#FFF` / `rgba(255,255,255,0.55)` / `rgba(255,255,255,0.25)` | primary / secondary / tertiary text |
-| purple | `#7B61FF` | tertiary accent (holo gradients only) |
+| `--text` / `--text-2` / `--text-3` | `#FFF` / `rgba(255,255,255,0.55)` / `rgba(255,255,255,0.25)` | text hierarchy |
+| purple | `#7B61FF` | tertiary accent (holo gradients only — not in `:root`) |
 
-Page background gradient used across pages: `linear-gradient(180deg,#050507 0%,#060610 100%)`.
-
-### Radius / Type
-- `--radius: 16px` · `--radius-sm: 10px` · `--radius-lg: 24px`
-- `--font-display: 'Bebas Neue'` (headings, `fontWeight:400`, `letterSpacing` ~`0.02–0.03em`)
-- `--font-body: 'Outfit'`
-- Holo gradient: `linear-gradient(135deg,#00E5C8,#0099FF,#7B61FF,#00E5C8)`
-
-### Spacing rhythm (de-facto in the codebase)
-Cards pad `2rem`; section gaps `3–3.5rem`; grid gaps `12–14px`; pill pad `5–6px 12–14px`. Keep to this rhythm — don't invent new spacing values.
+Page background: `linear-gradient(180deg,#050507 0%,#060610 100%)`.
+Spacing rhythm: cards `2rem` pad · section gaps `3–3.5rem` · grid gaps `12–14px` · pill pad `5–6px 12–14px`.
 
 ---
 
-## 2. Reusable Components Already in `globals.css` — PREFER THESE over one-offs
+## 2. Reusable Components in `globals.css` — ALWAYS PREFER THESE
 
-- **Typography:** `.display`, `.display-sm`, `.heading`, `.subheading`, `.label`, `.g-text` (gradient text)
-- **Surfaces:** `.glass`, `.glass-strong`, `.card` (+ `.card-selected`)
-- **Buttons:** `.btn` (+ `.btn-lg`/`.btn-sm`) × `.btn-primary` / `.btn-ghost` / `.btn-outline` / `.btn-holo`
+- **Typography:** `.display`, `.display-sm`, `.heading`, `.subheading`, `.label`, `.g-text`
+- **Surfaces:** `.glass`, `.glass-strong`, `.card`, `.card-selected`
+- **Buttons:** `.btn` / `.btn-lg` / `.btn-sm` × `.btn-primary` / `.btn-ghost` / `.btn-outline` / `.btn-holo`
 - **Bits:** `.tag`, `.divider`, `.input`
-- **Motion/effects:** `.scan-card`, `.holo-card`, `.hover-lift`, `.glow-animated`, `.glow-border-teal`, `.text-glow-teal`, `.text-reveal`, `.glitch-in`, `.float-y`, `.fade-up`, `.particle`, `.scan-line`, `.spin-slow`
-- **Responsive helpers:** `.rsp-pad`, `.rsp-1col`, `.rsp-2col`, `.rsp-stack`, `.rsp-hide`, `.studio-2col/3col/4col`
+- **Effects:** `.scan-card`, `.holo-card`, `.hover-lift`, `.glow-animated`, `.glow-border-teal`, `.text-glow-teal`, `.text-reveal`, `.glitch-in`, `.float-y`, `.fade-up`, `.particle`, `.scan-line`, `.spin-slow`, `.noise`
+- **Responsive:** `.rsp-pad`, `.rsp-1col`, `.rsp-2col`, `.rsp-stack`, `.rsp-hide`, `.studio-2col/3col/4col`
 
-**Rule:** if a class above does the job, use it. Add a new global class only for a genuinely reusable pattern — never copy a big inline blob into many files.
+Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 
 ---
 
-## 3. Breakpoints (already defined — match them exactly)
-- `640px` — studio grids collapse
-- `600px` — `rsp-*` helpers kick in (1col, 2col, stacked, hidden)
-- `480px` — display/heading shrink
-- `400px` — `rsp-2col` → 1 col
+## 3. Breakpoints (match exactly — don't invent new ones)
 
-`prefers-reduced-motion` is honored globally — never rely on motion to convey meaning.
+| px | what changes |
+|---|---|
+| 640 | studio grids collapse |
+| 600 | `rsp-*` helpers kick in |
+| 480 | `.display` / `.heading` shrink |
+| 400 | `rsp-2col` → 1col |
+
+`prefers-reduced-motion` honored globally — never use motion to convey meaning.
 
 ---
 
 ## 4. Good vs Bad (real STYLX patterns)
 
-**GOOD — quick-action card (`app/home/page.tsx`):** layered depth — gradient fill + `scan-card holo-card` + a giant ghost number (`"01"` at `5rem`, `rgba(accent,0.05)`) + icon tile + Bebas title + uppercase teal CTA with arrow, hover lifts `translateY(-4px)` with a colored shadow. This reads as *designed*, not as a form.
+**GOOD — quick-action card (`app/home/page.tsx:177`):** gradient fill + `scan-card holo-card` + ghost number `"01"` at `5rem rgba(accent,0.05)` + icon tile + Bebas title + teal CTA with arrow. Hover lifts `translateY(-4px)` with colored shadow. **Reads as designed, not as a form.**
 
-**BAD:** a flat `rgba(255,255,255,0.03)` rectangle with a plain `fontWeight:700` title and grey body text, no hover, no accent, no hierarchy. Looks like any SaaS. If a card has no second layer (ghost text / gradient / glow / hover transform) it is unfinished.
+**BAD:** flat `rgba(255,255,255,0.03)` rectangle, `fontWeight:700` title, grey body text, no hover, no accent. If a card has no second layer (ghost text / gradient / glow / hover transform) → it is unfinished.
 
-**GOOD — pricing/number emphasis:** Bebas Neue at `3rem` with `.g-text` gradient clip. **BAD:** plain white number in body font.
+**GOOD — number/price:** Bebas Neue `3rem` + `.g-text` gradient clip.
+**BAD:** plain white number in body font.
+
+**BAD — emoji as icons** (✏️🎨🛒): looks cheap on a premium platform. Use SVG stroke icons (`strokeWidth:1.5`) instead.
 
 ---
 
-## 5. Decision Log (append-only — newest at bottom)
+## 5. Open Backlog (discovered issues — remove when fixed)
 
-- **[seed]** Default shirt color = **white**, not Midnight Black — black is invisible on the dark canvas; text color auto-syncs to `color.textColor`. (lib/mockData.ts SHIRT_COLORS[0] is black — do not default to index 0 on dark surfaces.)
-- **[seed]** Design studio uses a **3-panel layout** (left icon sidebar / center canvas / right contextual properties) — the industry-standard tool shape. Keep this; don't regress to a form.
-- **[seed]** North star: STYLX = **fashion brand, AI is the engine behind the scenes** — not "an AI company selling shirts." Every change should add fashion soul (garments, people, fabric, editorial), not more generic-AI sheen.
-- **[seed]** Styling idiom = **inline React style objects** in page components (Tailwind is imported but pages don't use utility classes). Match it.
+> Format: `[priority: HIGH/MED/LOW] description — file:line`
+
+- **[HIGH]** Design Studio broken on mobile — `gridTemplateColumns:'64px 1fr 340px'` no breakpoint → add `studio-shell` class + `@media(max-width:900px)` stack layout. `app/design/page.tsx:674`
+- **[HIGH]** No shared `<ShirtMockup>` component — same grey path hardcoded in 4 places (catalog:118,423 · artist:307,339). Create `components/ShirtMockup.tsx` with fabric gradient + folds.
+- **[MED]** Catalog `productFilter` state not applied to filtered array — `app/catalog/page.tsx:209`
+- **[MED]** `#6366F1` indigo in home nav (navBtn) is not a design system token — `app/home/page.tsx:130`
+- **[MED]** Profile page is the most generic page — flat sections, `maxWidth:660`, no holo-card, no ghost text. `app/profile/page.tsx:148`
+- **[MED]** `text-3` / `rgba(255,255,255,0.18–0.28)` below WCAG AA — affects catalog price hints, subscription fine print, profile labels
+- **[LOW]** AI tool in studio says "match from catalog" (lookup) not generation — `app/design/page.tsx:1080`
+- **[LOW]** Artist Studio vs Design Studio — naming confusion. `app/artist/page.tsx:143`
+
+---
+
+## 6. Decision Log (append-only — newest at bottom)
+
+- **[2026-06-02 seed]** Default shirt color = **white** — black invisible on dark canvas; text auto-syncs to `color.textColor`.
+- **[2026-06-02 seed]** Design studio = **3-panel layout** (rail 64px / canvas / properties 340px). Don't regress.
+- **[2026-06-02 seed]** North star: **fashion brand, AI is the engine behind the scenes** — not "AI company selling shirts."
+- **[2026-06-02 seed]** Styling idiom = **inline React style objects** in page components (Tailwind imported but not used in pages).
+- **[2026-06-02 analysis]** Site scores ~40% fashion / 60% AI-company. Single biggest lever: a realistic garment component (fabric, folds, shadow) replacing the flat grey SVG path used in catalog, artist, and studio.
