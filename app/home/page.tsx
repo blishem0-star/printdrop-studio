@@ -126,8 +126,8 @@ export default function HomePage() {
         </button>
 
         <button onClick={() => router.push('/catalog')} aria-label="Open Catalog" style={navBtn('indigo')}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.14)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)'; }}>
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,153,255,0.14)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,153,255,0.07)'; }}>
           🎨 Catalog
         </button>
 
@@ -306,7 +306,7 @@ export default function HomePage() {
                       <button key={s.id} aria-pressed={selStyle === s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
                         <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: selStyle === s.id ? 'white' : 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{s.label}</div>
-                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)', lineHeight: 1.4 }}>{s.desc}</div>
+                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>{s.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -339,7 +339,7 @@ export default function HomePage() {
                   <button onClick={() => setShowForm(false)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', cursor: 'pointer' }}>Cancel</button>
                 </div>
 
-                <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.18)', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
                   🔒 Billed on the 1st each month · Pause or cancel anytime · No hidden fees
                 </p>
               </div>
@@ -355,7 +355,7 @@ export default function HomePage() {
 function navBtn(accent: 'teal' | 'indigo'): React.CSSProperties {
   const c = accent === 'teal'
     ? { bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)' }
-    : { bg: 'rgba(99,102,241,0.07)', border: 'rgba(99,102,241,0.25)', color: 'rgba(129,140,248,0.9)' };
+    : { bg: 'rgba(0,153,255,0.07)', border: 'rgba(0,153,255,0.22)', color: 'rgba(0,153,255,0.85)' };
   return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };
 }
 

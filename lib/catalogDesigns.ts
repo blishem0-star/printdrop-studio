@@ -8,6 +8,7 @@ export type CatalogDesign = {
   artistId?: string;
   artistName?: string;
   originalId?: string;
+  productType?: string;
 };
 
 export const CATALOG_CATEGORIES = ['All', 'Nature', 'Urban', 'Abstract', 'Minimal', 'Vintage'];

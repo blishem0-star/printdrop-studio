@@ -671,10 +671,10 @@ function DesignStudio() {
       </header>
 
       {/* ── 3-PANEL ──────────────────────────────────────────────── */}
-      <div style={{flex:1,display:'grid',gridTemplateColumns:'64px 1fr 340px',overflow:'hidden',minHeight:0}}>
+      <div className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'64px 1fr 340px',overflow:'hidden',minHeight:0}}>
 
         {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
-        <div style={{background:'rgba(5,5,8,1)',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:1,zIndex:10}}>
+        <div className="studio-rail" style={{background:'rgba(5,5,8,1)',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:1,zIndex:10}}>
           {sideTools.map(t=>(
             <button key={t.id} title={t.label} onClick={()=>setActiveTool(t.id)}
               style={{width:48,height:50,borderRadius:12,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.28)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,transition:'all 0.15s',position:'relative'}}
@@ -702,7 +702,7 @@ function DesignStudio() {
         </div>
 
         {/* ── CANVAS ───────────────────────────────────────────── */}
-        <div ref={canvasAreaRef} style={{background:'radial-gradient(ellipse at 50% 35%,rgba(13,13,22,1) 0%,rgba(5,5,8,1) 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}} onClick={()=>setSelected(null)}>
+        <div className="studio-canvas" ref={canvasAreaRef} style={{background:'radial-gradient(ellipse at 50% 35%,rgba(13,13,22,1) 0%,rgba(5,5,8,1) 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}} onClick={()=>setSelected(null)}>
           <div style={{position:'absolute',width:480,height:480,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.04) 0%,transparent 60%)',top:'-20%',right:'-5%',pointerEvents:'none'}}/>
           <div style={{position:'absolute',width:360,height:360,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,100,255,0.03) 0%,transparent 65%)',bottom:'-10%',left:'-5%',pointerEvents:'none'}}/>
           <div style={{position:'absolute',inset:0,pointerEvents:'none',opacity:0.018,backgroundImage:'radial-gradient(circle,rgba(255,255,255,0.8) 1px,transparent 1px)',backgroundSize:'28px 28px'}}/>
@@ -774,7 +774,7 @@ function DesignStudio() {
         </div>
 
         {/* ── RIGHT PANEL ──────────────────────────────────────── */}
-        <div style={{borderLeft:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',background:'rgba(8,8,12,1)',overflow:'hidden'}}>
+        <div className="studio-properties" style={{borderLeft:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',background:'rgba(8,8,12,1)',overflow:'hidden'}}>
           <div style={{height:44,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',padding:'0 14px',gap:6}}>
             <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.18)',letterSpacing:'0.14em',textTransform:'uppercase',flex:1}}>
               {activeTool==='templates'&&'QUICK START'}
@@ -1077,7 +1077,7 @@ function DesignStudio() {
               <div style={{padding:'14px'}}>
                 <div style={{background:'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,153,255,0.05))',border:'1px solid rgba(0,229,200,0.12)',borderRadius:14,padding:'14px',marginBottom:14}}>
                   <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>✦ AI DESIGN GENERATOR</div>
-                  <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe your idea and AI will match the best design from the catalog.</div>
+                  <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe what you want — AI will generate a design for your shirt.</div>
                 </div>
                 <div style={{marginBottom:12}}>
                   <div style={LS}>Your idea</div>

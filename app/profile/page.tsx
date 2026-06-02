@@ -188,11 +188,15 @@ export default function ProfilePage() {
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
 
-      <main className="rsp-pad" style={{ maxWidth: 660, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
+      <main className="rsp-pad" style={{ maxWidth: 820, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
         <h1 className="sr-only">Your Profile — {profile?.name ?? session.name}</h1>
 
         {/* Identity card */}
-        <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
+        <div className="scan-card holo-card" style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
+          {/* Ghost initial */}
+          <div aria-hidden="true" style={{ position: 'absolute', bottom: '-0.5rem', right: '1.5rem', fontSize: '6rem', fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, color: 'rgba(0,229,200,0.04)', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
+            {(profile?.name ?? session.name).charAt(0).toUpperCase()}
+          </div>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: `${badge.bg}`, border: `2px solid ${badge.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', fontWeight: 900, color: badge.color, flexShrink: 0 }}>
             {(profile?.name ?? session.name).charAt(0).toUpperCase()}
           </div>
@@ -210,7 +214,7 @@ export default function ProfilePage() {
 
         {/* Edit Profile */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8, borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
             ✏️ Edit Profile
           </h2>
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
@@ -225,7 +229,7 @@ export default function ProfilePage() {
 
         {/* Shipping Address */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
             📦 Shipping Address
             <span style={{ fontWeight: 400, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Used for future orders</span>
           </h2>
@@ -249,8 +253,8 @@ export default function ProfilePage() {
         </div>
 
         {/* AI Style Profile */}
-        <div style={sectionStyle}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ ...sectionStyle, background: 'rgba(0,229,200,0.03)', border: '1px solid rgba(0,229,200,0.12)' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
             ✨ AI Style Profile
             {!aiUnlocked && <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}>Unlocks after 3 orders</span>}
           </div>
@@ -290,7 +294,7 @@ export default function ProfilePage() {
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: order.items[0]?.designAsset?.colorHex ?? '#2a2a2a', flexShrink: 0, border: '1px solid rgba(255,255,255,0.08)' }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{order.items[0]?.designAsset?.title ?? 'Custom Design'}</div>
-                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
                       #{order.id.slice(0,8).toUpperCase()} · {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>

@@ -84,14 +84,7 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 
 > Format: `[priority: HIGH/MED/LOW] description — file:line`
 
-- **[HIGH]** Design Studio broken on mobile — `gridTemplateColumns:'64px 1fr 340px'` no breakpoint → add `studio-shell` class + `@media(max-width:900px)` stack layout. `app/design/page.tsx:674`
-- **[HIGH]** No shared `<ShirtMockup>` component — same grey path hardcoded in 4 places (catalog:118,423 · artist:307,339). Create `components/ShirtMockup.tsx` with fabric gradient + folds.
-- **[MED]** Catalog `productFilter` state not applied to filtered array — `app/catalog/page.tsx:209`
-- **[MED]** `#6366F1` indigo in home nav (navBtn) is not a design system token — `app/home/page.tsx:130`
-- **[MED]** Profile page is the most generic page — flat sections, `maxWidth:660`, no holo-card, no ghost text. `app/profile/page.tsx:148`
-- **[MED]** `text-3` / `rgba(255,255,255,0.18–0.28)` below WCAG AA — affects catalog price hints, subscription fine print, profile labels
-- **[LOW]** AI tool in studio says "match from catalog" (lookup) not generation — `app/design/page.tsx:1080`
-- **[LOW]** Artist Studio vs Design Studio — naming confusion. `app/artist/page.tsx:143`
+*(All known items resolved — see Decision Log for details)*
 
 ---
 
@@ -102,3 +95,11 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 - **[2026-06-02 seed]** North star: **fashion brand, AI is the engine behind the scenes** — not "AI company selling shirts."
 - **[2026-06-02 seed]** Styling idiom = **inline React style objects** in page components (Tailwind imported but not used in pages).
 - **[2026-06-02 analysis]** Site scores ~40% fashion / 60% AI-company. Single biggest lever: a realistic garment component (fabric, folds, shadow) replacing the flat grey SVG path used in catalog, artist, and studio.
+- **[2026-06-02 fix]** HIGH-1: studio-shell/rail/properties/canvas CSS classes added — `@media(max-width:900px)` stacks 3-panel to 1-col, rail goes horizontal bottom bar.
+- **[2026-06-02 fix]** HIGH-2: `components/ShirtMockup.tsx` created — fabric gradient + fold + collar shadow; replaces hardcoded path in catalog:118,423 and artist:306,338.
+- **[2026-06-02 fix]** MED-1: productFilter now applied to `filtered` array in catalog (`d.productType === productFilter`); added optional `productType` field to `CatalogDesign` type.
+- **[2026-06-02 fix]** MED-2: navBtn 'indigo' branch replaced with `--accent-2` blue (#0099FF) tokens; hover handlers updated to match.
+- **[2026-06-02 fix]** MED-3: Profile maxWidth 660→820; identity card gets `scan-card holo-card` + ghost initial; section headers get teal left-border accent; AI Style Profile section gets teal tinted bg/border.
+- **[2026-06-02 fix]** MED-4: Non-decorative text at 0.18–0.28 opacity raised to 0.45 across catalog, home, artist, profile.
+- **[2026-06-02 fix]** LOW-1: AI tool description changed from "match from catalog" to "Describe what you want — AI will generate a design for your shirt."
+- **[2026-06-02 fix]** LOW-2: "Artist.Studio" → "Creator.Hub" in artist page header to avoid collision with "Design Studio".

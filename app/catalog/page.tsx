@@ -9,6 +9,7 @@ import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
 import { useToast } from '@/components/Toast';
+import ShirtMockup from '@/components/ShirtMockup';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string };
 type TextPos = 'top' | 'center' | 'bottom';
@@ -115,7 +116,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#050507', fontWeight: 900, boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}>✓</div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
-          <svg width="120" height="120" viewBox="0 0 200 200" fill="none"><path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill="#2a2a2a" stroke="rgba(255,255,255,0.08)" strokeWidth="2"/></svg>
+          <ShirtMockup colorHex="#2a2a2a" size={120} />
           <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }}><SvgPreview svg={design.svg} color="rgba(255,255,255,0.75)" size={48} /></div>
         </div>
       </div>
@@ -124,7 +125,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price}</span>
-          <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontWeight: 600 }}>+ ${SHIPPING_PRICE} ship</span>
+          <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>+ ${SHIPPING_PRICE} ship</span>
         </div>
       </div>
     </div>
@@ -208,6 +209,7 @@ export default function CatalogPage() {
   const allDesigns = [...CATALOG_DESIGNS, ...artistDesigns];
   const filtered = allDesigns
     .filter(d => catFilter === 'All' || d.category === catFilter)
+    .filter(d => productFilter === 'ALL' || d.productType === productFilter)
     .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
 
   const total = PRODUCT_BASE_PRICE[drawerProductType] + SHIPPING_PRICE;
@@ -420,7 +422,7 @@ export default function CatalogPage() {
                   {/* Recap */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.75rem', background: 'rgba(0,229,200,0.04)', borderRadius: 12, border: '1px solid rgba(0,229,200,0.12)', marginBottom: '1.5rem' }}>
                     <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-                      <svg width="56" height="56" viewBox="0 0 200 200" fill="none"><path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill={color?.hex ?? '#2a2a2a'} stroke="rgba(255,255,255,0.1)" strokeWidth="3"/></svg>
+                      <ShirtMockup colorHex={color?.hex ?? '#2a2a2a'} size={56} />
                       <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }}><SvgPreview svg={selected.svg} color={color?.textColor ?? '#fff'} size={22} /></div>
                     </div>
                     <div style={{ flex: 1 }}>
@@ -463,7 +465,7 @@ export default function CatalogPage() {
                   <button disabled={!deliveryDone || submitting} onClick={handleOrder} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: deliveryDone && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: deliveryDone && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: deliveryDone && !submitting ? 'pointer' : 'default', boxShadow: deliveryDone && !submitting ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
                     {submitting ? 'Placing order...' : !deliveryDone ? 'Fill in delivery details' : `Send to Print — $${total.toFixed(2)}`}
                   </button>
-                  {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{['🔒 Secure', '72h Delivery', 'Free Returns'].map(t => <span key={t} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.18)', fontWeight: 600 }}>{t}</span>)}</div>}
+                  {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{['🔒 Secure', '72h Delivery', 'Free Returns'].map(t => <span key={t} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{t}</span>)}</div>}
                 </div>
               </>
             )}

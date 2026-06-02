@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
+import ShirtMockup from '@/components/ShirtMockup';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
 type DesignStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -140,7 +141,7 @@ export default function ArtistPage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
         <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
-        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Artist<span style={{ color: '#00E5C8' }}>.</span>Studio</span>
+        <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Creator<span style={{ color: '#00E5C8' }}>.</span>Hub</span>
         <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', color: '#00E5C8', border: '1px solid rgba(0,229,200,0.2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Artist</span>
         <div style={{ flex: 1 }} />
         <button onClick={() => router.push('/profile')} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>My Profile</button>
@@ -233,7 +234,7 @@ export default function ArtistPage() {
                   <span aria-hidden="true" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>$</span>
                   <input id="art-price" style={{ ...inp, paddingLeft: '1.5rem' }} value={price} onChange={e => setPrice(e.target.value)} type="number" min="9.99" max="99.99" step="0.01" />
                 </div>
-                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 5 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)} per sale</div>
+                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.45)', marginTop: 5 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)} per sale</div>
               </div>
 
               {/* Design upload */}
@@ -271,7 +272,7 @@ export default function ArtistPage() {
                       <>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>📁</div>
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Drop SVG or image here</div>
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.28)' }}>SVG, PNG, JPG — max 10MB · or click to browse</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>SVG, PNG, JPG — max 10MB · or click to browse</div>
                       </>
                     )}
                   </div>
@@ -303,9 +304,7 @@ export default function ArtistPage() {
             <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 18, border: '1px solid rgba(255,255,255,0.07)', padding: '1.5rem', textAlign: 'center', position: 'sticky', top: 76 }}>
               <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>Preview on shirt</div>
               <div style={{ position: 'relative', width: 160, height: 160, margin: '0 auto' }}>
-                <svg width="160" height="160" viewBox="0 0 200 200" fill="none">
-                  <path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill="#2a2a2a" stroke="rgba(255,255,255,0.1)" strokeWidth="2"/>
-                </svg>
+                <ShirtMockup colorHex="#2a2a2a" size={160} />
                 {previewUrl && (
                   <img src={previewUrl} alt="design" style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 60, height: 60, objectFit: 'contain', pointerEvents: 'none' }} />
                 )}
@@ -316,7 +315,7 @@ export default function ArtistPage() {
               {title && <div style={{ marginTop: '0.75rem', fontSize: '0.78rem', fontWeight: 700 }}>{title}</div>}
               {category && <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{category}</div>}
               {price && <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#00E5C8', marginTop: 6 }}>${parseFloat(price || '0').toFixed(2)}</div>}
-              {price && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)}</div>}
+              {price && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>You earn ${((parseFloat(price) || 0) * 0.5).toFixed(2)}</div>}
             </div>
           </div>
         )}
@@ -335,9 +334,7 @@ function DesignCard({ design }: { design: ArtistDesign }) {
       <div style={{ background: 'rgba(0,0,0,0.35)', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg,transparent,rgba(0,229,200,0.15),transparent)' }} />
         <div style={{ position: 'relative', width: 100, height: 100 }}>
-          <svg width="100" height="100" viewBox="0 0 200 200" fill="none">
-            <path d="M60,30 L20,55 L35,75 L50,65 L50,175 L150,175 L150,65 L165,75 L180,55 L140,30 Q120,15 100,18 Q80,15 60,30Z" fill="#2a2a2a" stroke="rgba(255,255,255,0.08)" strokeWidth="2"/>
-          </svg>
+          <ShirtMockup colorHex="#2a2a2a" size={100} />
           <div style={{ position: 'absolute', top: '32%', left: '50%', transform: 'translate(-50%,-50%)' }}>
             {design.svg.startsWith('<svg') ? (
               <div style={{ width: 42, height: 42 }} dangerouslySetInnerHTML={{ __html: design.svg.replace('<svg ', '<svg width="42" height="42" ') }} />
@@ -352,7 +349,7 @@ function DesignCard({ design }: { design: ArtistDesign }) {
       </div>
       <div style={{ padding: '0.875rem' }}>
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1rem', letterSpacing: '0.04em', marginBottom: 2 }}>{design.title}</div>
-        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.category}</div>
+        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.1rem', letterSpacing: '0.03em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price.toFixed(2)}</span>
           {design.status === 'APPROVED' && (
