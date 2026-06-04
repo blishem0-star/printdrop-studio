@@ -3,20 +3,29 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { OWNER_EMAIL } from '@/lib/owner';
 import { useToast } from '@/components/Toast';
-import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_BASE_PRICE, buildProductSvg } from '@/lib/productTypes';
+import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE, buildProductSvg } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
 type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 type Subscription = { id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string };
 
+const STYLE_ICONS: Record<string, React.ReactNode> = {
+  minimal:    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" width={14} height={14} aria-hidden="true"><line x1="3" y1="8" x2="13" y2="8"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="6" y1="11" x2="10" y2="11"/></svg>,
+  bold:       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" width={14} height={14} aria-hidden="true"><path d="M8 2v4l4-2-4 2v8"/><path d="M4 8h4"/></svg>,
+  urban:      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><rect x="2" y="7" width="4" height="7"/><rect x="6" y="4" width="4" height="10"/><rect x="10" y="5.5" width="4" height="8.5"/></svg>,
+  nature:     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><path d="M8 14V9M3 9c0-4 9-6 9 2a5 5 0 01-9-2z"/></svg>,
+  vintage:    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M5 8h6M8 5v6"/><circle cx="8" cy="8" r="1.5"/></svg>,
+  streetwear: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><path d="M5 3C4 4.5 3 6 3 7l2 1c0 2.5-.2 5-.2 7h6.4c0-2-.2-4.5-.2-7L13 7c0-1-1-2.5-2-4l-2 .8Q8 2,8 2Q8 2,7 3.8z"/></svg>,
+};
+
 const STYLES = [
-  { id: 'minimal',    label: 'Minimal',    desc: 'Clean lines, muted tones',     icon: '◾', color: '#94A3B8' },
-  { id: 'bold',       label: 'Bold',       desc: 'High contrast, graphic prints', icon: '⚡', color: '#F59E0B' },
-  { id: 'urban',      label: 'Urban',      desc: 'Street art, city vibes',        icon: '🏙', color: '#6366F1' },
-  { id: 'nature',     label: 'Nature',     desc: 'Earth tones, organic shapes',   icon: '🌿', color: '#10B981' },
-  { id: 'vintage',    label: 'Vintage',    desc: 'Retro prints, faded palette',   icon: '🎞', color: '#D97706' },
-  { id: 'streetwear', label: 'Streetwear', desc: 'Oversized, logo-forward',       icon: '🔥', color: '#EF4444' },
+  { id: 'minimal',    label: 'Minimal',    desc: 'Clean lines, muted tones',     color: '#94A3B8' },
+  { id: 'bold',       label: 'Bold',       desc: 'High contrast, graphic prints', color: '#F59E0B' },
+  { id: 'urban',      label: 'Urban',      desc: 'Street art, city vibes',        color: '#6366F1' },
+  { id: 'nature',     label: 'Nature',     desc: 'Earth tones, organic shapes',   color: '#10B981' },
+  { id: 'vintage',    label: 'Vintage',    desc: 'Retro prints, faded palette',   color: '#D97706' },
+  { id: 'streetwear', label: 'Streetwear', desc: 'Oversized, logo-forward',       color: '#EF4444' },
 ];
 const ALL_TYPES: ProductType[] = ['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'];
 const MONTHLY = 59.99;
@@ -156,7 +165,10 @@ export default function HomePage() {
           </button>
         )}
         {session.email === OWNER_EMAIL && (
-          <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
+          <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} aria-hidden="true"><circle cx="6" cy="6" r="2"/><path d="M6 1v1.5M6 9.5V11M1 6h1.5M9.5 6H11M2.3 2.3l1 1M8.7 8.7l1 1M2.3 9.7l1-1M8.7 3.3l1-1"/></svg>
+            Admin
+          </a>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
@@ -231,7 +243,8 @@ export default function HomePage() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.6rem', fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: '#00E5C8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
-                  ✨ Monthly Box
+                  <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={9} height={9} aria-hidden="true"><path d="M5 1l1.3 2.7 3 .4-2.2 2.1.5 3L5 7.8 2.4 9.2l.5-3L.7 4.1l3-.4z"/></svg>
+                  Monthly Box
                 </div>
                 <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 1.1, marginBottom: 6 }}>
                   3 pieces, curated for your style
@@ -250,7 +263,7 @@ export default function HomePage() {
             <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
               {ALL_TYPES.map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-                  <span>{PRODUCT_TYPE_EMOJI[t]}</span>{PRODUCT_TYPE_LABELS[t]}
+                  {PRODUCT_TYPE_LABELS[t]}
                   <span style={{ color: 'rgba(255,255,255,0.2)' }}>from ${PRODUCT_BASE_PRICE[t]}</span>
                 </div>
               ))}
@@ -326,7 +339,7 @@ export default function HomePage() {
                   <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {STYLES.map(s => (
                       <button key={s.id} aria-pressed={selStyle === s.id} onClick={() => setSelStyle(s.id)} style={{ padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${selStyle === s.id ? s.color + '66' : 'rgba(255,255,255,0.07)'}`, background: selStyle === s.id ? s.color + '12' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
-                        <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
+                        <div style={{ marginBottom: 6, color: selStyle === s.id ? s.color : 'rgba(255,255,255,0.4)', display: 'flex' }}>{STYLE_ICONS[s.id]}</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: selStyle === s.id ? 'white' : 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{s.label}</div>
                         <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>{s.desc}</div>
                       </button>
@@ -339,7 +352,7 @@ export default function HomePage() {
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                     {ALL_TYPES.map(t => (
                       <button key={t} aria-pressed={selTypes.includes(t)} onClick={() => toggleType(t)} style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid', borderColor: selTypes.includes(t) ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)', background: selTypes.includes(t) ? 'rgba(0,229,200,0.08)' : 'transparent', color: selTypes.includes(t) ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.13s' }}>
-                        {PRODUCT_TYPE_EMOJI[t]} {PRODUCT_TYPE_LABELS[t]}
+                        {PRODUCT_TYPE_LABELS[t]}
                       </button>
                     ))}
                   </div>
@@ -362,7 +375,7 @@ export default function HomePage() {
                 </div>
 
                 <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-                  🔒 Billed on the 1st each month · Pause or cancel anytime · No hidden fees
+                  <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={9} height={9} style={{display:'inline',verticalAlign:'middle',marginRight:3}} aria-hidden="true"><rect x="2.5" y="4.5" width="5" height="4.5" rx="0.8"/><path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/></svg>Billed on the 1st each month · Pause or cancel anytime · No hidden fees
                 </p>
               </div>
             )}

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
-import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_EMOJI, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
+import { PRODUCT_TYPE_LABELS, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
@@ -276,7 +276,7 @@ export default function CatalogPage() {
         <div className="rsp-pad" style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
             <button key={pt} aria-pressed={productFilter === pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {pt === 'ALL' ? '✦ All Types' : `${PRODUCT_TYPE_EMOJI[pt]} ${PRODUCT_TYPE_LABELS[pt]}`}
+              {pt === 'ALL' ? '✦ All Types' : PRODUCT_TYPE_LABELS[pt]}
             </button>
           ))}
         </div>
@@ -365,7 +365,7 @@ export default function CatalogPage() {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {(['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
                         <button key={pt} aria-pressed={drawerProductType === pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(0,229,200,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {PRODUCT_TYPE_EMOJI[pt]} {PRODUCT_TYPE_LABELS[pt]}
+                          {PRODUCT_TYPE_LABELS[pt]}
                           {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#00E5C8', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
                         </button>
                       ))}
@@ -477,7 +477,11 @@ export default function CatalogPage() {
                   <button disabled={!deliveryDone || submitting} onClick={handleOrder} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: deliveryDone && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: deliveryDone && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: deliveryDone && !submitting ? 'pointer' : 'default', boxShadow: deliveryDone && !submitting ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
                     {submitting ? 'Placing order...' : !deliveryDone ? 'Fill in delivery details' : `Send to Print — $${total.toFixed(2)}`}
                   </button>
-                  {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{['🔒 Secure', '72h Delivery', 'Free Returns'].map(t => <span key={t} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{t}</span>)}</div>}
+                  {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{[
+                    {label: 'Secure', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M5 1L2 2.5v3c0 1.5 1 3 3 3.5 2-.5 3-2 3-3.5v-3z"/></svg>},
+                    {label: '72h Delivery', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1.5 1.5"/></svg>},
+                    {label: 'Free Returns', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M2 6L5 3l3 3M5 3v6"/></svg>},
+                  ].map(t => <span key={t.label} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><span style={{color:'rgba(0,229,200,0.6)',display:'flex'}}>{t.icon}</span>{t.label}</span>)}</div>}
                 </div>
               </>
             )}

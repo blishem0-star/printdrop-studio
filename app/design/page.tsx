@@ -590,7 +590,9 @@ function DesignStudio() {
     <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',position:'relative',overflow:'hidden'}}>
       <div style={{position:'absolute',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.07) 0%,transparent 60%)',top:'-15%',right:'5%',pointerEvents:'none'}}/>
       <div style={{textAlign:'center',maxWidth:400,position:'relative',zIndex:1,padding:'0 24px'}}>
-        <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(0,229,200,0.1)',border:'1px solid rgba(0,229,200,0.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:36,margin:'0 auto 20px',boxShadow:'0 0 40px rgba(0,229,200,0.15)'}}>🎉</div>
+        <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(0,229,200,0.1)',border:'1px solid rgba(0,229,200,0.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px',boxShadow:'0 0 40px rgba(0,229,200,0.15)'}}>
+          <svg viewBox="0 0 32 32" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} aria-hidden="true"><path d="M6 16l8 8 12-14"/></svg>
+        </div>
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Placed!</h1>
         <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} · Size {size} · Qty {qty}</p>
         {orderId&&<p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:10}}>#{orderId.slice(0,8).toUpperCase()}</p>}
@@ -647,7 +649,7 @@ function DesignStudio() {
             <button title="Clear design" onClick={()=>{setLayersWithHistory([]);setSelected(null);setPrintBg(null);localStorage.removeItem('pd_design');}} style={{width:30,height:30,borderRadius:8,border:'1px solid rgba(239,68,68,0.18)',background:'rgba(239,68,68,0.06)',color:'rgba(239,68,68,0.5)',fontSize:'0.7rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
               onMouseEnter={e=>{(e.currentTarget.style.background='rgba(239,68,68,0.14)');(e.currentTarget.style.color='#f87171');}}
               onMouseLeave={e=>{(e.currentTarget.style.background='rgba(239,68,68,0.06)');(e.currentTarget.style.color='rgba(239,68,68,0.5)');}}>
-              🗑
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M2 3h8M5 3V2h2v1M4 3v7h4V3"/><path d="M5 5v4M7 5v4"/></svg>
             </button>
           )}
           {layers.length>0&&<span style={{fontSize:'0.52rem',color:'rgba(0,229,200,0.35)',fontWeight:600,letterSpacing:'0.04em'}}>auto-saved</span>}
@@ -666,7 +668,7 @@ function DesignStudio() {
         <button onClick={()=>setFullscreen(true)} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:9,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.06em',transition:'all 0.15s',flexShrink:0}}
           onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.09)');(e.currentTarget.style.borderColor='rgba(0,229,200,0.28)');(e.currentTarget.style.color='#00E5C8');}}
           onMouseLeave={e=>{(e.currentTarget.style.background='rgba(255,255,255,0.04)');(e.currentTarget.style.borderColor='rgba(255,255,255,0.09)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');}}>
-          ⛶ PREVIEW
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M1 4V2a1 1 0 011-1h2M10 1h2a1 1 0 011 1v2M13 10v2a1 1 0 01-1 1h-2M4 13H2a1 1 0 01-1-1v-2"/></svg> PREVIEW
         </button>
       </header>
 
@@ -687,7 +689,10 @@ function DesignStudio() {
             </button>
           ))}
           <div style={{width:32,height:1,background:'rgba(255,255,255,0.07)',margin:'6px 0'}}/>
-          {([{id:'shirt' as ActiveTool,icon:'👕',label:'Shirt'},{id:'order' as ActiveTool,icon:'🛒',label:'Order'}]).map(t=>(
+          {([
+            {id:'shirt' as ActiveTool, label:'Shirt', svgPath:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><path d="M3 3C2 4 1 5 1 6l2 1c0 3.5-.2 6-.2 8h10.4c0-2-.2-4.5-.2-8L15 6c0-1-1-2-2-3l-2 .8Q8 2,8 2Q8 2,7 2.8z"/></svg>},
+            {id:'order' as ActiveTool, label:'Order',  svgPath:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><path d="M2 2h2l1.5 7h7l1.5-5H5"/><circle cx="6.5" cy="12.5" r="1"/><circle cx="12.5" cy="12.5" r="1"/></svg>},
+          ]).map(t=>(
             <button key={t.id} title={t.label} onClick={()=>setActiveTool(t.id)}
               style={{width:48,height:50,borderRadius:12,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.28)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,transition:'all 0.15s',position:'relative'}}
               onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.65)');}}}
@@ -695,7 +700,7 @@ function DesignStudio() {
             >
               {activeTool===t.id&&<div style={{position:'absolute',left:0,top:'22%',bottom:'22%',width:2,borderRadius:'0 2px 2px 0',background:'#00E5C8'}}/>}
               {t.id==='order'&&canOrder&&<div style={{position:'absolute',top:8,right:8,width:6,height:6,borderRadius:'50%',background:'#00E5C8',boxShadow:'0 0 5px rgba(0,229,200,0.9)'}}/>}
-              <span style={{fontSize:'1rem',lineHeight:1}}>{t.icon}</span>
+              <span style={{lineHeight:1, display:'flex'}}>{t.svgPath}</span>
               <span style={{fontSize:'0.46rem',fontWeight:700,letterSpacing:'0.05em',textTransform:'uppercase'}}>{t.label}</span>
             </button>
           ))}
@@ -723,7 +728,7 @@ function DesignStudio() {
           <button onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:14,right:14,background:'rgba(5,5,8,0.9)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(14px)',letterSpacing:'0.06em',transition:'all 0.15s',zIndex:5}}
             onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.1)');(e.currentTarget.style.color='#00E5C8');}}
             onMouseLeave={e=>{(e.currentTarget.style.background='rgba(5,5,8,0.9)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');}}>
-            ⛶ FULLSCREEN
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} style={{display:'inline-block',verticalAlign:'middle',marginRight:4}} aria-hidden="true"><path d="M1 4V2a1 1 0 011-1h2M8 1h2a1 1 0 011 1v2M11 8v2a1 1 0 01-1 1H8M4 11H2a1 1 0 01-1-1V8"/></svg>FULLSCREEN
           </button>
 
           {/* Shirt */}
@@ -1049,7 +1054,7 @@ function DesignStudio() {
                   style={{border:`2px dashed ${fileDragging?'rgba(0,229,200,0.6)':uploads[uploadSlot]?'rgba(16,185,129,0.4)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:uploads[uploadSlot]?'1.2rem':'2.5rem 1rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(0,229,200,0.05)':uploads[uploadSlot]?'rgba(16,185,129,0.02)':'rgba(255,255,255,0.01)',transition:'all 0.2s',marginBottom:12}}>
                   <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);e.target.value='';}}/>
                   {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>✓ Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.25)',marginTop:3}}>Click to replace</div></div></div>
-                    :<><div style={{fontSize:32,marginBottom:8,opacity:0.4}}>📁</div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.22)'}}>PNG · JPG · SVG · WEBP</div></>}
+                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.22)'}}>PNG · JPG · SVG · WEBP</div></>}
                 </div>
                 {uploadSlot!=='chest'&&(
                   <div style={{marginBottom:12}}>
@@ -1122,7 +1127,7 @@ function DesignStudio() {
                 <div style={{display:'flex',background:'rgba(0,0,0,0.4)',borderRadius:10,padding:3,gap:2,marginBottom:14}}>
                   {(['shapes','emoji'] as const).map(t=>(
                     <button key={t} onClick={()=>setShapesTab(t)} style={{flex:1,padding:'6px',borderRadius:7,border:'none',cursor:'pointer',background:shapesTab===t?'rgba(0,229,200,0.1)':'transparent',color:shapesTab===t?'#00E5C8':'rgba(255,255,255,0.3)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',transition:'all 0.13s'}}>
-                      {t==='shapes'?'◆ Shapes':'😀 Emoji'}
+                      {t==='shapes'?'◆ Shapes':'★ Emoji'}
                     </button>
                   ))}
                 </div>
@@ -1302,8 +1307,12 @@ function DesignStudio() {
               </button>
             )}
             <div style={{display:'flex',justifyContent:'center',gap:16,marginTop:8}}>
-              {['🔒 Secure','⚡ 72h shipping','↩️ Free returns'].map(b=>(
-                <span key={b} style={{fontSize:'0.53rem',color:'rgba(255,255,255,0.12)',fontWeight:600,letterSpacing:'0.04em'}}>{b}</span>
+              {[
+                {label:'Secure',     icon:<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M5 1L2 2.5v3c0 1.5 1 3 3 3.5 2-.5 3-2 3-3.5v-3z"/></svg>},
+                {label:'72h shipping',icon:<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1.5 1.5"/></svg>},
+                {label:'Free returns',icon:<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M3 5H8M5 3l-2 2 2 2"/></svg>},
+              ].map(b=>(
+                <span key={b.label} style={{fontSize:'0.53rem',color:'rgba(255,255,255,0.12)',fontWeight:600,letterSpacing:'0.04em',display:'flex',alignItems:'center',gap:2}}>{b.icon}{b.label}</span>
               ))}
             </div>
           </div>

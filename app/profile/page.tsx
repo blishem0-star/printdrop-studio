@@ -222,7 +222,8 @@ export default function ProfilePage() {
         {/* Edit Profile */}
         <div style={sectionStyle}>
           <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8, borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
-            ✏️ Edit Profile
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M9 2l3 3-7 7H2v-3z"/><path d="M7 4l3 3"/></svg>
+            Edit Profile
           </h2>
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div><label htmlFor="prof-name" style={lbl}>Full Name</label><input id="prof-name" aria-invalid={!!profileError && editName.trim().length < 2} style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
@@ -237,7 +238,8 @@ export default function ProfilePage() {
         {/* Shipping Address */}
         <div style={sectionStyle}>
           <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
-            📦 Shipping Address
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M1 3h9v7H1zM10 5l3 2v3h-3V5z"/><circle cx="3.5" cy="11" r="1"/><circle cx="11" cy="11" r="1"/></svg>
+            Shipping Address
             <span style={{ fontWeight: 400, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Used for future orders</span>
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
@@ -262,7 +264,8 @@ export default function ProfilePage() {
         {/* AI Style Profile */}
         <div style={{ ...sectionStyle, background: 'rgba(0,229,200,0.03)', border: '1px solid rgba(0,229,200,0.12)' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
-            ✨ AI Style Profile
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M5 7l1.5 1.5L9.5 5"/></svg>
+            AI Style Profile
             {!aiUnlocked && <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}>Unlocks after 3 orders</span>}
           </div>
 
@@ -282,7 +285,9 @@ export default function ProfilePage() {
             <AiProfileView data={profile.aiProfile} />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '1rem', background: 'rgba(0,229,200,0.04)', borderRadius: 12, border: '1px solid rgba(0,229,200,0.12)' }}>
-              <div style={{ fontSize: 28 }}>🤖</div>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg viewBox="0 0 18 18" fill="none" stroke="#00E5C8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={18} height={18} aria-hidden="true"><rect x="3" y="5" width="12" height="10" rx="2"/><path d="M9 2v3M6 8.5h.01M12 8.5h.01M6 11.5h6"/><path d="M2 9h1M15 9h1"/></svg>
+              </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: 3 }}>AI is analyzing your style...</div>
                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Your style profile will appear here once AI integration is enabled. Your order history is already being tracked.</div>
