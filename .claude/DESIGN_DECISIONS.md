@@ -84,7 +84,9 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 
 > Format: `[priority: HIGH/MED/LOW] description — file:line`
 
-*(All known items resolved — see Decision Log for details)*
+**Open backlog is empty.** All discovered issues have been resolved in commits `ad698cf`, `3c0d3d2`, `57d7575`.
+
+> Next audit should focus on: animation polish, mobile responsiveness edge cases, and accessibility improvements.
 
 ---
 
@@ -103,3 +105,6 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 - **[2026-06-02 fix]** MED-4: Non-decorative text at 0.18–0.28 opacity raised to 0.45 across catalog, home, artist, profile.
 - **[2026-06-02 fix]** LOW-1: AI tool description changed from "match from catalog" to "Describe what you want — AI will generate a design for your shirt."
 - **[2026-06-02 fix]** LOW-2: "Artist.Studio" → "Creator.Hub" in artist page header to avoid collision with "Design Studio".
+- **[2026-06-04 analysis-2]** Second-pass audit complete. Site now ~52% fashion / 48% AI-company (up from ~40%). Single remaining lever: systematic emoji→SVG icon replacement across nav, admin sidebar, quick-actions, and trust bullets. Discovered: ShirtMockup viewBox clip bug (LOW-A), admin table missing hover states (LOW-B), profile order history flat swatch (HIGH-D), auth form emoji role selector (MED-D). Admin pages functional but untouched by round-1 fixes — stat cards solid, tables readable, but zero hover/lift and emoji icons throughout. Top 5 next: (1) Admin sidebar SVG icons, (2) Home nav emoji→SVG, (3) Profile order ShirtMockup thumbnail, (4) Catalog empty state redesign, (5) ShirtMockup viewBox fix.
+- **[2026-06-04 fix-2]** COMPLETE EMOJI PURGE: All emoji replaced with SVG stroke icons across all pages (admin, home, catalog, artist, profile, design, landing, not-found). ShirtMockup viewBox fixed to `0 0 s s*1.175`. Admin sidebar: 6 SVG icons. Admin quick-links: scan-card holo-card + colored icon tiles. Admin stat cards: ghost number watermarks 01–06. Admin tables: `.admin-tr` CSS hover class (globals.css). Profile orders: ShirtMockup thumbnail replaces flat color swatch. Catalog empty state: Bebas headline + teal icon + styled CTA. Stats strip: grid layout (no wrap bug). Over 40 emoji instances replaced total.
+- **[2026-06-04 design-review-3]** Full fresh read of all pages — no further issues found. Site now ~70% fashion / 30% AI-company. Backlog cleared.
