@@ -51,9 +51,13 @@ export default async function AdminOverview() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 12, marginBottom: '2.5rem' }}>
-        {statCards.map(s => (
+        {statCards.map((s, i) => (
           <div key={s.label} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', padding: '1.25rem 1.5rem', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
+            {/* Ghost number watermark */}
+            <div style={{ position: 'absolute', bottom: -8, right: 6, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '3.5rem', color: `${s.color}08`, letterSpacing: '0.02em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
+              {String(i + 1).padStart(2, '0')}
+            </div>
             <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{ color: s.color, opacity: 0.7 }}>{statIcons[s.iconKey]}</span>{s.label}
             </div>
