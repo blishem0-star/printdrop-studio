@@ -73,7 +73,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
 
       {totalCount === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+          <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={40} height={40} style={{ marginBottom: 12, display: 'inline-block' }} aria-hidden="true"><path d="M4 4h4l3 14h14l3-10H10"/><circle cx="13" cy="24" r="2"/><circle cx="25" cy="24" r="2"/></svg>
           <p>No orders yet</p>
         </div>
       ) : (
@@ -92,7 +92,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   const item = order.items[0];
                   const design = item?.designAsset;
                   return (
-                    <tr key={order.id} style={{ borderBottom: i < orders.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <tr key={order.id} className="admin-tr" style={{ borderBottom: i < orders.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                       <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)' }}>
                         #{order.id.slice(0, 8).toUpperCase()}
                       </td>

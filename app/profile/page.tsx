@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { OWNER_EMAIL } from '@/lib/owner';
 import { useToast } from '@/components/Toast';
+import ShirtMockup from '@/components/ShirtMockup';
 
 type Role = 'OWNER' | 'USER' | 'ARTIST';
 type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: Role };
@@ -180,10 +181,16 @@ export default function ProfilePage() {
         <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Profile</span>
         <div style={{ flex: 1 }} />
         {role === 'ARTIST' && (
-          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer' }}>🎨 Artist Studio</button>
+          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M2 12c1.5-4 4-8 5-8s.4 2-.4 2.5c-1.2 1.2 1.5 1.5 2-1 .6-1.8.9-3.5.9-3.5"/><circle cx="10.5" cy="3" r=".8"/></svg>
+            Artist Studio
+          </button>
         )}
         {session.email === OWNER_EMAIL && (
-          <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none' }}>⚙ Admin</a>
+          <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1v2M7 11v2M1 7h2M11 7h2M3 3l1.4 1.4M9.6 9.6L11 11M3 11l1.4-1.4M9.6 4.4L11 3"/></svg>
+            Admin
+          </a>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
@@ -286,12 +293,17 @@ export default function ProfilePage() {
 
         {/* Order History */}
         {profile && profile.orders.length > 0 && (
-          <div style={sectionStyle}>
-            <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem' }}>📦 Recent Orders</h2>
+          <div style={{ ...sectionStyle, borderLeft: '3px solid #00E5C8' }}>
+            <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 7 }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M2 2h2l1.5 7h7l1.5-5H5"/><circle cx="6.5" cy="12.5" r="1"/><circle cx="12.5" cy="12.5" r="1"/></svg>
+              Recent Orders
+            </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {profile.orders.map(order => (
                 <div key={order.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: order.items[0]?.designAsset?.colorHex ?? '#2a2a2a', flexShrink: 0, border: '1px solid rgba(255,255,255,0.08)' }} />
+                  <div style={{ flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <ShirtMockup colorHex={order.items[0]?.designAsset?.colorHex ?? '#2a2a2a'} size={44} />
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{order.items[0]?.designAsset?.title ?? 'Custom Design'}</div>
                     <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
@@ -312,7 +324,9 @@ export default function ProfilePage() {
         {role === 'USER' && (
           <div style={{ ...sectionStyle, background: 'rgba(0,229,200,0.03)', border: '1px solid rgba(0,229,200,0.12)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 32 }}>🎨</div>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="#00E5C8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={20} height={20} aria-hidden="true"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2"/></svg>
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.88rem', marginBottom: 3 }}>Are you a designer?</div>
                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Artists can upload their designs to our catalog and earn 50% on every sale. Register a new artist account to get started.</div>

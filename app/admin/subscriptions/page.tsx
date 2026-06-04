@@ -54,14 +54,14 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
 
       <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
-          { label: 'Active',  value: active,              icon: '✅', color: '#10B981' },
-          { label: 'Paused',  value: paused,              icon: '⏸',  color: '#F59E0B' },
-          { label: 'Total',   value: total,               icon: '📦', color: '#8B5CF6' },
-          { label: 'MRR',     value: `$${mrr.toFixed(2)}`, icon: '💰', color: '#3B82F6' },
+          { label: 'Active',  value: active,              color: '#10B981' },
+          { label: 'Paused',  value: paused,              color: '#F59E0B' },
+          { label: 'Total',   value: total,               color: '#8B5CF6' },
+          { label: 'MRR',     value: `$${mrr.toFixed(2)}`, color: '#3B82F6' },
         ].map(s => (
           <div key={s.label} style={{ padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
-            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.icon} {s.label}</div>
+            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.label}</div>
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.9rem', fontWeight: 400, letterSpacing: '0.02em', color: s.color }}>{s.value}</div>
           </div>
         ))}
@@ -77,7 +77,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
 
       {subs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, color: 'rgba(255,255,255,0.15)' }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
+          <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} style={{ marginBottom: 10, display: 'inline-block' }} aria-hidden="true"><path d="M6 6h20l2 4H4zM4 10v16a2 2 0 002 2h20a2 2 0 002-2V10"/><path d="M10 16h12M10 20h8"/></svg>
           <p>No subscriptions found</p>
         </div>
       ) : (
@@ -95,7 +95,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
                 const prefs = (() => { try { return JSON.parse(s.stylePrefs); } catch { return {}; } })();
                 const ss = STATUS_STYLE[s.status as keyof typeof STATUS_STYLE];
                 return (
-                  <tr key={s.id} style={{ borderBottom: i < subs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <tr key={s.id} className="admin-tr" style={{ borderBottom: i < subs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{s.customer.name}</div>
                       <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{s.customer.email}</div>

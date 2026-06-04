@@ -122,13 +122,15 @@ export default function HomePage() {
         <button onClick={() => router.push('/design')} aria-label="Open Design Studio" style={navBtn('teal')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.14)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,229,200,0.07)'; }}>
-          ✏️ Design Studio
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M11 2l3 3-9 9H2v-3z"/><path d="M9 4l3 3"/></svg>
+          Design Studio
         </button>
 
         <button onClick={() => router.push('/catalog')} aria-label="Open Catalog" style={navBtn('indigo')}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,153,255,0.14)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,153,255,0.07)'; }}>
-          🎨 Catalog
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+          Catalog
         </button>
 
         <div style={{ flex: 1 }} />
@@ -137,7 +139,10 @@ export default function HomePage() {
           <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: 'rgba(245,158,11,0.7)' }}>Guest</span>
         )}
         {session.type === 'user' && session.role === 'ARTIST' && (
-          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer' }}>🎨 Artist Studio</button>
+          <button onClick={() => router.push('/artist')} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.25)', color: '#00E5C8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M2 14c2-4 5-9 6-9s.5 2-.5 3c-1.5 1.5 2 2 3-1 .8-2.4 1-4 1-4"/><circle cx="13" cy="3.5" r="1"/></svg>
+            Artist Studio
+          </button>
         )}
         {session.type === 'user' && (
           <button onClick={() => router.push('/profile')} aria-label={`View profile for ${session.name}`}
@@ -180,7 +185,9 @@ export default function HomePage() {
             {/* Ghost label */}
             <div style={{ position: 'absolute', bottom: -8, right: 8, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', color: 'rgba(0,229,200,0.05)', letterSpacing: '0.02em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>01</div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 18 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,229,200,0.1)', border: '1px solid rgba(0,229,200,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>✏️</div>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,229,200,0.1)', border: '1px solid rgba(0,229,200,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#00E5C8' }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={20} height={20} aria-hidden="true"><path d="M14 2l4 4L6 18H2v-4z"/><path d="M12 4l4 4"/></svg>
+              </div>
               <div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Design Studio</div>
                 <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch — add text, upload images, or generate with AI</div>
@@ -199,7 +206,9 @@ export default function HomePage() {
             {/* Ghost label */}
             <div style={{ position: 'absolute', bottom: -8, right: 8, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', color: 'rgba(0,153,255,0.05)', letterSpacing: '0.02em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>02</div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 18 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,153,255,0.1)', border: '1px solid rgba(0,153,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🎨</div>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(0,153,255,0.1)', border: '1px solid rgba(0,153,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#0099FF' }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={20} height={20} aria-hidden="true"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="12" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="12" width="6" height="6" rx="1.5"/><rect x="12" y="12" width="6" height="6" rx="1.5"/></svg>
+              </div>
               <div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Browse Catalog</div>
                 <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
@@ -248,9 +257,17 @@ export default function HomePage() {
             </div>
 
             {/* Features */}
-            <div style={{ display: 'flex', gap: 18, marginBottom: '1.75rem', flexWrap: 'wrap' }}>
-              {['🎁 Surprise every month', '🚚 Free shipping', '⏸ Pause anytime', '💳 Billed monthly'].map(f => (
-                <span key={f} style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{f}</span>
+            <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+              {[
+                { label: 'Surprise every month', icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="1" y="5" width="12" height="8" rx="1.5"/><path d="M7 5v8M7 5c0-1.5 1.5-3 3-2.5M7 5c0-1.5-1.5-3-3-2.5M1 8h12"/></svg> },
+                { label: 'Free shipping',         icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M1 3h9v7H1zM10 5l3 2v3h-3V5z"/><circle cx="3.5" cy="11" r="1"/><circle cx="11" cy="11" r="1"/></svg> },
+                { label: 'Pause anytime',         icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="3" y="2" width="3" height="10" rx="1"/><rect x="8" y="2" width="3" height="10" rx="1"/></svg> },
+                { label: 'Billed monthly',        icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="1" y="3" width="12" height="8" rx="1.5"/><path d="M1 6h12"/></svg> },
+              ].map(f => (
+                <span key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span style={{ color: '#00E5C8', display: 'flex' }}>{f.icon}</span>
+                  {f.label}
+                </span>
               ))}
             </div>
 
@@ -264,8 +281,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={togglePause} disabled={subActionLoading} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: subActionLoading ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 700, cursor: subActionLoading ? 'default' : 'pointer', opacity: subActionLoading ? 0.5 : 1, transition: 'opacity 0.15s' }}>
-                    {sub!.status === 'PAUSED' ? '▶ Resume' : '⏸ Pause'}
+                  <button onClick={togglePause} disabled={subActionLoading} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: subActionLoading ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 700, cursor: subActionLoading ? 'default' : 'pointer', opacity: subActionLoading ? 0.5 : 1, transition: 'opacity 0.15s', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    {sub!.status === 'PAUSED'
+                      ? <><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} aria-hidden="true"><path d="M3 2l7 4-7 4z"/></svg> Resume</>
+                      : <><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} aria-hidden="true"><rect x="2.5" y="2" width="3" height="8" rx="0.8"/><rect x="6.5" y="2" width="3" height="8" rx="0.8"/></svg> Pause</>
+                    }
                   </button>
                   <button onClick={cancelSub} disabled={subActionLoading} style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.07)', color: '#f87171', fontSize: '0.72rem', fontWeight: 700, cursor: subActionLoading ? 'default' : 'pointer', opacity: subActionLoading ? 0.5 : 1, transition: 'opacity 0.15s' }}>Cancel</button>
                 </div>
@@ -275,7 +295,9 @@ export default function HomePage() {
             {/* ── Success message ── */}
             {subSuccess && !showForm && (
               <div role="status" aria-live="polite" style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '1rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>🎉</div>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={18} height={18} aria-hidden="true"><path d="M4 10l5 5 7-7"/></svg>
+                </div>
                 <div style={{ fontWeight: 800, marginBottom: 4 }}>You&apos;re in!</div>
                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Your first box ships on the 1st. We&apos;ll email you a tracking number.</div>
               </div>
@@ -356,7 +378,7 @@ function navBtn(accent: 'teal' | 'indigo'): React.CSSProperties {
   const c = accent === 'teal'
     ? { bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)' }
     : { bg: 'rgba(0,153,255,0.07)', border: 'rgba(0,153,255,0.22)', color: 'rgba(0,153,255,0.85)' };
-  return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' };
+  return { padding: '6px 16px', borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, color: c.color, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6 };
 }
 
 const LS: React.CSSProperties = { display: 'block', fontSize: '0.59rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 7 };

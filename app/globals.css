@@ -420,6 +420,10 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
   .studio-canvas { order: 1; }
 }
 
+/* ── Admin table row hover ── */
+.admin-tr { transition: background 0.12s; }
+.admin-tr:hover { background: rgba(255,255,255,0.025) !important; }
+
 /* ── Print ── */
 @media print {
   .skip-link, [data-cursor], #cursor-dot, #cursor-ring { display: none !important; }

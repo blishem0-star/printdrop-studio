@@ -1,16 +1,54 @@
 'use client';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { OWNER_EMAIL } from '@/lib/owner';
 
+// SVG stroke icons — 16×16 viewBox, strokeWidth 1.5, fill none
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  overview: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <rect x="2" y="2" width="5" height="5" rx="1" /><rect x="9" y="2" width="5" height="5" rx="1" />
+      <rect x="2" y="9" width="5" height="5" rx="1" /><rect x="9" y="9" width="5" height="5" rx="1" />
+    </svg>
+  ),
+  orders: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <path d="M2 2h2l1.5 7h7l1.5-5H5" /><circle cx="6.5" cy="12.5" r="1" /><circle cx="12.5" cy="12.5" r="1" />
+    </svg>
+  ),
+  customers: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <circle cx="6" cy="5" r="2.5" /><path d="M1 14c0-2.8 2.2-5 5-5s5 2.2 5 5" />
+      <circle cx="12" cy="5" r="2" /><path d="M12 10c1.7 0 3 1.3 3 3" />
+    </svg>
+  ),
+  designs: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <circle cx="8" cy="8" r="6" /><circle cx="8" cy="8" r="2.5" />
+      <path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14" />
+    </svg>
+  ),
+  artists: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <path d="M2 14c2-4 5-9 6-9s.5 2-.5 3c-1.5 1.5 2 2 3-1 .8-2.4 1-4 1-4" /><circle cx="13" cy="3.5" r="1" />
+    </svg>
+  ),
+  subscriptions: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" />
+    </svg>
+  ),
+};
+
 const NAV = [
-  { href: '/admin',             label: 'Overview',   icon: '📊' },
-  { href: '/admin/orders',      label: 'Orders',     icon: '📦' },
-  { href: '/admin/customers',   label: 'Customers',  icon: '👥' },
-  { href: '/admin/designs',     label: 'Designs',    icon: '🎨' },
-  { href: '/admin/artists',       label: 'Artists',       icon: '🖌️' },
-  { href: '/admin/subscriptions', label: 'Subscriptions', icon: '✨' },
+  { href: '/admin',             label: 'Overview',       iconKey: 'overview' },
+  { href: '/admin/orders',      label: 'Orders',         iconKey: 'orders' },
+  { href: '/admin/customers',   label: 'Customers',      iconKey: 'customers' },
+  { href: '/admin/designs',     label: 'Designs',        iconKey: 'designs' },
+  { href: '/admin/artists',     label: 'Artists',        iconKey: 'artists' },
+  { href: '/admin/subscriptions', label: 'Subscriptions', iconKey: 'subscriptions' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -67,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               border: `1px solid ${active ? 'rgba(0,229,200,0.18)' : 'transparent'}`,
               borderLeft: active ? '2px solid #00E5C8' : '2px solid transparent',
             }}>
-              <span style={{ fontSize: 14 }}>{n.icon}</span>
+              <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.6 }}>{NAV_ICONS[n.iconKey]}</span>
               {n.label}
             </Link>
           );

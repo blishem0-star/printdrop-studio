@@ -1,3 +1,4 @@
+import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { STATUS_COLOR, STATUS_BG, STATUS_LABEL, type OrderStatus } from '@/lib/types';
 import Link from 'next/link';
@@ -22,13 +23,23 @@ export default async function AdminOverview() {
   const revenue = revenueAgg._sum.total ?? 0;
   type ORow = (typeof recent)[number];
 
+  // SVG icons for stat cards — inline, no emoji
+  const statIcons: Record<string, React.ReactNode> = {
+    revenue: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M6 7h3a1 1 0 010 2H6"/></svg>,
+    orders: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M2 2h2l1.5 7h7l1.5-5H5"/><circle cx="6.5" cy="12.5" r="1"/><circle cx="12.5" cy="12.5" r="1"/></svg>,
+    customers: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M12 10c1.7 0 3 1.3 3 3"/></svg>,
+    progress: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>,
+    delivered: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M2 8l4 4 8-8"/></svg>,
+    designs: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg>,
+  };
+
   const statCards = [
-    { label: 'Total Revenue',  value: `$${revenue.toFixed(2)}`, icon: '💰', color: '#10B981' },
-    { label: 'Total Orders',   value: orderCount,               icon: '📦', color: '#3B82F6' },
-    { label: 'Customers',      value: customerCount,            icon: '👥', color: '#8B5CF6' },
-    { label: 'In Progress',    value: pendingCount,             icon: '⚡', color: '#F59E0B' },
-    { label: 'Delivered',      value: deliveredCount,           icon: '✅', color: '#10B981' },
-    { label: 'Designs Saved',  value: designCount,              icon: '🎨', color: '#00E5C8' },
+    { label: 'Total Revenue',  value: `$${revenue.toFixed(2)}`, iconKey: 'revenue',   color: '#10B981' },
+    { label: 'Total Orders',   value: orderCount,               iconKey: 'orders',    color: '#3B82F6' },
+    { label: 'Customers',      value: customerCount,            iconKey: 'customers', color: '#8B5CF6' },
+    { label: 'In Progress',    value: pendingCount,             iconKey: 'progress',  color: '#F59E0B' },
+    { label: 'Delivered',      value: deliveredCount,           iconKey: 'delivered', color: '#10B981' },
+    { label: 'Designs Saved',  value: designCount,              iconKey: 'designs',   color: '#00E5C8' },
   ];
 
   return (
@@ -43,8 +54,8 @@ export default async function AdminOverview() {
         {statCards.map(s => (
           <div key={s.label} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', padding: '1.25rem 1.5rem', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
-            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
-              {s.icon} {s.label}
+            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ color: s.color, opacity: 0.7 }}>{statIcons[s.iconKey]}</span>{s.label}
             </div>
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.9rem', fontWeight: 400, letterSpacing: '0.02em', color: s.color }}>{s.value}</div>
           </div>
@@ -54,17 +65,17 @@ export default async function AdminOverview() {
       {/* Quick links */}
       <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: '2.5rem' }}>
         {[
-          { href: '/admin/orders',    icon: '📦', label: 'Manage Orders',  desc: `${orderCount} total` },
-          { href: '/admin/customers', icon: '👥', label: 'Customers',      desc: `${customerCount} registered` },
-          { href: '/admin/designs',   icon: '🎨', label: 'Saved Designs',  desc: `${designCount} assets` },
+          { href: '/admin/orders',    iconKey: 'orders',    label: 'Manage Orders',  desc: `${orderCount} total`,          color: '#3B82F6' },
+          { href: '/admin/customers', iconKey: 'customers', label: 'Customers',      desc: `${customerCount} registered`,  color: '#8B5CF6' },
+          { href: '/admin/designs',   iconKey: 'designs',   label: 'Saved Designs',  desc: `${designCount} assets`,        color: '#00E5C8' },
         ].map(q => (
-          <Link key={q.href} href={q.href} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1.25rem', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', transition: 'all 0.15s' }}>
-            <span style={{ fontSize: 22 }}>{q.icon}</span>
+          <Link key={q.href} href={q.href} className="scan-card holo-card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '1.35rem 1.5rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)', textDecoration: 'none', transition: 'transform 0.18s, box-shadow 0.18s' }}>
+            <span style={{ width: 38, height: 38, borderRadius: 10, background: `${q.color}14`, border: `1px solid ${q.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: q.color, flexShrink: 0 }}>{statIcons[q.iconKey]}</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{q.label}</div>
-              <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.28)', marginTop: 2 }}>{q.desc}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>{q.label}</div>
+              <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.32)', marginTop: 2 }}>{q.desc}</div>
             </div>
-            <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>→</span>
+            <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.18)', fontSize: '0.85rem' }}>→</span>
           </Link>
         ))}
       </div>
@@ -78,7 +89,7 @@ export default async function AdminOverview() {
 
         {recent.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16 }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
+            <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} style={{ marginBottom: 10, display: 'inline-block' }} aria-hidden="true"><path d="M4 4h4l3 14h14l3-10H10"/><circle cx="13" cy="24" r="2"/><circle cx="25" cy="24" r="2"/></svg>
             <p>No orders yet</p>
           </div>
         ) : (
@@ -96,7 +107,7 @@ export default async function AdminOverview() {
                   const item = order.items[0];
                   const design = item?.designAsset;
                   return (
-                    <tr key={order.id} style={{ borderBottom: i < recent.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <tr key={order.id} className="admin-tr" style={{ borderBottom: i < recent.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                       <td style={{ padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)' }}>
                         #{order.id.slice(0, 8).toUpperCase()}
                       </td>

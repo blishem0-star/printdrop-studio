@@ -50,14 +50,14 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
       {/* Stats */}
       <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
-          { label: 'Pending Review', value: pending,          icon: '⏳', color: '#F59E0B' },
-          { label: 'Approved',       value: approved,         icon: '✅', color: '#10B981' },
-          { label: 'Total Designs',  value: total,            icon: '🎨', color: '#8B5CF6' },
-          { label: 'Total Paid Out', value: `$${(totalEarned._sum.totalEarned ?? 0).toFixed(2)}`, icon: '💰', color: '#3B82F6' },
+          { label: 'Pending Review', value: pending,          color: '#F59E0B' },
+          { label: 'Approved',       value: approved,         color: '#10B981' },
+          { label: 'Total Designs',  value: total,            color: '#8B5CF6' },
+          { label: 'Total Paid Out', value: `$${(totalEarned._sum.totalEarned ?? 0).toFixed(2)}`, color: '#3B82F6' },
         ].map(s => (
           <div key={s.label} style={{ padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
-            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.icon} {s.label}</div>
+            <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.label}</div>
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.9rem', fontWeight: 400, letterSpacing: '0.02em', color: s.color }}>{s.value}</div>
           </div>
         ))}
@@ -74,7 +74,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
 
       {designs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, color: 'rgba(255,255,255,0.15)' }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>🎨</div>
+          <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} style={{ marginBottom: 10, display: 'inline-block' }} aria-hidden="true"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="5"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3"/></svg>
           <p>{activeFilter === 'PENDING' ? 'No pending designs to review' : 'No designs found'}</p>
         </div>
       ) : (
@@ -91,7 +91,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
               {designs.map((d, i) => {
                 const s = STATUS_STYLE[d.status as keyof typeof STATUS_STYLE];
                 return (
-                  <tr key={d.id} style={{ borderBottom: i < designs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <tr key={d.id} className="admin-tr" style={{ borderBottom: i < designs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>

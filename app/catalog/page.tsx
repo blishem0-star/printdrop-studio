@@ -112,7 +112,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
   return (
     <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} — $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="scan-card holo-card" style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
-      {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em' }}>🎨 {design.artistName}</div>}
+      {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#050507', fontWeight: 900, boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}>✓</div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
@@ -295,11 +295,18 @@ export default function CatalogPage() {
           </div>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)', fontSize: '0.88rem' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
-            <p style={{ marginBottom: 12 }}>No designs found{search ? ` for "${search}"` : ''}</p>
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+            <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(0,229,200,0.06)', border: '1px solid rgba(0,229,200,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,229,200,0.6)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+            </div>
+            <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.6rem,4vw,2.4rem)', fontWeight: 400, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.7)', lineHeight: 1.1, marginBottom: '0.75rem' }}>
+              {search ? `NOTHING FOR "${search.toUpperCase()}"` : 'NO DESIGNS HERE'}
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', maxWidth: 320, lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              {search ? 'Try a different search term or explore all categories.' : 'This category is currently empty — more designs coming soon.'}
+            </p>
             {(search || catFilter !== 'All') && (
-              <button onClick={() => { setSearch(''); setCatFilter('All'); }} style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', cursor: 'pointer' }}>
+              <button onClick={() => { setSearch(''); setCatFilter('All'); }} style={{ padding: '0.6rem 1.5rem', borderRadius: 10, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.06)', color: '#00E5C8', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
                 Clear filters
               </button>
             )}
@@ -322,7 +329,9 @@ export default function CatalogPage() {
 
             {ordered ? (
               <div role="status" aria-live="polite" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '2rem' }}>
-                <div style={{ fontSize: 52 }}>🎉</div>
+                <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(0,229,200,0.15),rgba(0,153,255,0.1))', border: '1px solid rgba(0,229,200,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M5 12l5 5 9-9"/></svg>
+                </div>
                 <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order confirmed!</div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} · {color?.name} · Size {size}</div>
                 {orderId && <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontFamily: 'monospace' }}>#{orderId.slice(0,8).toUpperCase()}</div>}
@@ -338,7 +347,10 @@ export default function CatalogPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(['front', 'back'] as const).map(side => (
                         <button key={side} aria-pressed={(showBack ? side === 'back' : side === 'front')} onClick={() => setShowBack(side === 'back')} style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid', borderColor: (showBack ? side === 'back' : side === 'front') ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: (showBack ? side === 'back' : side === 'front') ? 'rgba(0,229,200,0.08)' : 'transparent', color: (showBack ? side === 'back' : side === 'front') ? '#00E5C8' : 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                          {side === 'front' ? '👕 Front' : '↩️ Back'}
+                          {side === 'front'
+                            ? <><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M3 2C2 3 1 4 1 5l1.5 1C2 8.5 2 10.5 2 12h10c0-1.5 0-3.5-.5-6L13 5c0-1-1-2-2-3l-2 1C8 2 7 2 7 2s-1 0-2 .5z"/></svg> Front</>
+                            : <><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M10 3L6 7l4 4"/><path d="M6 7H13"/><path d="M3 2v10"/></svg> Back</>
+                          }
                           {(side === 'front' ? frontText : backText) && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#00E5C8', display: 'inline-block' }} />}
                         </button>
                       ))}

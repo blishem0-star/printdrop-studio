@@ -8,7 +8,9 @@ export default function NotFound() {
       background: 'linear-gradient(180deg,#050507,#060610)', color: '#fff',
     }}>
       <div style={{ maxWidth: 460 }}>
-        <div style={{ fontSize: 72, marginBottom: 16 }}>👕</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <svg viewBox="0 0 80 90" fill="none" stroke="rgba(0,229,200,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={72} height={72} aria-hidden="true"><path d="M15 22C7 27,1 32,1 34l12 6C11 55,10 72,10 87h60c0-15-1-32-3-47l12-6c0-2-6-7-12-12l-17 5Q42 10,40 10Q38 10,32 27z"/></svg>
+        </div>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, letterSpacing: '-0.05em', marginBottom: 8 }}>
           <span style={{
             background: 'linear-gradient(135deg,#00E5C8,#0099FF)',

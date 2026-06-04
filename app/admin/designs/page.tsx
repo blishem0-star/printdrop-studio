@@ -33,7 +33,7 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
 
       {designs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.2)' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎨</div>
+          <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={44} height={44} style={{ marginBottom: 12, display: 'inline-block' }} aria-hidden="true"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="5"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3"/></svg>
           <p>No designs yet. Place an order from the studio!</p>
         </div>
       ) : (
@@ -48,7 +48,9 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
                   {d.filePath ? (
                     <Image src={d.filePath} alt={d.title} width={100} height={115} style={{ objectFit: 'contain' }} />
                   ) : (
-                    <div style={{ fontSize: 64 }}>{d.emoji ?? '👕'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.35 }}>
+                      <svg viewBox="0 0 60 70" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={60} height={70} aria-hidden="true"><path d="M9 17C5 20,1 24,1 25l8 4C8 42,7 55,7 66h46c0-11-1-24-2-37l8-4c0-1-4-5-8-8l-13 4Q34 8,30 8Q26 8,22 21z"/></svg>
+                    </div>
                   )}
                   <div style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, borderRadius: 8, background: d.colorHex, border: '2px solid rgba(255,255,255,0.15)' }} />
                 </div>

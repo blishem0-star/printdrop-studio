@@ -70,7 +70,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
 
       {totalCount === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
+          <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={40} height={40} style={{ marginBottom: 12, display: 'inline-block' }} aria-hidden="true"><circle cx="12" cy="10" r="5"/><path d="M2 28c0-5.5 4.5-10 10-10s10 4.5 10 10"/><circle cx="24" cy="10" r="4"/><path d="M24 20c3.3 0 6 2.7 6 6"/></svg>
           <p>No customers yet</p>
         </div>
       ) : (
@@ -91,7 +91,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
                     .reduce((s: number, o: OrderRow) => s + o.total, 0);
                   const hasPassword = !!customer.password;
                   return (
-                    <tr key={customer.id} style={{ borderBottom: i < customers.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <tr key={customer.id} className="admin-tr" style={{ borderBottom: i < customers.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                       <td style={{ padding: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div style={{

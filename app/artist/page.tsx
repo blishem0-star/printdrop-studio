@@ -192,10 +192,13 @@ export default function ArtistPage() {
             {loadingDesigns ? (
               <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.15)' }}>Loading designs...</div>
             ) : designs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'rgba(255,255,255,0.015)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.08)' }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🎨</div>
-                <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 8 }}>No designs yet</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', marginBottom: '1.25rem' }}>Upload your first design and start earning 50% on every sale.</div>
+              <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'rgba(255,255,255,0.015)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: 60, height: 60, borderRadius: 16, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,229,200,0.7)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={26} height={26} aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+                </div>
+                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.5rem,3.5vw,2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 6, lineHeight: 1 }}>50% ON EVERY SALE</div>
+                <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 8, color: 'rgba(255,255,255,0.8)' }}>No designs yet</div>
+                <div style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', marginBottom: '1.5rem', maxWidth: 300, lineHeight: 1.6 }}>Upload your first design. You earn half on every shirt sold — we handle print, shipping, and support.</div>
                 <button onClick={() => setTab('upload')} style={{ padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer' }}>Upload First Design</button>
               </div>
             ) : (
@@ -270,7 +273,9 @@ export default function ArtistPage() {
                       </div>
                     ) : (
                       <>
-                        <div style={{ fontSize: 32, marginBottom: 8 }}>📁</div>
+                        <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={26} height={26} aria-hidden="true"><path d="M12 15V3M8 7L12 3l4 4"/><path d="M20 15v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4"/></svg>
+                        </div>
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Drop SVG or image here</div>
                         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>SVG, PNG, JPG — max 10MB · or click to browse</div>
                       </>
@@ -309,7 +314,9 @@ export default function ArtistPage() {
                   <img src={previewUrl} alt="design" style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 60, height: 60, objectFit: 'contain', pointerEvents: 'none' }} />
                 )}
                 {!previewUrl && (
-                  <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 28, opacity: 0.2 }}>🎨</div>
+                  <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%,-50%)', opacity: 0.18 }}>
+                    <svg viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="4"/><path d="M16 6v2M16 24v2M6 16h2M24 16h2"/></svg>
+                  </div>
                 )}
               </div>
               {title && <div style={{ marginTop: '0.75rem', fontSize: '0.78rem', fontWeight: 700 }}>{title}</div>}

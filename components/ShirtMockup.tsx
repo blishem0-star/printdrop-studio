@@ -18,9 +18,9 @@ export default function ShirtMockup({ colorHex, size = 200, children, className,
 
   return (
     <svg
-      viewBox={`0 0 ${s} ${s}`}
+      viewBox={`0 0 ${s} ${Math.round(s * 1.175)}`}
       width={s}
-      height={s}
+      height={Math.round(s * 1.175)}
       className={className}
       style={style}
       aria-hidden="true"

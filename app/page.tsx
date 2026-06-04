@@ -475,10 +475,10 @@ export default function LandingPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'flex', gap: '0', marginTop: '3.5rem', flexWrap: 'wrap', justifyContent: 'center', animation: 'up 0.5s ease 0.5s both', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', marginTop: '3.5rem', animation: 'up 0.5s ease 0.5s both', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
           {[['72h','Delivery'],['300dpi','Print'],['50K+','Shirts'],['Free','Returns']].map(([n,l], i) => (
-            <div key={l} style={{ textAlign: 'center', padding: '1rem 2rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none', position: 'relative' }}>
-              <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
+            <div key={l} style={{ textAlign: 'center', padding: '1rem 1.25rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+              <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,3vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
               <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>
             </div>
           ))}
@@ -568,7 +568,13 @@ export default function LandingPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       {(['USER','ARTIST'] as RegisterRole[]).map(r => (
                         <button key={r} type="button" aria-pressed={role === r} onClick={() => setRole(r)} style={{ padding: '0.65rem', borderRadius: 9, cursor: 'pointer', textAlign: 'left', border: `1.5px solid ${role === r ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)'}`, background: role === r ? 'rgba(0,229,200,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: role === r ? '#00E5C8' : 'rgba(255,255,255,0.45)' }}>{r === 'USER' ? '🛒 Customer' : '🎨 Artist'}</div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: role === r ? '#00E5C8' : 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                            {r === 'USER'
+                              ? <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M1 3h9v7H1zM10 5l3 2v3h-3V5z"/><circle cx="3.5" cy="11" r="1"/><circle cx="11" cy="11" r="1"/></svg>
+                              : <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><path d="M2 12c2-4 4.5-8 5.5-8s.5 2-.5 2.5c-1.5 1.5 2 2 2.5-1 .7-2 1-3.5 1-3.5"/><circle cx="11" cy="3" r="1"/></svg>
+                            }
+                            {r === 'USER' ? 'Customer' : 'Artist'}
+                          </div>
                           <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{r === 'USER' ? 'Order shirts' : 'Sell designs'}</div>
                         </button>
                       ))}
