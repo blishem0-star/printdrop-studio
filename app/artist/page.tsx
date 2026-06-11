@@ -58,8 +58,8 @@ export default function ArtistPage() {
   useEffect(() => {
     if (!session?.customerId) return;
     Promise.all([
-      fetch(`/api/artist/designs?artistId=${session.customerId}`).then(r => r.json()),
-      fetch(`/api/artist/earnings?artistId=${session.customerId}`).then(r => r.json()),
+      fetch('/api/artist/designs').then(r => r.json()),
+      fetch('/api/artist/earnings').then(r => r.json()),
     ]).then(([d, e]) => {
       setDesigns(d);
       setEarnings(e);
@@ -96,7 +96,6 @@ export default function ArtistPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          artistId: session.customerId,
           title: title.trim(), category,
           price: parseFloat(price) || 29.99,
           svg: svgContent,
@@ -108,7 +107,7 @@ export default function ArtistPage() {
       setTitle(''); setCategory(''); setPrice('29.99'); setSvgContent(''); setPreviewUrl(null);
       setSubmitSuccess(true);
       setTab('designs');
-      showToast('Design submitted for review! 🎉', 'success');
+      showToast('Design submitted for review!', 'success');
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch { setSubmitError('Network error'); showToast('Network error.', 'error'); }
     finally { setSubmitting(false); }
@@ -139,7 +138,7 @@ export default function ArtistPage() {
 
       {/* Header */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
+        <button onClick={() => router.push('/home')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 6H2M6 2L2 6l4 4" /></svg>Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
         <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Creator<span style={{ color: '#00E5C8' }}>.</span>Hub</span>
         <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', color: '#00E5C8', border: '1px solid rgba(0,229,200,0.2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Artist</span>
@@ -149,20 +148,29 @@ export default function ArtistPage() {
 
       {/* Earnings banner */}
       {earnings && (
-        <section aria-label="Your earnings summary" style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.25rem 2rem' }}>
+        <section aria-label="Your earnings summary" style={{ position: 'relative', zIndex: 1, background: 'rgba(0,229,200,0.03)', borderBottom: '1px solid rgba(0,229,200,0.1)', padding: '1.75rem 2rem 1.5rem', overflow: 'hidden' }}>
           <div style={{ height: 1, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', position: 'absolute', top: 0, left: 0, right: 0 }} />
-          <div className="rsp-2col" style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
-            {[
-              { label: 'Total Earned', value: `$${earnings.totalEarned.toFixed(2)}`, color: '#00E5C8' },
-              { label: 'Total Sales',  value: earnings.totalSales,                    color: '#0099FF' },
-              { label: 'Approved',     value: earnings.approved,                      color: '#10B981' },
-              { label: 'Pending',      value: earnings.pending,                       color: '#F59E0B' },
-            ].map((s, i) => (
-              <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-                <div style={{ fontSize: '0.56rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.label}</div>
-                <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.8rem', fontWeight: 400, letterSpacing: '0.03em', color: s.color, lineHeight: 1 }}>{s.value}</div>
-              </div>
-            ))}
+          {/* Ghost number watermark */}
+          <div aria-hidden="true" style={{ position: 'absolute', top: '50%', right: '2%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(6rem,16vw,12rem)', color: 'rgba(0,229,200,0.045)', letterSpacing: '0.01em', lineHeight: 0.8, pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>50%</div>
+          <div style={{ maxWidth: 860, margin: '0 auto', position: 'relative' }}>
+            {/* Hook line */}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: '1.1rem', flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,4vw,2rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>You keep 50% on every sale</span>
+              <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>— we handle print, shipping &amp; support.</span>
+            </div>
+            <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
+              {[
+                { label: 'Total Earned', value: `$${earnings.totalEarned.toFixed(2)}`, color: '#00E5C8' },
+                { label: 'Total Sales',  value: earnings.totalSales,                    color: '#0099FF' },
+                { label: 'Approved',     value: earnings.approved,                      color: '#10B981' },
+                { label: 'Pending',      value: earnings.pending,                       color: '#F59E0B' },
+              ].map((s, i) => (
+                <div key={s.label} style={{ textAlign: 'center', padding: '0.5rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                  <div style={{ fontSize: '0.56rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.8rem', fontWeight: 400, letterSpacing: '0.03em', color: s.color, lineHeight: 1 }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -181,8 +189,9 @@ export default function ArtistPage() {
         </div>
 
         {submitSuccess && (
-          <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, marginBottom: '1.25rem', fontSize: '0.82rem', color: '#10B981', fontWeight: 600 }}>
-            ✓ Design submitted! Our team will review it within 24–48 hours.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.875rem 1.25rem', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, marginBottom: '1.25rem', fontSize: '0.82rem', color: '#10B981', fontWeight: 600 }}>
+            <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M3 7.5l2.5 2.5L11 4" /></svg>
+            Design submitted! Our team will review it within 24–48 hours.
           </div>
         )}
 
@@ -216,8 +225,9 @@ export default function ArtistPage() {
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Info note */}
-              <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(0,229,200,0.04)', border: '1px solid rgba(0,229,200,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                ✦ You earn <strong style={{ color: '#00E5C8' }}>50% of every sale</strong>. Designs go through a quick review before appearing in the catalog.
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '0.875rem 1.25rem', background: 'rgba(0,229,200,0.04)', border: '1px solid rgba(0,229,200,0.15)', borderRadius: 12, fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
+                <svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="#00E5C8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, marginTop: 3 }}><path d="M7 1v12M1 7h12M3 3l8 8M11 3l-8 8" /></svg>
+                <span>You earn <strong style={{ color: '#00E5C8' }}>50% of every sale</strong>. Designs go through a quick review before appearing in the catalog.</span>
               </div>
 
               <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -270,7 +280,7 @@ export default function ArtistPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
                         <img src={previewUrl} alt="preview" style={{ height: 70, maxWidth: 140, objectFit: 'contain', borderRadius: 8 }} />
                         <div style={{ textAlign: 'left' }}>
-                          <div style={{ fontSize: '0.75rem', color: '#10B981', fontWeight: 700, marginBottom: 3 }}>✓ Design uploaded</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', color: '#10B981', fontWeight: 700, marginBottom: 3 }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>Design uploaded</div>
                           <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>Click to replace</div>
                         </div>
                       </div>

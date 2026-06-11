@@ -84,9 +84,11 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 
 > Format: `[priority: HIGH/MED/LOW] description — file:line`
 
-**Open backlog is empty.** All discovered issues have been resolved in commits `ad698cf`, `3c0d3d2`, `57d7575`.
+- [LOW] Design studio (`app/design/page.tsx`) Bold Meter ~3/7 — visual-only, has pre-existing lint errors, do not restructure hooks. Could use ghost text + g-text on order panel total.
+- [LOW] Home `navBtn('indigo')` naming — functions fine (maps to blue #0099FF) but label says 'indigo'; cosmetic.
+- [MED] Catalog cards all same size — no density contrast / featured card. Consider 1 large 2-col featured card.
 
-> Next audit should focus on: animation polish, mobile responsiveness edge cases, and accessibility improvements.
+> Next audit should focus on: catalog density contrast, design studio editorial polish, animation timing consistency.
 
 ---
 
@@ -108,3 +110,10 @@ Use `var(--accent)`, `var(--radius)` etc. — never re-type raw hex/px values.
 - **[2026-06-04 analysis-2]** Second-pass audit complete. Site now ~52% fashion / 48% AI-company (up from ~40%). Single remaining lever: systematic emoji→SVG icon replacement across nav, admin sidebar, quick-actions, and trust bullets. Discovered: ShirtMockup viewBox clip bug (LOW-A), admin table missing hover states (LOW-B), profile order history flat swatch (HIGH-D), auth form emoji role selector (MED-D). Admin pages functional but untouched by round-1 fixes — stat cards solid, tables readable, but zero hover/lift and emoji icons throughout. Top 5 next: (1) Admin sidebar SVG icons, (2) Home nav emoji→SVG, (3) Profile order ShirtMockup thumbnail, (4) Catalog empty state redesign, (5) ShirtMockup viewBox fix.
 - **[2026-06-04 fix-2]** COMPLETE EMOJI PURGE: All emoji replaced with SVG stroke icons across all pages (admin, home, catalog, artist, profile, design, landing, not-found). ShirtMockup viewBox fixed to `0 0 s s*1.175`. Admin sidebar: 6 SVG icons. Admin quick-links: scan-card holo-card + colored icon tiles. Admin stat cards: ghost number watermarks 01–06. Admin tables: `.admin-tr` CSS hover class (globals.css). Profile orders: ShirtMockup thumbnail replaces flat color swatch. Catalog empty state: Bebas headline + teal icon + styled CTA. Stats strip: grid layout (no wrap bug). Over 40 emoji instances replaced total.
 - **[2026-06-04 design-review-3]** Full fresh read of all pages — no further issues found. Site now ~70% fashion / 30% AI-company. Backlog cleared.
+- **[2026-06-12 audit-4]** Elite-level cross-site audit. Catalog was weakest (Bold Meter 2/7 — no hero/ghost/billboard). Ranked fixes: catalog billboard > landing brand violations > artist hook elevation > admin emoji bug > profile status strip.
+- **[2026-06-12 fix-4 CATALOG]** Added editorial billboard hero between filters and grid (`catalog:291`): ghost word "WEAR IT" at 22vw rgba(accent,0.04), Bebas headline "Designed by AI. / Worn by you." with holo g-text on line 2, `.text-reveal`, stat strip (designs/300dpi/72h/50%) with teal dividers + g-text numbers. Catalog Bold Meter 2→6/7.
+- **[2026-06-12 fix-4 LANDING]** Brand violations fixed: "The Process" h2 now holo g-text (`page.tsx:639`); LiquidCard label `fontWeight:900`→Bebas (`page.tsx:280`); footer logo `fontWeight:900`→Bebas (`page.tsx:676`).
+- **[2026-06-12 fix-4 ARTIST]** Earnings banner promoted to billboard — ghost "50%" watermark + g-text hook line "You keep 50% on every sale" now shows to ALL creators (was empty-state only). `artist:150`.
+- **[2026-06-12 fix-4 ADMIN]** Fixed empty emoji square in recent-orders design cell (`admin/page.tsx:125`) — `design.emoji` is empty post-purge; replaced with Bebas first-initial on colored swatch.
+- **[2026-06-12 fix-4 PROFILE]** Identity card meta line → status stat strip (Orders / Member since / Tier) with Bebas g-text numbers + teal dividers (`profile:214`). Turns identity into status symbol.
+- **[2026-06-12 verify-4]** `npm run build` ✓ 23/23 pages. No new lint errors. Design studio untouched (visual-only constraint respected).

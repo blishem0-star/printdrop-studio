@@ -277,13 +277,14 @@ function LiquidCard({
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
         }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{shirt.label}</div>
-            <div style={{ fontSize: '0.68rem', color: selected ? ac : 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-              {selected ? '✓ Selected' : 'Tap to select'}
+            <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.05rem', letterSpacing: '0.05em', color: '#fff' }}>{shirt.label}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.68rem', color: selected ? ac : 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              {selected && <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke={ac} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>}
+              {selected ? 'Selected' : 'Tap to select'}
             </div>
           </div>
           {selected && (
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#050507', fontWeight: 900 }}>✓</div>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: ac, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg viewBox="0 0 16 16" width={14} height={14} fill="none" stroke="#050507" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3L13 5" /></svg></div>
           )}
         </div>
       )}
@@ -467,11 +468,11 @@ export default function LandingPage() {
               style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
             >
               {phase === 'generating'
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ animation: 'spin 1s linear infinite' }}>⟳</span>{Math.round(mainPct)}%</span>
-                : 'Generate →'}
+                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><svg viewBox="0 0 16 16" width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }}><path d="M8 1.5a6.5 6.5 0 1 1-6.4 5.4" /></svg>{Math.round(mainPct)}%</span>
+                : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Generate<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
             </button>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; 50K+ shirts created</p>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; 50K+ shirts created</p>
         </div>
 
         {/* Stats */}
@@ -479,7 +480,7 @@ export default function LandingPage() {
           {[['72h','Delivery'],['300dpi','Print'],['50K+','Shirts'],['Free','Returns']].map(([n,l], i) => (
             <div key={l} style={{ textAlign: 'center', padding: '1rem 1.25rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,3vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
-              <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>
+              <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.5)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>
             </div>
           ))}
         </div>
@@ -505,7 +506,7 @@ export default function LandingPage() {
                 {SHIRTS.map((s, i) => (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cardReady[i] ? s.accent : 'rgba(255,255,255,0.28)', transition: 'color 0.3s' }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: cardReady[i] ? s.accent : 'rgba(255,255,255,0.12)', boxShadow: cardReady[i] ? `0 0 10px ${s.accent}` : 'none', transition: 'all 0.4s' }} />
-                    {s.label} {cardReady[i] ? '✓' : `${Math.round(cardPct[i])}%`}
+                    {s.label} {cardReady[i] ? <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke={s.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline', verticalAlign: 'middle' }}><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg> : `${Math.round(cardPct[i])}%`}
                   </div>
                 ))}
               </div>
@@ -539,8 +540,8 @@ export default function LandingPage() {
 
           {phase === 'results' && (
             <div style={{ textAlign: 'center', animation: 'up 0.4s ease 0.2s both' }}>
-              <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>Select a design above to order it</p>
-              <button onClick={enterGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.18)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline' }}>Just browse as guest</button>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>Select a design above to order it</p>
+              <button onClick={enterGuest} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline' }}>Just browse as guest</button>
             </div>
           )}
         </section>
@@ -605,7 +606,7 @@ export default function LandingPage() {
                 </button>
               </form>
               <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                <button onClick={enterGuest} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.2)', fontSize:'0.7rem', cursor:'pointer' }}>Skip &mdash; continue as guest</button>
+                <button onClick={enterGuest} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.45)', fontSize:'0.7rem', cursor:'pointer' }}>Skip &mdash; continue as guest</button>
               </div>
             </div>
           </div>
@@ -635,7 +636,7 @@ export default function LandingPage() {
         <section id="how" style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem 7rem', maxWidth: 1100, margin: '0 auto' }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: '3.5rem' }}>
-            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 400, letterSpacing: '0.025em', color: '#fff', lineHeight: 0.9 }}>The Process</h2>
+            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.9, background: 'linear-gradient(135deg,#fff 35%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>The Process</h2>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.12), transparent)' }} />
             <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.75rem', letterSpacing: '0.15em', color: '#00E5C8', opacity: 0.7 }}>04 STEPS</div>
           </div>
@@ -672,8 +673,8 @@ export default function LandingPage() {
       )}
 
       <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontWeight: 900, fontSize: '0.88rem', letterSpacing: '-0.03em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
-        <div style={{ color: 'rgba(255,255,255,0.14)', fontSize: '0.66rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
+        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
+        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
       </footer>
 
       <style>{`

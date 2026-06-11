@@ -122,7 +122,7 @@ export default async function AdminOverview() {
                       <td style={{ padding: '0.875rem 1rem' }}>
                         {design ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                            <div style={{ width: 28, height: 28, borderRadius: 7, background: design.colorHex, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{design.emoji}</div>
+                            <div style={{ width: 28, height: 28, borderRadius: 7, background: design.colorHex, border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.9rem', letterSpacing: '0.02em', color: 'rgba(0,0,0,0.5)', flexShrink: 0 }}>{design.title?.charAt(0).toUpperCase() ?? '?'}</div>
                             <div>
                               <div style={{ fontSize: '0.77rem', fontWeight: 600 }}>{design.title}</div>
                               <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)' }}>{design.colorName} · {design.size}</div>

@@ -44,7 +44,7 @@ function ColorSwatch({ c, selected, onClick }: { c: TShirtColor; selected: boole
         transition: 'all 0.18s cubic-bezier(0.34,1.56,0.64,1)',
       }}
     >
-      {selected && <span style={{ color: c.textColor, fontSize: 15, lineHeight: 1 }}>✓</span>}
+      {selected && <svg viewBox="0 0 16 16" width={15} height={15} fill="none" stroke={c.textColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3L13 5" /></svg>}
     </button>
   );
 }
@@ -113,7 +113,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
     <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} — $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="scan-card holo-card" style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
-      {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#050507', fontWeight: 900, boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}>✓</div>}
+      {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}><svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="#050507" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4" /></svg></div>}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 120, height: 120 }}>
           <ShirtMockup colorHex="#2a2a2a" size={120} />
@@ -227,7 +227,7 @@ export default function CatalogPage() {
         shippingName: shipName, shippingAddr: shipStreet,
         shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState, total,
         design: {
-          title: selected.title, emoji: '🎨',
+          title: selected.title, emoji: '',
           customText: [frontText, backText].filter(Boolean).join(' | ') || undefined,
           colorHex: color.hex, colorName: color.name, size, price: selected.price, svgDataUrl,
           artistDesignId: selected.originalId ?? undefined,
@@ -238,7 +238,7 @@ export default function CatalogPage() {
           try { localStorage.setItem('pd_shipping', JSON.stringify({ street: shipStreet, city: shipCity, zip: shipZip, state: shipState })); } catch { /* ignore */ }
         }
         setOrderId(result.id); setOrdered(true);
-        showToast('Order placed! 🎉', 'success');
+        showToast('Order placed!', 'success');
       } else {
         showToast('Failed to place order. Try again.', 'error');
       }
@@ -263,7 +263,7 @@ export default function CatalogPage() {
       {selected && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40, backdropFilter: 'blur(4px)' }} />}
 
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
+        <button onClick={() => router.push('/home')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 6H2M6 2L2 6l4 4" /></svg>Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1, margin: 0 }}>Catalog</h1>
         <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, padding: '2px 8px' }}>{allDesigns.length} designs</span>
@@ -276,7 +276,7 @@ export default function CatalogPage() {
         <div className="rsp-pad" style={{ padding: '0.625rem 2rem 0', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['ALL', 'TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
             <button key={pt} aria-pressed={productFilter === pt} onClick={() => setProductFilter(pt)} style={{ padding: '4px 12px', borderRadius: 999, border: '1px solid', borderColor: productFilter === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.07)', background: productFilter === pt ? 'rgba(0,229,200,0.08)' : 'transparent', color: productFilter === pt ? '#00E5C8' : 'rgba(255,255,255,0.32)', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {pt === 'ALL' ? '✦ All Types' : PRODUCT_TYPE_LABELS[pt]}
+              {pt === 'ALL' ? <><svg viewBox="0 0 12 12" width={9} height={9} fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 1v10M1 6h10M2.5 2.5l7 7M9.5 2.5l-7 7" /></svg>All Types</> : PRODUCT_TYPE_LABELS[pt]}
             </button>
           ))}
         </div>
@@ -287,6 +287,37 @@ export default function CatalogPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Editorial billboard ── */}
+      <section aria-label="Catalog intro" style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Ghost word */}
+        <div aria-hidden="true" style={{ position: 'absolute', top: '50%', right: '-2%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(7rem,22vw,18rem)', color: 'rgba(0,229,200,0.04)', letterSpacing: '0.02em', lineHeight: 0.8, pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>WEAR IT</div>
+        <div className="rsp-pad" style={{ maxWidth: 1100, margin: '0 auto', padding: '3.25rem 2rem 2.5rem', position: 'relative' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.62rem', fontWeight: 700, color: 'rgba(0,229,200,0.75)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: '0.9rem' }}>
+            <span style={{ width: 18, height: 1, background: 'rgba(0,229,200,0.6)' }} />
+            The Collection
+          </div>
+          <h2 className="text-reveal" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,9vw,7rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.86, margin: 0, maxWidth: 720 }}>
+            <span style={{ display: 'block', color: '#fff' }}>Designed by AI.</span>
+            <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 50%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Worn by you.</span>
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: 420, marginTop: '1.1rem' }}>
+            Every piece is generated, curated, and printed on demand. Pick one — make it yours in seconds.
+          </p>
+          {/* Stat strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)', marginTop: '2rem', flexWrap: 'wrap' }}>
+            {[[`${allDesigns.length}`, 'Designs'], ['300dpi', 'Print'], ['72h', 'Delivery'], ['50%', 'To Artists']].map(([n, l], i) => (
+              <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)' }}>
+                {i > 0 && <span aria-hidden="true" style={{ width: 1, height: 28, background: 'rgba(0,229,200,0.18)' }} />}
+                <div>
+                  <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.6rem,4vw,2.4rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{n}</div>
+                  <div style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginTop: 4 }}>{l}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem', position: 'relative', zIndex: 1 }}>
         {filtered.map((d, i) => (
@@ -319,12 +350,12 @@ export default function CatalogPage() {
         {selected && (
           <>
             <div style={{ height: 54, display: 'flex', alignItems: 'center', padding: '0 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, gap: 10 }}>
-              {drawerStep === 'delivery' && !ordered && <button aria-label="Back to customize" onClick={() => setDrawerStep('customize')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer' }}>←</button>}
+              {drawerStep === 'delivery' && !ordered && <button aria-label="Back to customize" onClick={() => setDrawerStep('customize')} style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 2 }}><svg viewBox="0 0 14 14" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 7H3M7 3L3 7l4 4" /></svg></button>}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{selected.title}</div>
                 <div aria-live="polite" style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
               </div>
-              <button aria-label="Close panel" onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+              <button aria-label="Close panel" onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" /></svg></button>
             </div>
 
             {ordered ? (
@@ -465,7 +496,7 @@ export default function CatalogPage() {
                       <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginTop: 4 }}>
                         <input type="checkbox" checked={saveAddress} onChange={e => setSaveAddress(e.target.checked)} className="sr-only" />
                         <div aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${saveAddress ? '#00E5C8' : 'rgba(255,255,255,0.2)'}`, background: saveAddress ? '#00E5C8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer', pointerEvents: 'none' }}>
-                          {saveAddress && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
+                          {saveAddress && <svg viewBox="0 0 14 14" width={11} height={11} fill="none" stroke="#050507" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4" /></svg>}
                         </div>
                         <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>Save delivery details for next time</span>
                       </label>

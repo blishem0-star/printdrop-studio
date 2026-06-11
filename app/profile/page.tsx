@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { OWNER_EMAIL } from '@/lib/owner';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
 
@@ -43,6 +42,7 @@ export default function ProfilePage() {
   // Edit profile
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!session?.customerId) return;
-    fetch(`/api/user/profile?customerId=${session.customerId}`)
+    fetch('/api/user/profile')
       .then(r => r.json())
       .then((p: Profile) => {
         setProfile(p);
@@ -92,7 +92,7 @@ export default function ProfilePage() {
       const res = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: session.customerId, name: editName.trim(), email: editEmail.trim() }),
+        body: JSON.stringify({ name: editName.trim(), email: editEmail.trim(), ...(confirmPw && { currentPassword: confirmPw }) }),
       });
       if (!res.ok) { const d = await res.json(); const msg = d.error ?? 'Failed to save'; setProfileError(msg); showToast(msg, 'error'); return; }
       const updated = await res.json();
@@ -115,7 +115,6 @@ export default function ProfilePage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerId: session.customerId,
           shipStreet: addrStreet.trim(),
           shipCity: addrCity.trim(),
           shipState: addrState,
@@ -134,7 +133,7 @@ export default function ProfilePage() {
 
   function signOut() {
     try { localStorage.removeItem('pd_session'); } catch { /* ignore */ }
-    router.replace('/');
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => router.replace('/'));
   }
 
   const inp: React.CSSProperties = {
@@ -176,7 +175,7 @@ export default function ProfilePage() {
 
       {/* Header */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, background: 'rgba(5,5,7,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
-        <button onClick={() => router.push('/home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}>← Back</button>
+        <button onClick={() => router.push('/home')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Outfit', system-ui, sans-serif" }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 6H2M6 2L2 6l4 4" /></svg>Back</button>
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
         <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.35rem', fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1 }}>Profile</span>
         <div style={{ flex: 1 }} />
@@ -186,7 +185,7 @@ export default function ProfilePage() {
             Artist Studio
           </button>
         )}
-        {session.email === OWNER_EMAIL && (
+        {session.role === 'OWNER' && (
           <a href="/admin" style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.22)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1v2M7 11v2M1 7h2M11 7h2M3 3l1.4 1.4M9.6 9.6L11 11M3 11l1.4-1.4M9.6 4.4L11 3"/></svg>
             Admin
@@ -213,8 +212,21 @@ export default function ProfilePage() {
               <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '2px 8px', borderRadius: 999, background: badge.bg, color: badge.color, border: `1px solid ${badge.color}44`, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{badge.label}</span>
             </div>
             <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>{profile?.email ?? session.email}</div>
-            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', marginTop: 3 }}>
-              {orderCount} order{orderCount !== 1 ? 's' : ''} · Member since {profile ? new Date(profile.createdAt ?? Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'}
+            {/* Status stat strip */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
+              {[
+                [String(orderCount), orderCount === 1 ? 'Order' : 'Orders'],
+                [profile ? new Date(profile.createdAt ?? Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—', 'Member since'],
+                [badge.label, 'Tier'],
+              ].map(([n, l], i) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  {i > 0 && <span aria-hidden="true" style={{ width: 1, height: 24, background: 'rgba(0,229,200,0.2)' }} />}
+                  <div>
+                    <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.25rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, background: 'linear-gradient(135deg,#fff 45%,rgba(0,229,200,0.8))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{n}</div>
+                    <div style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginTop: 3 }}>{l}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -228,10 +240,13 @@ export default function ProfilePage() {
           <div className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div><label htmlFor="prof-name" style={lbl}>Full Name</label><input id="prof-name" aria-invalid={!!profileError && editName.trim().length < 2} style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
             <div><label htmlFor="prof-email" style={lbl}>Email</label><input id="prof-email" aria-invalid={!!profileError && !!editEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail)} style={inp} type="email" autoComplete="email" maxLength={120} value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
+            {editEmail.trim().toLowerCase() !== (session?.email ?? '').toLowerCase() && editEmail.trim() !== '' && (
+              <div><label htmlFor="prof-pw" style={lbl}>Current password (required to change email)</label><input id="prof-pw" style={inp} type="password" autoComplete="current-password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" /></div>
+            )}
           </div>
           {profileError && <div role="alert" aria-live="assertive" style={{ fontSize: '0.72rem', color: '#F87171', marginBottom: 10 }}>{profileError}</div>}
           <button onClick={saveProfile} disabled={profileSaving || !editName.trim()} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: profileSaved ? '#10B981' : editName.trim() && !profileSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: editName.trim() && !profileSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: editName.trim() && !profileSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
-            {profileSaved ? '✓ Saved' : profileSaving ? 'Saving...' : 'Save Changes'}
+            {profileSaved ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>Saved</span> : profileSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
 
@@ -257,7 +272,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <button onClick={saveAddress} disabled={addrSaving} style={{ padding: '0.55rem 1.5rem', borderRadius: 10, border: 'none', background: addrSaved ? '#10B981' : !addrSaving ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: !addrSaving ? '#050507' : 'rgba(255,255,255,0.25)', fontWeight: 700, fontSize: '0.82rem', cursor: !addrSaving ? 'pointer' : 'default', transition: 'all 0.2s' }}>
-            {addrSaved ? '✓ Saved' : addrSaving ? 'Saving...' : 'Save Address'}
+            {addrSaved ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>Saved</span> : addrSaving ? 'Saving...' : 'Save Address'}
           </button>
         </div>
 
