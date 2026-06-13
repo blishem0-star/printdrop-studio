@@ -163,3 +163,26 @@ model OrderItem {
   qty           Int         @default(1)
   unitPrice     Float
 }
+
+// Immutable audit trail of privileged admin operations
+model AdminAction {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorEmail String
+  action     String   // e.g. DESIGN_APPROVED, DESIGN_REJECTED, ORDER_STATUS_CHANGED
+  targetType String   // ArtistDesign | Order
+  targetId   String
+  detail     String?  // free-form, e.g. "PAID -> SHIPPED"
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+// Per-account login throttling (in addition to per-IP rate limiting)
+model LoginThrottle {
+  email        String    @id
+  failures     Int       @default(0)
+  lockedUntil  DateTime?
+  updatedAt    DateTime  @updatedAt
+}

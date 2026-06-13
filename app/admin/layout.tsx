@@ -3,7 +3,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { OWNER_EMAIL } from '@/lib/owner';
 
 // SVG stroke icons — 16×16 viewBox, strokeWidth 1.5, fill none
 const NAV_ICONS: Record<string, React.ReactNode> = {
@@ -56,45 +55,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [allowed, setAllowed] = useState(false);
 
+  // UX-level check only — the real gate is middleware.ts verifying the session server-side
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pd_session');
-      if (!raw) { router.replace('/'); return; }
-      const sess = JSON.parse(raw);
-      if (sess.email !== OWNER_EMAIL) { router.replace('/home'); return; }
-      setAllowed(true);
-    } catch {
-      router.replace('/');
-    }
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => {
+        if (d.user?.role === 'OWNER') setAllowed(true);
+        else router.replace('/home');
+      })
+      .catch(() => router.replace('/'));
   }, [router]);
 
   if (!allowed) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050507' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>Checking access...</div>
+      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem' }}>Checking access...</div>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050507', display: 'flex' }}>
+    <div className="admin-shell" style={{ minHeight: '100vh', background: '#050507', display: 'flex' }}>
       {/* Sidebar */}
-      <aside aria-label="Admin navigation" style={{
+      <aside aria-label="Admin navigation" className="admin-aside" style={{
         width: 210, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)',
         padding: '1.5rem 0.875rem', display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh', gap: 2,
       }}>
-        <div style={{ marginBottom: '1.75rem', padding: '0 0.625rem' }}>
+        <div className="admin-brand" style={{ marginBottom: '1.75rem', padding: '0 0.625rem' }}>
           <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.4rem', letterSpacing: '0.06em', lineHeight: 1, color: '#fff' }}>
             STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
           </div>
           <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', fontWeight: 700, marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</div>
         </div>
 
+        <nav className="admin-nav" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {NAV.map(n => {
           const active = n.href === '/admin'
             ? path === '/admin'
             : path.startsWith(n.href);
           return (
-            <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined} style={{
+            <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined} className="admin-navlink" style={{
               display: 'flex', alignItems: 'center', gap: 9,
               padding: '0.575rem 0.75rem', paddingLeft: active ? 'calc(0.75rem - 2px)' : '0.75rem',
               borderRadius: 10,
@@ -110,17 +109,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           );
         })}
+        </nav>
 
-        <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="admin-aside-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <Link href="/home" style={{
-            fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textDecoration: 'none',
+            fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
             display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 0.75rem',
-          }}>← Back to studio</Link>
+          }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 6H2M6 2L2 6l4 4" /></svg>Back to studio</Link>
         </div>
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '2.5rem 3rem', overflowY: 'auto', minHeight: '100vh' }}>
+      <main className="admin-main" style={{ flex: 1, padding: '2.5rem 3rem', overflowY: 'auto', minHeight: '100vh' }}>
         {children}
       </main>
     </div>

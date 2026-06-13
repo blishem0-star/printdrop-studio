@@ -12,7 +12,15 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated Prisma client — machine-written, not subject to lint
+    "lib/generated/**",
   ]),
+  {
+    // These pages render user-generated designs as data-URLs (SVG/base64);
+    // next/image provides no optimization for data: sources, so <img> is correct.
+    files: ["app/artist/page.tsx", "app/admin/artists/page.tsx", "app/design/page.tsx", "app/catalog/page.tsx"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
 ]);
 
 export default eslintConfig;

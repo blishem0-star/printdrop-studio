@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
+import { sanitizeSvg } from '@/lib/sanitizeSvg';
 
 export async function GET(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest) {
     title: d.title,
     category: d.category,
     price: d.price,
-    svg: d.svg,
+    // legacy rows predate DOM-based sanitization — re-sanitize on the way out
+    svg: d.svg.trimStart().startsWith('<') ? sanitizeSvg(d.svg) : d.svg,
     badge: d.badge ?? 'new',
     artistId: d.artistId,
     artistName: d.artist.name,

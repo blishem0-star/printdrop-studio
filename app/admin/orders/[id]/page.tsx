@@ -2,7 +2,6 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { STATUS_COLOR, type OrderStatus } from '@/lib/types';
 import { StatusButtons } from './StatusButtons';
 
 export const dynamic = 'force-dynamic';

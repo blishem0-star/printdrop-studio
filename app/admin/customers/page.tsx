@@ -49,7 +49,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
         <form method="GET" action="/admin/customers" style={{ display: 'flex', gap: 6 }}>
           <input type="search" name="q" defaultValue={query} placeholder="Search name or email…" maxLength={100} aria-label="Search customers" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', color: '#fff', fontSize: '0.78rem', outline: 'none', width: 220 }} />
           <button type="submit" style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.08)', color: '#00E5C8', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Search</button>
-          {query && <Link href="/admin/customers" style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>✕</Link>}
+          {query && <Link href="/admin/customers" aria-label="Clear search" style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center' }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" /></svg></Link>}
         </form>
       </div>
 

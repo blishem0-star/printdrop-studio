@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useId } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
@@ -10,8 +10,8 @@ import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
-
-type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string };
+import { useLocalSession } from '@/lib/useLocalSession';
+import { svgToDataUrl } from '@/lib/svgDataUrl';
 type TextPos = 'top' | 'center' | 'bottom';
 type FontStyle = 'bold' | 'script' | 'minimal';
 
@@ -134,7 +134,7 @@ function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selec
 
 export default function CatalogPage() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const session = useLocalSession();
   const [catFilter, setCatFilter] = useState('All');
   const [productFilter, setProductFilter] = useState<ProductType | 'ALL'>('ALL');
   const [drawerProductType, setDrawerProductType] = useState<ProductType>('TSHIRT');
@@ -167,17 +167,25 @@ export default function CatalogPage() {
   const { show: showToast, element: toastEl } = useToast();
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pd_session');
-      if (!raw) { router.replace('/'); return; }
-      const sess: Session = JSON.parse(raw);
-      setSession(sess);
-      if (sess.name && sess.name !== 'Guest') setShipName(sess.name);
-      if (sess.email) setShipEmail(sess.email);
-      const saved = localStorage.getItem('pd_shipping');
-      if (saved) { const s = JSON.parse(saved); setShipStreet(s.street ?? ''); setShipCity(s.city ?? ''); setShipZip(s.zip ?? ''); setShipState(s.state ?? ''); }
-    } catch { router.replace('/'); }
-  }, [router]);
+    if (session === undefined) return; // not hydrated yet
+    if (!session) { router.replace('/'); return; }
+    // Prefill the order form once, asynchronously, to avoid cascading renders
+    const t = setTimeout(() => {
+      if (session.name && session.name !== 'Guest') setShipName(prev => prev || session.name);
+      if (session.email) setShipEmail(prev => prev || session.email!);
+      try {
+        const saved = localStorage.getItem('pd_shipping');
+        if (saved) {
+          const s = JSON.parse(saved);
+          setShipStreet(prev => prev || (s.street ?? ''));
+          setShipCity(prev => prev || (s.city ?? ''));
+          setShipZip(prev => prev || (s.zip ?? ''));
+          setShipState(prev => prev || (s.state ?? ''));
+        }
+      } catch { /* ignore corrupt saved shipping */ }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [session, router]);
 
   useEffect(() => {
     fetch('/api/catalog/artist-designs')
@@ -221,7 +229,7 @@ export default function CatalogPage() {
     if (!selected || !color || !size) return;
     setSubmitting(true);
     try {
-      const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(selected.svg.replace(/currentColor/g, color.textColor));
+      const svgDataUrl = svgToDataUrl(selected.svg.replace(/currentColor/g, color.textColor));
       const result = await submitOrder({
         customerName: shipName, customerEmail: shipEmail,
         shippingName: shipName, shippingAddr: shipStreet,
@@ -248,7 +256,7 @@ export default function CatalogPage() {
 
   const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0.55rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' };
 
-  if (!session) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}><div style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading...</div></div>;
+  if (!session) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}><div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>Loading...</div></div>;
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', position: 'relative' }}>
@@ -524,5 +532,4 @@ export default function CatalogPage() {
 }
 
 const lbl: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 };
-const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0.55rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' };
 

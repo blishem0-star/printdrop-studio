@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
+import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 
 type Role = 'OWNER' | 'USER' | 'ARTIST';
-type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: Role };
 type OrderStatus = 'DRAFT' | 'PAID' | 'IN_PRODUCTION' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
@@ -35,7 +35,7 @@ const ROLE_BADGE: Record<Role, { label: string; color: string; bg: string }> = {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const session = useLocalSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,14 +57,10 @@ export default function ProfilePage() {
   const [addrSaved, setAddrSaved]   = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pd_session');
-      if (!raw) { router.replace('/'); return; }
-      const sess: Session = JSON.parse(raw);
-      if (sess.type !== 'user' || !sess.customerId) { router.replace('/home'); return; }
-      setSession(sess);
-    } catch { router.replace('/'); }
-  }, [router]);
+    if (session === undefined) return; // not hydrated yet
+    if (!session) { router.replace('/'); return; }
+    if (session.type !== 'user' || !session.customerId) router.replace('/home');
+  }, [session, router]);
 
   useEffect(() => {
     if (!session?.customerId) return;
@@ -96,9 +92,7 @@ export default function ProfilePage() {
       });
       if (!res.ok) { const d = await res.json(); const msg = d.error ?? 'Failed to save'; setProfileError(msg); showToast(msg, 'error'); return; }
       const updated = await res.json();
-      const newSession = { ...session, name: updated.name, email: updated.email };
-      localStorage.setItem('pd_session', JSON.stringify(newSession));
-      setSession(newSession);
+      setLocalSession({ ...session, name: updated.name, email: updated.email });
       setProfile(p => p ? { ...p, name: updated.name, email: updated.email } : p);
       setProfileSaved(true);
       showToast('Profile saved!', 'success');
@@ -132,7 +126,7 @@ export default function ProfilePage() {
   }
 
   function signOut() {
-    try { localStorage.removeItem('pd_session'); } catch { /* ignore */ }
+    setLocalSession(null);
     fetch('/api/auth/logout', { method: 'POST' }).finally(() => router.replace('/'));
   }
 
@@ -152,14 +146,14 @@ export default function ProfilePage() {
     backdropFilter: 'blur(8px)',
   };
 
-  const role = profile?.role ?? session?.role ?? 'USER';
+  const role = (profile?.role ?? session?.role ?? 'USER') as Role;
   const badge = ROLE_BADGE[role];
   const orderCount = profile?._count.orders ?? 0;
   const aiUnlocked = orderCount >= 3;
 
   if (!session || loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading profile…</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading profile…</div>
     </div>
   );
 
@@ -216,7 +210,7 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
               {[
                 [String(orderCount), orderCount === 1 ? 'Order' : 'Orders'],
-                [profile ? new Date(profile.createdAt ?? Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—', 'Member since'],
+                [profile ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—', 'Member since'],
                 [badge.label, 'Tier'],
               ].map(([n, l], i) => (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -361,24 +355,24 @@ export default function ProfilePage() {
 }
 
 function AiProfileView({ data }: { data: string }) {
-  try {
-    const profile = JSON.parse(data);
-    return (
+  let profile: { style?: string; recommendations?: string[] } | null = null;
+  try { profile = JSON.parse(data); } catch { profile = null; }
+  if (!profile || typeof profile !== 'object') {
+    return <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>AI profile data is loading...</div>;
+  }
+  return (
       <div>
         {profile.style && <div style={{ marginBottom: 12 }}><span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Your Style</span><div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: 4 }}>{profile.style}</div></div>}
-        {profile.recommendations?.length > 0 && (
+        {(profile.recommendations?.length ?? 0) > 0 && (
           <div>
             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Recommended For You</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {profile.recommendations.map((r: string, i: number) => (
+              {profile.recommendations!.map((r: string, i: number) => (
                 <span key={i} style={{ padding: '4px 12px', borderRadius: 999, background: 'rgba(0,229,200,0.08)', border: '1px solid rgba(0,229,200,0.2)', color: '#00E5C8', fontSize: '0.72rem', fontWeight: 600 }}>{r}</span>
               ))}
             </div>
           </div>
         )}
       </div>
-    );
-  } catch {
-    return <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>AI profile data is loading...</div>;
-  }
+  );
 }

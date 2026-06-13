@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { DesignActionButtons } from './DesignActionButtons';
+import { sanitizeSvg } from '@/lib/sanitizeSvg';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,7 +97,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                           {d.svg.startsWith('<svg') ? (
-                            <div style={{ width: 32, height: 32 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="32" height="32" ') }} />
+                            <div style={{ width: 32, height: 32 }} dangerouslySetInnerHTML={{ __html: sanitizeSvg(d.svg).replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="32" height="32" ') }} />
                           ) : (
                             <img src={d.svg} alt={d.title} style={{ width: 32, height: 32, objectFit: 'contain' }} />
                           )}

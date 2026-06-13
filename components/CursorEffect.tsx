@@ -6,8 +6,10 @@ export default function CursorEffect() {
   const ring = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // No cursor effect on touch devices
+    // No cursor effect on touch devices or when the user prefers reduced motion
+    // (globals.css restores the native cursor in both cases)
     if (window.matchMedia('(hover: none)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const d = dot.current, r = ring.current;
     if (!d || !r) return;

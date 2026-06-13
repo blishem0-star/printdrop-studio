@@ -1,27 +1,38 @@
 import type { MetadataRoute } from 'next';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import { prisma } from '@/lib/prisma';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://stylx.ai';
   const now = new Date();
 
-  return [
-    {
-      url: base,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${base}/catalog`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${base}/design`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: base, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+    { url: `${base}/catalog`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${base}/design`, lastModified: now, changeFrequency: 'weekly', priority: 0.85 },
   ];
+
+  const designPages: MetadataRoute.Sitemap = CATALOG_DESIGNS.map(d => ({
+    url: `${base}/catalog/${d.id}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
+
+  let artistPages: MetadataRoute.Sitemap = [];
+  try {
+    const artistDesigns = await prisma.artistDesign.findMany({
+      where: { status: 'APPROVED' },
+      select: { id: true, updatedAt: true },
+      take: 1000,
+    });
+    artistPages = artistDesigns.map(d => ({
+      url: `${base}/catalog/artist-${d.id}`,
+      lastModified: d.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch { /* DB unavailable at build time — ship static entries only */ }
+
+  return [...staticPages, ...designPages, ...artistPages];
 }

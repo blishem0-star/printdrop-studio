@@ -1,12 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { OWNER_EMAIL } from '@/lib/owner';
+import Link from 'next/link';
 import { useToast } from '@/components/Toast';
-import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE, buildProductSvg } from '@/lib/productTypes';
+import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
+import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 
-type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
 type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 type Subscription = { id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string };
 
@@ -32,9 +32,8 @@ const MONTHLY = 59.99;
 
 export default function HomePage() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const session = useLocalSession();
   const [sub, setSub] = useState<Subscription | null>(null);
-  const [subLoading, setSubLoading] = useState(false);
   const [subActionLoading, setSubActionLoading] = useState(false);
   const { show: showToast, element: toastEl } = useToast();
 
@@ -47,18 +46,13 @@ export default function HomePage() {
   const [subSuccess, setSubSuccess] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pd_session');
-      if (!raw) { router.replace('/'); return; }
-      const sess: Session = JSON.parse(raw);
-      setSession(sess);
-      if (sess.customerId) {
-        setSubLoading(true);
-        fetch(`/api/subscription?customerId=${sess.customerId}`)
-          .then(r => r.json()).then(s => { if (s) setSub(s); }).catch(() => {}).finally(() => setSubLoading(false));
-      }
-    } catch { router.replace('/'); }
-  }, [router]);
+    if (session === undefined) return; // not hydrated yet
+    if (!session) { router.replace('/'); return; }
+    if (session.customerId) {
+      fetch('/api/subscription')
+        .then(r => r.json()).then(s => { if (s) setSub(s); }).catch(() => {});
+    }
+  }, [session, router]);
 
   function toggleType(t: ProductType) {
     setSelTypes(prev => prev.includes(t) ? (prev.length > 1 ? prev.filter(x => x !== t) : prev) : [...prev, t]);
@@ -70,9 +64,9 @@ export default function HomePage() {
     try {
       const res = await fetch('/api/subscription', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: session.customerId, stylePrefs: { style: selStyle, productTypes: selTypes, size: prefSize } }),
+        body: JSON.stringify({ stylePrefs: { style: selStyle, productTypes: selTypes, size: prefSize } }),
       });
-      if (res.ok) { setSub(await res.json()); setSubSuccess(true); setShowForm(false); showToast('Subscription activated! 🎉', 'success'); }
+      if (res.ok) { setSub(await res.json()); setSubSuccess(true); setShowForm(false); showToast('Subscription activated!', 'success'); }
       else { showToast('Failed to subscribe. Try again.', 'error'); }
     } catch { showToast('Network error.', 'error'); } finally { setSubmitting(false); }
   }
@@ -82,7 +76,7 @@ export default function HomePage() {
     if (!window.confirm('Cancel your subscription? You will still receive boxes already shipped.')) return;
     setSubActionLoading(true);
     try {
-      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, customerId: session?.customerId, status: 'CANCELLED' }) });
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
       if (res.ok) { setSub(prev => prev ? { ...prev, status: 'CANCELLED' } : null); showToast('Subscription cancelled.', 'info'); }
       else { showToast('Failed to cancel. Try again.', 'error'); }
     } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }
@@ -93,20 +87,20 @@ export default function HomePage() {
     const newStatus: SubStatus = sub.status === 'PAUSED' ? 'ACTIVE' : 'PAUSED';
     setSubActionLoading(true);
     try {
-      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, customerId: session?.customerId, status: newStatus }) });
+      const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: newStatus }) });
       if (res.ok) { setSub(prev => prev ? { ...prev, status: newStatus } : null); showToast(newStatus === 'PAUSED' ? 'Subscription paused.' : 'Subscription resumed.', 'info'); }
       else { showToast('Failed to update. Try again.', 'error'); }
     } catch { showToast('Network error.', 'error'); } finally { setSubActionLoading(false); }
   }
 
   function signOut() {
-    try { localStorage.removeItem('pd_session'); } catch { /* */ }
-    router.replace('/');
+    setLocalSession(null);
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => router.replace('/'));
   }
 
   if (!session) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.82rem' }}>Loading…</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>Loading…</div>
     </div>
   );
 
@@ -164,11 +158,11 @@ export default function HomePage() {
             {session.name}
           </button>
         )}
-        {session.email === OWNER_EMAIL && (
-          <a href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+        {session.role === 'OWNER' && (
+          <Link href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
             <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} aria-hidden="true"><circle cx="6" cy="6" r="2"/><path d="M6 1v1.5M6 9.5V11M1 6h1.5M9.5 6H11M2.3 2.3l1 1M8.7 8.7l1 1M2.3 9.7l1-1M8.7 3.3l1-1"/></svg>
             Admin
-          </a>
+          </Link>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>
       </header>
@@ -264,7 +258,7 @@ export default function HomePage() {
               {ALL_TYPES.map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
                   {PRODUCT_TYPE_LABELS[t]}
-                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>from ${PRODUCT_BASE_PRICE[t]}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>from ${PRODUCT_BASE_PRICE[t]}</span>
                 </div>
               ))}
             </div>
@@ -288,7 +282,7 @@ export default function HomePage() {
             {hasActiveSub && (
               <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 14, padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 800, marginBottom: 3 }}>✓ You&apos;re subscribed{sub!.status === 'PAUSED' ? ' (paused)' : ''}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', color: '#10B981', fontWeight: 800, marginBottom: 3 }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>You&apos;re subscribed{sub!.status === 'PAUSED' ? ' (paused)' : ''}</div>
                   <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>
                     Next shipment: {new Date(sub!.nextShipmentAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
@@ -319,7 +313,7 @@ export default function HomePage() {
             {/* ── CTA / Form ── */}
             {!hasActiveSub && !subSuccess && session.type === 'guest' && (
               <div style={{ padding: '1rem', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 12, fontSize: '0.78rem', color: 'rgba(245,158,11,0.75)', textAlign: 'center' }}>
-                <a href="/" style={{ color: '#F59E0B', fontWeight: 700, textDecoration: 'none' }}>Sign in</a> to subscribe
+                <Link href="/" style={{ color: '#F59E0B', fontWeight: 700, textDecoration: 'none' }}>Sign in</Link> to subscribe
               </div>
             )}
 

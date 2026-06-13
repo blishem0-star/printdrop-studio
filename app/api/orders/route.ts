@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
+import { getSession } from '@/lib/session';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,11 +67,31 @@ export async function POST(req: NextRequest) {
   }
   const total = parseFloat((authorizedPrice + SHIPPING_PRICE).toFixed(2));
 
-  const customer = await prisma.customer.upsert({
-    where: { email: customerEmail.toLowerCase().trim() },
-    update: { name: customerName.trim() },
-    create: { name: customerName.trim(), email: customerEmail.toLowerCase().trim() },
-  });
+  // Reject unsafe data URLs (only raster/svg images may be stored) and cap size
+  if (design.svgDataUrl) {
+    if (!/^data:image\/(svg\+xml|png|jpeg|webp)[;,]/.test(design.svgDataUrl)) {
+      return NextResponse.json({ error: 'Invalid design data' }, { status: 422 });
+    }
+    if (design.svgDataUrl.length > 1_000_000) {
+      return NextResponse.json({ error: 'Design image too large (max ~1MB)' }, { status: 422 });
+    }
+  }
+
+  // Logged-in users order under their own account; guests get a passwordless
+  // record, but a guest order must never modify an existing registered account.
+  const session = await getSession();
+  let customer;
+  if (session) {
+    customer = await prisma.customer.findUnique({ where: { id: session.id } });
+    if (!customer) return NextResponse.json({ error: 'Account not found' }, { status: 401 });
+  } else {
+    const email = customerEmail.toLowerCase().trim();
+    const existing = await prisma.customer.findUnique({ where: { email } });
+    if (existing?.password) {
+      return NextResponse.json({ error: 'An account exists for this email — please log in to order' }, { status: 409 });
+    }
+    customer = existing ?? await prisma.customer.create({ data: { name: customerName.trim(), email } });
+  }
 
   const designAsset = await prisma.designAsset.create({
     data: {

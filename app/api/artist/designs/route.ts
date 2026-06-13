@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
+import { getSession } from '@/lib/session';
+import { sanitizeSvg } from '@/lib/sanitizeSvg';
 
-export async function GET(req: NextRequest) {
-  const artistId = req.nextUrl.searchParams.get('artistId');
-  if (!artistId) return NextResponse.json({ error: 'Missing artistId' }, { status: 400 });
+export async function GET() {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const designs = await prisma.artistDesign.findMany({
-    where: { artistId },
+    where: { artistId: session.id },
     orderBy: { createdAt: 'desc' },
     take: 50,
     select: {
@@ -24,42 +26,41 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`artist-design-post:${ip}`, 10, 60 * 60 * 1000)) {
     return NextResponse.json({ error: 'Too many submissions. Try again in an hour.' }, { status: 429 });
   }
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'ARTIST' && session.role !== 'OWNER') {
+    return NextResponse.json({ error: 'Artist account required' }, { status: 403 });
+  }
+
   try {
-    const { artistId, title, category, price, svg, badge } = await req.json();
-    if (!artistId || !title?.trim() || !category || !svg?.trim()) {
+    const { title, category, price, svg, badge } = await req.json();
+    if (!title?.trim() || !category || !svg?.trim()) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 422 });
     }
     if (title.trim().length > 80) return NextResponse.json({ error: 'Title too long (max 80 chars)' }, { status: 422 });
     if (svg.length > 500_000) return NextResponse.json({ error: 'SVG file too large (max 500KB)' }, { status: 422 });
     const safePrice = typeof price === 'number' ? Math.min(Math.max(price, 9.99), 999.99) : 29.99;
 
-    const artist = await prisma.customer.findUnique({ where: { id: artistId } });
-    if (!artist || artist.role !== 'ARTIST') {
-      return NextResponse.json({ error: 'Artist not found' }, { status: 403 });
-    }
-
-    // Rate limit: max 50 designs per artist
-    const existingCount = await prisma.artistDesign.count({ where: { artistId } });
+    const existingCount = await prisma.artistDesign.count({ where: { artistId: session.id } });
     if (existingCount >= 50) {
       return NextResponse.json({ error: 'Maximum design limit reached (50)' }, { status: 422 });
     }
 
-    // Strip dangerous SVG content to prevent XSS
-    const safeSvg = svg
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<iframe[\s\S]*?(?:<\/iframe>|\/?>)/gi, '')
-      .replace(/<embed[\s\S]*?(?:<\/embed>|\/?>)/gi, '')
-      .replace(/<object[\s\S]*?(?:<\/object>|\/?>)/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<use[\s\S]*?href\s*=\s*["'][^"']*["']/gi, '') // blocks external resource loading
-      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/\son\w+\s*=\s*\{[^}]*\}/gi, '')
-      .replace(/javascript:/gi, '')
-      .replace(/data:text\/html/gi, '');
+    // Raster uploads arrive as data URLs; everything else is SVG markup and gets DOM-sanitized
+    let safeSvg: string;
+    if (svg.trimStart().startsWith('data:')) {
+      if (!/^data:image\/(png|jpeg|webp|gif)[;,]/.test(svg.trim())) {
+        return NextResponse.json({ error: 'Unsupported image format' }, { status: 422 });
+      }
+      safeSvg = svg.trim();
+    } else {
+      safeSvg = sanitizeSvg(svg);
+      if (!safeSvg.trim()) return NextResponse.json({ error: 'SVG content is empty after sanitization' }, { status: 422 });
+    }
 
     const design = await prisma.artistDesign.create({
       data: {
-        artistId,
+        artistId: session.id,
         title: title.trim(),
         category,
         price: safePrice,

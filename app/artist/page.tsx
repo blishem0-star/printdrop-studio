@@ -3,8 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
-
-type Session = { type: 'guest' | 'user'; customerId?: string; name: string; email?: string; role?: string };
+import { useLocalSession } from '@/lib/useLocalSession';
+import { svgToDataUrl } from '@/lib/svgDataUrl';
 type DesignStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 type ArtistDesign = {
   id: string; title: string; category: string; price: number;
@@ -25,7 +25,7 @@ const STATUS_STYLE: Record<DesignStatus, { label: string; color: string; bg: str
 
 export default function ArtistPage() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const session = useLocalSession();
   const [tab, setTab] = useState<'designs' | 'upload'>('designs');
   const [designs, setDesigns] = useState<ArtistDesign[]>([]);
   const [earnings, setEarnings] = useState<Earnings | null>(null);
@@ -46,14 +46,10 @@ export default function ArtistPage() {
   const { show: showToast, element: toastEl } = useToast();
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pd_session');
-      if (!raw) { router.replace('/'); return; }
-      const sess: Session = JSON.parse(raw);
-      if (sess.type !== 'user' || sess.role !== 'ARTIST') { router.replace('/home'); return; }
-      setSession(sess);
-    } catch { router.replace('/'); }
-  }, [router]);
+    if (session === undefined) return; // not hydrated yet
+    if (!session) { router.replace('/'); return; }
+    if (session.type !== 'user' || session.role !== 'ARTIST') router.replace('/home');
+  }, [session, router]);
 
   useEffect(() => {
     if (!session?.customerId) return;
@@ -72,7 +68,7 @@ export default function ArtistPage() {
       const content = e.target?.result as string;
       if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
         setSvgContent(content);
-        setPreviewUrl(`data:image/svg+xml;base64,${btoa(content)}`);
+        setPreviewUrl(svgToDataUrl(content));
       } else {
         // raster image — store as data URL, wrap in SVG image element
         setSvgContent(content); // store data URL directly
@@ -122,7 +118,7 @@ export default function ArtistPage() {
 
   if (!session) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div style={{ color: 'rgba(255,255,255,0.1)', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading...</div>
+      <div style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading...</div>
     </div>
   );
 
@@ -297,7 +293,7 @@ export default function ArtistPage() {
                 ) : (
                   <textarea
                     value={svgContent}
-                    onChange={e => { setSvgContent(e.target.value); if (e.target.value.trim().startsWith('<svg')) { try { setPreviewUrl(`data:image/svg+xml;base64,${btoa(e.target.value)}`); } catch { setPreviewUrl(null); } } }}
+                    onChange={e => { setSvgContent(e.target.value); if (e.target.value.trim().startsWith('<svg')) { setPreviewUrl(svgToDataUrl(e.target.value)); } }}
                     placeholder={'<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">\n  <!-- Your design here -->\n</svg>'}
                     rows={8}
                     aria-label="Paste SVG code"

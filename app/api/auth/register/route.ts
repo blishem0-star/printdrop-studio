@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { OWNER_EMAIL } from '@/lib/owner';
 import { rateLimit } from '@/lib/rateLimit';
+import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from '@/lib/session';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,11 +26,18 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.customer.findUnique({ where: { email } });
   if (existing) return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
 
-  const assignedRole = email === OWNER_EMAIL ? 'OWNER' : role === 'ARTIST' ? 'ARTIST' : 'USER';
+  // OWNER is granted only if the owner email matches AND no OWNER account exists yet
+  let assignedRole: 'OWNER' | 'USER' | 'ARTIST' = role === 'ARTIST' ? 'ARTIST' : 'USER';
+  if (email === OWNER_EMAIL) {
+    const ownerExists = await prisma.customer.findFirst({ where: { role: 'OWNER' }, select: { id: true } });
+    if (!ownerExists) assignedRole = 'OWNER';
+  }
 
   const customer = await prisma.customer.create({
-    data: { name: name.trim(), email, password: hashPassword(password), role: assignedRole as 'OWNER' | 'USER' | 'ARTIST' },
+    data: { name: name.trim(), email, password: hashPassword(password), role: assignedRole },
   });
 
-  return NextResponse.json({ id: customer.id, name: customer.name, email: customer.email, role: customer.role }, { status: 201 });
+  const res = NextResponse.json({ id: customer.id, name: customer.name, email: customer.email, role: customer.role }, { status: 201 });
+  res.cookies.set(SESSION_COOKIE, await createSessionToken(customer), sessionCookieOptions());
+  return res;
 }
