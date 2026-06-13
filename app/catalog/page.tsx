@@ -107,24 +107,28 @@ function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, fr
   );
 }
 
-function ShirtCard({ design, selected, onClick }: { design: CatalogDesign; selected: boolean; onClick: () => void }) {
+function ShirtCard({ design, selected, onClick, featured = false }: { design: CatalogDesign; selected: boolean; onClick: () => void; featured?: boolean }) {
   const [hover, setHover] = useState(false);
+  const mock = featured ? 200 : 120;
+  const art = featured ? 80 : 48;
   return (
-    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} — $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className="scan-card holo-card" style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
+    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} — $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`scan-card holo-card${featured ? ' cat-featured-card' : ''}`} style={{ height: '100%', display: 'flex', flexDirection: featured ? 'row' : 'column', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
+      {featured && <div aria-hidden="true" style={{ position: 'absolute', bottom: -10, right: 8, zIndex: 0, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', lineHeight: 1, color: 'rgba(0,229,200,0.05)', letterSpacing: '0.04em', pointerEvents: 'none' }}>FEATURED</div>}
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}><svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="#050507" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4" /></svg></div>}
-      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ position: 'relative', width: 120, height: 120 }}>
-          <ShirtMockup colorHex="#2a2a2a" size={120} />
-          <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }}><SvgPreview svg={design.svg} color="rgba(255,255,255,0.75)" size={48} /></div>
+      <div style={{ background: 'rgba(0,0,0,0.3)', padding: featured ? '1.5rem' : '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: featured ? '0 0 auto' : undefined }}>
+        <div style={{ position: 'relative', width: mock, height: mock }}>
+          <ShirtMockup colorHex="#2a2a2a" size={mock} />
+          <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }}><SvgPreview svg={design.svg} color="rgba(255,255,255,0.75)" size={art} /></div>
         </div>
       </div>
-      <div style={{ padding: '0.875rem 1rem' }}>
-        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.05rem', letterSpacing: '0.04em', lineHeight: 1.1, marginBottom: 3 }}>{design.title}</div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>{design.category}</div>
+      <div style={{ padding: featured ? '1.5rem' : '0.875rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: featured ? 1 : undefined, position: 'relative', zIndex: 1 }}>
+        {featured && <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(0,229,200,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Editor&apos;s pick</div>}
+        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: featured ? 'clamp(1.6rem,3vw,2.4rem)' : '1.05rem', letterSpacing: '0.04em', lineHeight: 1.05, marginBottom: 3 }}>{design.title}</div>
+        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: featured ? 14 : 8 }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price}</span>
+          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: featured ? '1.9rem' : '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price}</span>
           <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>+ ${SHIPPING_PRICE} ship</span>
         </div>
       </div>
@@ -219,6 +223,11 @@ export default function CatalogPage() {
     .filter(d => catFilter === 'All' || d.category === catFilter)
     .filter(d => productFilter === 'ALL' || d.productType === productFilter)
     .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
+
+  // Density-contrast: highlight one bestseller as a large editorial card, but only
+  // in the unfiltered default view (filtering/searching keeps a clean uniform grid).
+  const isDefaultView = !search && catFilter === 'All' && productFilter === 'ALL';
+  const featuredId = isDefaultView ? (filtered.find(d => d.badge === 'bestseller')?.id ?? null) : null;
 
   const total = PRODUCT_BASE_PRICE[drawerProductType] + SHIPPING_PRICE;
   const customizeDone = color !== null && size !== null;
@@ -327,12 +336,15 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1.25rem', position: 'relative', zIndex: 1 }}>
-        {filtered.map((d, i) => (
-          <div key={d.id} style={{ animation: `up 0.45s ease ${Math.min(i * 0.05, 0.5)}s both` }}>
-            <ShirtCard design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} />
-          </div>
-        ))}
+      <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gridAutoFlow: 'dense', gap: '1.25rem', position: 'relative', zIndex: 1 }}>
+        {filtered.map((d, i) => {
+          const isFeatured = d.id === featuredId;
+          return (
+            <div key={d.id} className={isFeatured ? 'cat-featured' : undefined} style={{ animation: `up 0.45s ease ${Math.min(i * 0.05, 0.5)}s both` }}>
+              <ShirtCard design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} featured={isFeatured} />
+            </div>
+          );
+        })}
         {filtered.length === 0 && (
           <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
             <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(0,229,200,0.06)', border: '1px solid rgba(0,229,200,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>

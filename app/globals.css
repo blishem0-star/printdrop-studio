@@ -456,6 +456,13 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
   .studio-canvas { order: 1; }
 }
 
+/* ── Catalog featured card (density contrast) ── */
+.cat-featured { grid-column: span 2; }
+@media (max-width: 560px) {
+  .cat-featured { grid-column: span 1 !important; }
+  .cat-featured-card { flex-direction: column !important; }
+}
+
 /* ── Admin table row hover ── */
 .admin-tr { transition: background 0.12s; }
 .admin-tr:hover { background: rgba(255,255,255,0.025) !important; }

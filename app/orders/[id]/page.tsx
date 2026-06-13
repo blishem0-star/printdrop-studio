@@ -4,6 +4,12 @@ import { getSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'Track your order',
+  description: 'Follow your STYLX.AI order from production to delivery.',
+  robots: { index: false }, // order pages are private, keep them out of search
+};
+
 const STATUS_FLOW = ['PAID', 'IN_PRODUCTION', 'SHIPPED', 'DELIVERED'] as const;
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Draft', PAID: 'Order received', IN_PRODUCTION: 'In production',

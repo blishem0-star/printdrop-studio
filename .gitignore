@@ -44,3 +44,13 @@ next-env.d.ts
 
 dev.db
 *.db
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.last-run.json
+
+# misc logs (e.g. chromium/playwright crash output)
+debug.log
+*.log

@@ -9,215 +9,12 @@ import { useToast } from '@/components/Toast';
 import { useLocalSession } from '@/lib/useLocalSession';
 import { svgToDataUrl } from '@/lib/svgDataUrl';
 
-// ─── Types ────────────────────────────────────────────────────
-type Layer = {
-  id: string;
-  type: 'text'|'gfx'|'shape';
-  content: string;
-  x: number; y: number;
-  fontSize: number;
-  fontFamily: string;
-  color: string;
-  fontWeight: 'normal'|'bold';
-  italic: boolean;
-  rotation: number;
-  opacity: number;
-  letterSpacing: number;
-  strokeColor: string;
-  strokeWidth: number;
-  arcAngle: number;
-  textTransform: 'none'|'uppercase'|'lowercase';
-  shadowDx: number;
-  shadowDy: number;
-  shadowBlur: number;
-  shadowColor: string;
-  glowBlur: number;
-  glowColor: string;
-  flipH: boolean;
-  flipV: boolean;
-  hidden: boolean;
-  locked: boolean;
-  gradient: string; // key of GRADIENT_PRESETS, '' = solid color
-};
-type ImagePos = 'top'|'center'|'bottom'|'full-body'|'full-shirt';
-type UploadSlot = 'front'|'back'|'chest';
-type Session = { type:'guest'|'user'; customerId?:string; name:string; email?:string };
-type ActiveTool = 'templates'|'text'|'upload'|'ai'|'shapes'|'shirt'|'order';
-type DesignSlot = {id:string;name:string;savedAt:number;layers:Layer[];colorId:string;sizeVal:TShirtSize|null;printBg:string|null};
-
-// ─── Constants ────────────────────────────────────────────────
-const SVG_W = 200, SVG_H = 230;
-const PRINT = { x:60, y:85, w:80, h:105 };
-const SHIRT_PATH = 'M30 58 C18 65,2 79,2 82 L26 97 C23 140,21 182,21 221 L179 221 C179 182,177 140,174 97 L198 82 C198 79,182 65,170 58 L144 72 Q130 28,100 26 Q70 28,56 72 Z';
-
-const IMG_ZONE: Record<ImagePos,{x:number;y:number;w:number;h:number;clip:'body'|'full';slice?:boolean}> = {
-  top:          {x:60,y:90,  w:80,h:44, clip:'body'},
-  center:       {x:60,y:115, w:80,h:50, clip:'body'},
-  bottom:       {x:60,y:148, w:80,h:42, clip:'body'},
-  'full-body':  {x:60,y:90,  w:80,h:110,clip:'body'},
-  'full-shirt': {x:20,y:30,  w:160,h:190,clip:'full',slice:true},
-};
-const POS_LABELS: Record<ImagePos,string> = {top:'Top',center:'Center',bottom:'Bottom','full-body':'Full front','full-shirt':'All over'};
-
-const FONTS = [
-  {id:'system-ui,sans-serif',                       label:'Sans',    preview:'Aa'},
-  {id:'"Georgia",serif',                            label:'Serif',   preview:'Aa'},
-  {id:'"Courier New",monospace',                    label:'Mono',    preview:'Aa'},
-  {id:'"Impact","Arial Black",sans-serif',          label:'Impact',  preview:'AA'},
-  {id:"'Bebas Neue',Impact,sans-serif",             label:'Display', preview:'AA'},
-  {id:'"Playfair Display",Georgia,serif',           label:'Elegant', preview:'Aa'},
-  {id:'"Brush Script MT","Segoe Script",cursive',   label:'Script',  preview:'Aa'},
-  {id:'"Arial Narrow","Helvetica Neue",sans-serif', label:'Narrow',  preview:'Aa'},
-  {id:'"Rockwell","Courier Bold",serif',            label:'Slab',    preview:'Aa'},
-  {id:'"Verdana",Geneva,sans-serif',                label:'Round',   preview:'Aa'},
-];
-
-const SHAPES_LIB = [
-  {char:'★', label:'Star'},    {char:'♥', label:'Heart'},  {char:'◆', label:'Diamond'},
-  {char:'●', label:'Circle'},  {char:'■', label:'Square'}, {char:'▲', label:'Triangle'},
-  {char:'✦', label:'Sparkle'}, {char:'✚', label:'Cross'},  {char:'☾', label:'Moon'},
-  {char:'∞', label:'Infinity'},{char:'⬡', label:'Hex'},    {char:'⚡', label:'Bolt'},
-  {char:'↑', label:'Arrow'},   {char:'⊕', label:'Target'}, {char:'☀', label:'Sun'},
-  {char:'❋', label:'Flower'},  {char:'⌘', label:'Cmd'},    {char:'⟁', label:'Tri2'},
-  {char:'☮', label:'Peace'},   {char:'♠', label:'Spade'},  {char:'♪', label:'Note'},
-  {char:'☄', label:'Comet'},   {char:'✈', label:'Plane'},  {char:'⚓', label:'Anchor'},
-  {char:'☘', label:'Clover'},  {char:'✺', label:'Burst'},  {char:'❖', label:'Gem'},
-  {char:'⌖', label:'Scope'},   {char:'♜', label:'Rook'},   {char:'∴', label:'Dots'},
-];
-
-const EMOJIS_LIB = [
-  '🔥','⚡','💀','🎭','🌊','🦁','🎨','🎵','🏆','💎',
-  '🌙','⭐','🚀','🎯','🐉','👑','✊','🎪','🌈','🦋',
-  '🐺','🦅','🐆','🌺','🍂','🦊','🐉','🌊','⛰','🌴',
-];
-
-// True vector shapes (crisp at any size, unlike glyph characters)
-const VECTOR_SHAPES: {kind:string;label:string}[] = [
-  {kind:'rect',label:'Square'},  {kind:'circle',label:'Circle'},   {kind:'ring',label:'Ring'},
-  {kind:'triangle',label:'Tri'}, {kind:'diamond',label:'Diamond'}, {kind:'star',label:'Star'},
-  {kind:'line',label:'Line'},    {kind:'capsule',label:'Capsule'},
-];
-
-function starPoints(s:number){
-  return [...Array(10)].map((_,i)=>{
-    const a=-Math.PI/2+i*Math.PI/5; const r=i%2===0?s/2:s/5;
-    return `${(Math.cos(a)*r).toFixed(2)},${(Math.sin(a)*r).toFixed(2)}`;
-  }).join(' ');
-}
-
-const TEXT_COLORS = ['#ffffff','#000000','#FF4D1C','#FFD700','#10B981','#6C63FF','#FF69B4','#00BCD4','#F97316','#8B5CF6','#EF4444','#06B6D4'];
-
-const GRADIENT_PRESETS: Record<string,{label:string;stops:string[]}> = {
-  holo:   {label:'Holo',   stops:['#00E5C8','#0099FF','#7B61FF']},
-  sunset: {label:'Sunset', stops:['#F97316','#FF4D8D']},
-  gold:   {label:'Gold',   stops:['#FFE259','#FFA751']},
-  fire:   {label:'Fire',   stops:['#FF512F','#F09819']},
-  ice:    {label:'Ice',    stops:['#83A4D4','#B6FBFF']},
-  toxic:  {label:'Toxic',  stops:['#A8E063','#56AB2F']},
-};
-
-// One-click text styles — applied on top of the selected text layer
-const TEXT_PRESETS: {name:string;patch:Partial<Layer>}[] = [
-  {name:'Neon',    patch:{color:'#00E5C8',glowBlur:7,glowColor:'#00E5C8',strokeWidth:0,gradient:'',shadowBlur:0}},
-  {name:'Holo',    patch:{gradient:'holo',glowBlur:0,strokeWidth:0,shadowBlur:0}},
-  {name:'Outline', patch:{color:'rgba(0,0,0,0)',strokeColor:'#ffffff',strokeWidth:1.4,gradient:'',glowBlur:0,shadowBlur:0}},
-  {name:'Pop',     patch:{shadowDx:3,shadowDy:3,shadowBlur:1,shadowColor:'#000000',gradient:'',glowBlur:0}},
-  {name:'Vintage', patch:{italic:true,fontFamily:'"Georgia",serif',color:'#FFD700',opacity:0.85,gradient:'',glowBlur:0,shadowBlur:0}},
-  {name:'Clean',   patch:{glowBlur:0,strokeWidth:0,shadowBlur:0,gradient:'',opacity:1,italic:false}},
-];
-const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
-
-function uid() { return Math.random().toString(36).slice(2,9); }
-
-function mkLayer(partial: Partial<Layer> & {type:Layer['type'];content:string;x:number;y:number}): Layer {
-  return {
-    fontSize:24, fontFamily:'system-ui,sans-serif', color:'#ffffff',
-    fontWeight:'bold', italic:false, rotation:0,
-    opacity:1, letterSpacing:0, strokeColor:'', strokeWidth:0,
-    arcAngle:0, textTransform:'none',
-    shadowDx:2, shadowDy:2, shadowBlur:0, shadowColor:'rgba(0,0,0,0.8)',
-    glowBlur:0, glowColor:'#00E5C8',
-    flipH:false, flipV:false, hidden:false, locked:false, gradient:'',
-    ...partial,
-    id: uid(),
-  };
-}
-
-function calcArcPath(cx:number, cy:number, arcAngle:number, contentLen:number, fontSize:number): string {
-  const halfW = Math.max((contentLen * fontSize * 0.55) / 2, 22);
-  if (Math.abs(arcAngle) < 2) return `M ${cx-halfW},${cy} L ${cx+halfW},${cy}`;
-  const bowing = (arcAngle / 80) * halfW * 0.75;
-  const r = (halfW*halfW + bowing*bowing) / (2*Math.abs(bowing));
-  const sweep = arcAngle > 0 ? 0 : 1;
-  return `M ${cx-halfW},${cy} A ${r},${r} 0 0,${sweep} ${cx+halfW},${cy}`;
-}
-
-// ─── Templates ────────────────────────────────────────────────
-const TEMPLATES = [
-  {
-    id:'bold-stack', name:'Bold Stack', cat:'Typography', preview:['YOUR','NAME'],
-    build:(c:string) => [
-      mkLayer({type:'text',content:'YOUR',  x:50,y:32,fontSize:30,fontFamily:'"Impact","Arial Black",sans-serif',color:c,fontWeight:'bold',letterSpacing:5}),
-      mkLayer({type:'text',content:'NAME',  x:50,y:56,fontSize:38,fontFamily:'"Impact","Arial Black",sans-serif',color:'#00E5C8',fontWeight:'bold',letterSpacing:5}),
-      mkLayer({type:'text',content:'EST. 2025',x:50,y:74,fontSize:10,fontFamily:'system-ui,sans-serif',color:c,fontWeight:'normal',letterSpacing:4,opacity:0.55}),
-    ],
-  },
-  {
-    id:'minimal', name:'Minimal Icon', cat:'Minimal', preview:['✦','ORIGINAL'],
-    build:(c:string) => [
-      mkLayer({type:'gfx', content:'✦', x:50,y:32,fontSize:36,color:c}),
-      mkLayer({type:'text',content:'ORIGINAL',x:50,y:60,fontSize:13,fontFamily:'system-ui,sans-serif',color:c,fontWeight:'bold',letterSpacing:6,opacity:0.9}),
-      mkLayer({type:'text',content:'EST. 2025',x:50,y:75,fontSize:9,fontFamily:'"Courier New",monospace',color:c,fontWeight:'normal',letterSpacing:3,opacity:0.45}),
-    ],
-  },
-  {
-    id:'street', name:'Street Style', cat:'Urban', preview:['NO','RULES'],
-    build:(c:string) => [
-      mkLayer({type:'text',content:'NO',   x:50,y:35,fontSize:42,fontFamily:'"Impact","Arial Black",sans-serif',color:c,fontWeight:'bold',letterSpacing:2,strokeColor:'#00E5C8',strokeWidth:1}),
-      mkLayer({type:'text',content:'RULES',x:50,y:60,fontSize:32,fontFamily:'"Impact","Arial Black",sans-serif',color:'#00E5C8',fontWeight:'bold',letterSpacing:2}),
-      mkLayer({type:'gfx', content:'★',   x:50,y:78,fontSize:14,color:c,opacity:0.5}),
-    ],
-  },
-  {
-    id:'sport', name:'Sport Number', cat:'Sport', preview:['#','23'],
-    build:(c:string) => [
-      mkLayer({type:'text',content:'#',  x:38,y:45,fontSize:20,fontFamily:'"Impact","Arial Black",sans-serif',color:c,fontWeight:'bold',opacity:0.5}),
-      mkLayer({type:'text',content:'23', x:56,y:58,fontSize:52,fontFamily:'"Impact","Arial Black",sans-serif',color:c,fontWeight:'bold',strokeColor:'#00E5C8',strokeWidth:1.5}),
-      mkLayer({type:'text',content:'CHAMPION',x:50,y:80,fontSize:10,fontFamily:'system-ui,sans-serif',color:c,fontWeight:'bold',letterSpacing:5}),
-    ],
-  },
-  {
-    id:'retro', name:'Retro Vibes', cat:'Vintage', preview:['RETRO','VIBES'],
-    build:(c:string) => [
-      mkLayer({type:'text',content:'RETRO', x:50,y:38,fontSize:28,fontFamily:'"Georgia",serif',color:c,italic:true,fontWeight:'bold',letterSpacing:2}),
-      mkLayer({type:'text',content:'——————',x:50,y:50,fontSize:14,color:c,opacity:0.35,letterSpacing:1}),
-      mkLayer({type:'text',content:'VIBES', x:50,y:64,fontSize:24,fontFamily:'"Georgia",serif',color:'#FFD700',italic:true,fontWeight:'bold',letterSpacing:2}),
-    ],
-  },
-  {
-    id:'minimal2', name:'Just a Symbol', cat:'Minimal', preview:['♥'],
-    build:(c:string) => [
-      mkLayer({type:'gfx',content:'♥',x:50,y:48,fontSize:56,color:'#FF4D1C',opacity:0.9}),
-      mkLayer({type:'text',content:'MADE WITH LOVE',x:50,y:75,fontSize:9,color:c,fontWeight:'bold',letterSpacing:4,opacity:0.5}),
-    ],
-  },
-  {
-    id:'coordinates', name:'Coordinates', cat:'Typography', preview:['40°N','74°W'],
-    build:(c:string) => [
-      mkLayer({type:'text',content:'40°42\'N',x:50,y:38,fontSize:18,fontFamily:'"Courier New",monospace',color:c,letterSpacing:2}),
-      mkLayer({type:'text',content:'74°00\'W',x:50,y:56,fontSize:18,fontFamily:'"Courier New",monospace',color:'#00E5C8',letterSpacing:2}),
-      mkLayer({type:'text',content:'NEW YORK CITY',x:50,y:74,fontSize:9,color:c,fontWeight:'normal',letterSpacing:5,opacity:0.4}),
-    ],
-  },
-  {
-    id:'crown', name:'Royal', cat:'Urban', preview:['♛','KING'],
-    build:(c:string) => [
-      mkLayer({type:'gfx',content:'♛',x:50,y:32,fontSize:32,color:'#FFD700'}),
-      mkLayer({type:'text',content:'KING',x:50,y:58,fontSize:34,fontFamily:'"Impact","Arial Black",sans-serif',color:c,fontWeight:'bold',letterSpacing:6}),
-      mkLayer({type:'text',content:'OF EVERYTHING',x:50,y:76,fontSize:9,color:c,fontWeight:'normal',letterSpacing:4,opacity:0.45}),
-    ],
-  },
-];
+import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot } from "@/lib/studio/types";
+import {
+  SVG_W, SVG_H, PRINT, SHIRT_PATH, IMG_ZONE, POS_LABELS, FONTS, SHAPES_LIB,
+  EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS, US_STATES,
+} from "@/lib/studio/constants";
+import { uid, mkLayer, calcArcPath, starPoints, TEMPLATES } from "@/lib/studio/helpers";
 
 // ─── Component ────────────────────────────────────────────────
 function DesignStudio() {
@@ -312,7 +109,16 @@ function DesignStudio() {
 
   // Canvas zoom
   const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
+  useEffect(()=>{ zoomRef.current=zoom; },[zoom]);
   const canvasAreaRef   = useRef<HTMLDivElement>(null);
+  const pinchRef = useRef<{d0:number;z0:number}|null>(null);
+  // Coarse-pointer (touch) devices get larger hit targets on the canvas handles
+  const [isTouch,setIsTouch] = useState(false);
+  useEffect(()=>{
+    const t=setTimeout(()=>setIsTouch(window.matchMedia('(pointer:coarse)').matches),0);
+    return()=>clearTimeout(t);
+  },[]);
 
   // Order
   const [qty,       setQty]      = useState(1);
@@ -375,6 +181,32 @@ function DesignStudio() {
     };
     el.addEventListener('wheel',onWheel,{passive:false});
     return()=>el.removeEventListener('wheel',onWheel);
+  },[]);
+
+  // Two-finger pinch-to-zoom on touch devices
+  useEffect(()=>{
+    const el=canvasAreaRef.current; if(!el) return;
+    const pts=new Map<number,{x:number;y:number}>();
+    const dist=()=>{ const a=[...pts.values()]; return a.length<2?0:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y); };
+    const down=(e:PointerEvent)=>{
+      if(e.pointerType!=='touch') return;
+      pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pts.size===2){ dragging.current=null; pinchRef.current={d0:dist(),z0:zoomRef.current}; }
+    };
+    const move=(e:PointerEvent)=>{
+      if(!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pts.size===2&&pinchRef.current){
+        e.preventDefault();
+        const ratio=dist()/(pinchRef.current.d0||1);
+        setZoom(Math.max(0.5,Math.min(2,+(pinchRef.current.z0*ratio).toFixed(2))));
+      }
+    };
+    const up=(e:PointerEvent)=>{ pts.delete(e.pointerId); if(pts.size<2) pinchRef.current=null; };
+    el.addEventListener('pointerdown',down);
+    el.addEventListener('pointermove',move,{passive:false});
+    el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+    return()=>{ el.removeEventListener('pointerdown',down); el.removeEventListener('pointermove',move); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up); };
   },[]);
 
   // ── Layer ops ────────────────────────────────────────────────
@@ -687,16 +519,18 @@ function DesignStudio() {
             <rect x={-aw/2-6} y={-ah/2-4} width={aw+12} height={ah+8}
               fill="rgba(0,229,200,0.06)" stroke="#00E5C8" strokeWidth="0.8" strokeDasharray="2.5,1.5" rx="2"/>
             {[[-aw/2-6,-ah/2-4],[aw/2+6,-ah/2-4],[-aw/2-6,ah/2+4]].map(([cx,cy],i)=>
-              <circle key={i} cx={cx} cy={cy} r="2.2" fill="#00E5C8"/>)}
-            {/* Resize handle (bottom-right) */}
-            <circle cx={aw/2+6} cy={ah/2+4} r="3.4" fill="#050507" stroke="#00E5C8" strokeWidth="1"
-              style={{cursor:'nwse-resize'}}
+              <circle key={i} cx={cx} cy={cy} r={isTouch?'3':'2.2'} fill="#00E5C8"/>)}
+            {/* Resize handle (bottom-right) — large transparent hit-area for touch */}
+            <circle cx={aw/2+6} cy={ah/2+4} r={isTouch?12:8} fill="transparent"
+              style={{cursor:'nwse-resize',touchAction:'none'}}
               onPointerDown={e=>onHandleDown(e,layer.id,'resize')}/>
+            <circle cx={aw/2+6} cy={ah/2+4} r={isTouch?5:3.6} fill="#050507" stroke="#00E5C8" strokeWidth="1" style={{pointerEvents:'none'}}/>
             {/* Rotate handle (above top-center) */}
-            <line x1={0} y1={-ah/2-4} x2={0} y2={-ah/2-13} stroke="#00E5C8" strokeWidth="0.7" opacity="0.7"/>
-            <circle cx={0} cy={-ah/2-15} r="3.2" fill="#050507" stroke="#00E5C8" strokeWidth="1"
-              style={{cursor:'grab'}}
+            <line x1={0} y1={-ah/2-4} x2={0} y2={-ah/2-13} stroke="#00E5C8" strokeWidth="0.7" opacity="0.7" style={{pointerEvents:'none'}}/>
+            <circle cx={0} cy={-ah/2-15} r={isTouch?12:8} fill="transparent"
+              style={{cursor:'grab',touchAction:'none'}}
               onPointerDown={e=>onHandleDown(e,layer.id,'rotate')}/>
+            <circle cx={0} cy={-ah/2-15} r={isTouch?5:3.4} fill="#050507" stroke="#00E5C8" strokeWidth="1" style={{pointerEvents:'none'}}/>
           </>}
         </g>
       );
@@ -796,7 +630,7 @@ function DesignStudio() {
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Placed!</h1>
         <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} · Size {size} · Qty {qty}</p>
         {orderId&&<p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:10}}>#{orderId.slice(0,8).toUpperCase()}</p>}
-        <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.3)',marginBottom:28,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
+        <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.62)',marginBottom:28,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
         <div style={{display:'flex',gap:10,justifyContent:'center'}}>
           <button onClick={()=>{setOrdered(false);setLayers([]);setAiSvg(null);setUploads({front:null,back:null,chest:null});setPrintBg(null);}} style={{padding:'0.85rem 1.5rem',borderRadius:12,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.75)',fontWeight:700,cursor:'pointer'}}>Design another</button>
           <Link href="/catalog" style={{padding:'0.85rem 1.8rem',borderRadius:12,background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontWeight:800,textDecoration:'none',display:'inline-flex',alignItems:'center'}}>Browse catalog →</Link>
@@ -824,7 +658,7 @@ function DesignStudio() {
           <div style={{filter:'drop-shadow(0 60px 120px rgba(0,0,0,0.9))'}}>
             {renderShirtCanvas(520,598,false)}
           </div>
-          <p style={{marginTop:32,color:'rgba(255,255,255,0.12)',fontSize:'0.65rem',letterSpacing:'0.14em',textTransform:'uppercase'}}>Click anywhere to close</p>
+          <p style={{marginTop:32,color:'rgba(255,255,255,0.62)',fontSize:'0.65rem',letterSpacing:'0.14em',textTransform:'uppercase'}}>Click anywhere to close</p>
           <button onClick={e=>{e.stopPropagation();setFullscreen(false);}} style={{position:'absolute',top:24,right:28,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'8px 20px',color:'rgba(255,255,255,0.5)',fontSize:'0.75rem',fontWeight:700,cursor:'pointer'}}>✕ Close</button>
         </div>
       )}
@@ -832,7 +666,7 @@ function DesignStudio() {
       {/* ── HEADER ─────────────────────────────────────────────── */}
       <header style={{height:50,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',padding:'0 16px 0 12px',gap:12,background:'rgba(7,7,9,0.98)',backdropFilter:'blur(24px)',position:'relative',zIndex:20}}>
         <div style={{position:'absolute',top:0,left:0,right:0,height:'1px',background:'linear-gradient(90deg,transparent,rgba(0,229,200,0.55) 35%,rgba(0,153,255,0.35) 65%,transparent)'}}/>
-        <Link href="/catalog" style={{color:'rgba(255,255,255,0.28)',fontSize:'0.67rem',textDecoration:'none',fontWeight:700,letterSpacing:'0.06em',transition:'color 0.15s',textTransform:'uppercase',flexShrink:0}} onMouseEnter={e=>(e.currentTarget.style.color='rgba(255,255,255,0.65)')} onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.28)')}>← Catalog</Link>
+        <Link href="/catalog" style={{color:'rgba(255,255,255,0.62)',fontSize:'0.67rem',textDecoration:'none',fontWeight:700,letterSpacing:'0.06em',transition:'color 0.15s',textTransform:'uppercase',flexShrink:0}} onMouseEnter={e=>(e.currentTarget.style.color='rgba(255,255,255,0.65)')} onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.28)')}>← Catalog</Link>
         <div style={{width:1,height:14,background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontWeight:400,fontSize:'1.42rem',letterSpacing:'0.1em',lineHeight:1,margin:0,flex:1}}>DESIGN<span style={{color:'#00E5C8'}}>.</span>STUDIO</h1>
 
@@ -866,10 +700,10 @@ function DesignStudio() {
         <div style={{display:'flex',gap:6,alignItems:'center'}}>
           <div style={{display:'flex',alignItems:'center',gap:6,padding:'3px 9px 3px 5px',borderRadius:20,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',cursor:'pointer'}} onClick={()=>setActiveTool('shirt')}>
             <span style={{width:14,height:14,borderRadius:'50%',background:color.hex,display:'inline-block',outline:'1px solid rgba(255,255,255,0.15)',outlineOffset:1,flexShrink:0}}/>
-            <span style={{fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.4)'}}>{color.name}</span>
+            <span style={{fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.66)'}}>{color.name}</span>
           </div>
           {size?<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.07)',fontSize:'0.62rem',fontWeight:700,color:'#00E5C8',cursor:'pointer'}} onClick={()=>setActiveTool('shirt')}>{size}</div>
-            :<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)',background:'rgba(255,255,255,0.02)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.2)',cursor:'pointer'}} onClick={()=>setActiveTool('shirt')}>+ Size</div>}
+            :<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)',background:'rgba(255,255,255,0.02)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.62)',cursor:'pointer'}} onClick={()=>setActiveTool('shirt')}>+ Size</div>}
           {layers.length>0&&<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(0,229,200,0.16)',background:'rgba(0,229,200,0.05)',fontSize:'0.6rem',fontWeight:700,color:'rgba(0,229,200,0.7)'}}>{layers.length}L</div>}
         </div>
 
@@ -943,14 +777,14 @@ function DesignStudio() {
           <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'center',flex:1,width:'100%'}}>
             <div style={{position:'absolute',width:380,height:420,borderRadius:'50%',background:`radial-gradient(ellipse,${color.hex}0c 0%,transparent 60%)`,pointerEvents:'none',filter:'blur(24px)'}}/>
             <div ref={canvasRef} role="img" aria-label="Shirt design canvas"
-              style={{position:'relative',filter:`drop-shadow(0 45px 90px rgba(0,0,0,0.55))`,animation:'shirtIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',zIndex:2,transform:`scale(${zoom})`,transformOrigin:'center center',transition:'transform 0.15s'}}>
+              style={{position:'relative',filter:`drop-shadow(0 45px 90px rgba(0,0,0,0.55))`,animation:'shirtIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',zIndex:2,transform:`scale(${zoom})`,transformOrigin:'center center',transition:'transform 0.15s',touchAction:'none'}}>
               {renderShirtCanvas(390,449)}
             </div>
 
             {/* Selection bar with alignment tools */}
             {selLayer&&(
               <div style={{position:'absolute',bottom:8,left:'50%',transform:'translateX(-50%)',background:'rgba(4,4,7,0.96)',border:'1px solid rgba(0,229,200,0.25)',borderRadius:13,padding:'7px 12px',display:'flex',alignItems:'center',gap:7,backdropFilter:'blur(16px)',animation:'fadeUp 0.15s ease',whiteSpace:'nowrap',zIndex:6,boxShadow:'0 4px 24px rgba(0,0,0,0.5)'}}>
-                <span style={{color:'rgba(255,255,255,0.2)',fontSize:'0.53rem',letterSpacing:'0.1em'}}>SELECTED</span>
+                <span style={{color:'rgba(255,255,255,0.62)',fontSize:'0.53rem',letterSpacing:'0.1em'}}>SELECTED</span>
                 <span style={{fontWeight:700,color:'#00E5C8',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',fontSize:'0.7rem'}}>{selLayer.content}</span>
                 <div style={{width:1,height:14,background:'rgba(255,255,255,0.1)'}}/>
                 {/* Alignment */}
@@ -973,7 +807,7 @@ function DesignStudio() {
             {/* Zoom controls */}
             <div style={{position:'absolute',bottom:8,right:12,display:'flex',gap:4,background:'rgba(4,4,7,0.85)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:3,backdropFilter:'blur(12px)',zIndex:5}}>
               {([['−',()=>setZoom(z=>Math.max(0.5,+(z-0.1).toFixed(1)))],[`${Math.round(zoom*100)}%`,()=>setZoom(1)],['+',()=>setZoom(z=>Math.min(2,+(z+0.1).toFixed(1)))]] as [string,()=>void][]).map(([label,fn])=>(
-                <button key={label} onClick={e=>{e.stopPropagation();fn();}} style={{width:label==='+'||label==='−'?26:42,height:26,borderRadius:7,border:'none',background:'transparent',color:'rgba(255,255,255,0.45)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',transition:'all 0.12s'}}
+                <button key={label} aria-label={label==='+'?'Zoom in':label==='−'?'Zoom out':'Reset zoom'} onClick={e=>{e.stopPropagation();fn();}} style={{width:label==='+'||label==='−'?(isTouch?38:26):(isTouch?52:42),height:isTouch?38:26,borderRadius:7,border:'none',background:'transparent',color:'rgba(255,255,255,0.45)',fontSize:isTouch?'0.85rem':'0.68rem',fontWeight:700,cursor:'pointer',transition:'all 0.12s'}}
                   onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,0.08)')}
                   onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                   {label}
@@ -992,7 +826,7 @@ function DesignStudio() {
         {/* ── RIGHT PANEL ──────────────────────────────────────── */}
         <div className="studio-properties" style={{borderLeft:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',background:'rgba(8,8,12,1)',overflow:'hidden'}}>
           <div style={{height:44,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',padding:'0 14px',gap:6}}>
-            <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.18)',letterSpacing:'0.14em',textTransform:'uppercase',flex:1}}>
+            <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.14em',textTransform:'uppercase',flex:1}}>
               {activeTool==='templates'&&'QUICK START'}
               {activeTool==='text'&&'TEXT & TYPOGRAPHY'}
               {activeTool==='upload'&&'UPLOAD IMAGE'}
@@ -1001,7 +835,7 @@ function DesignStudio() {
               {activeTool==='shirt'&&'SHIRT SETTINGS'}
               {activeTool==='order'&&'PLACE ORDER'}
             </span>
-            {activeTool==='text'&&layers.length>0&&<span style={{fontSize:'0.56rem',color:'rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.04)',padding:'2px 7px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)'}}>{layers.length} layers</span>}
+            {activeTool==='text'&&layers.length>0&&<span style={{fontSize:'0.56rem',color:'rgba(255,255,255,0.62)',background:'rgba(255,255,255,0.04)',padding:'2px 7px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)'}}>{layers.length} layers</span>}
             {activeTool==='order'&&canOrder&&<span style={{fontSize:'0.56rem',color:'rgba(0,229,200,0.7)',fontWeight:700}}>ready ✓</span>}
           </div>
 
@@ -1013,21 +847,21 @@ function DesignStudio() {
                 {/* My Designs — saved slots */}
                 <div style={{marginBottom:16}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-                    <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.3)',letterSpacing:'0.12em',textTransform:'uppercase'}}>My Designs</span>
+                    <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.12em',textTransform:'uppercase'}}>My Designs</span>
                     <button disabled={layers.length===0} onClick={saveDesignSlot}
                       style={{padding:'4px 11px',borderRadius:999,border:`1px solid ${layers.length?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.08)'}`,background:layers.length?'rgba(0,229,200,0.08)':'transparent',color:layers.length?'#00E5C8':'rgba(255,255,255,0.2)',fontSize:'0.6rem',fontWeight:700,cursor:layers.length?'pointer':'default'}}>
                       + Save current
                     </button>
                   </div>
                   {designSlots.length===0?(
-                    <div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.25)',padding:'8px 0'}}>Designs you save appear here.</div>
+                    <div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.62)',padding:'8px 0'}}>Designs you save appear here.</div>
                   ):(
                     <div style={{display:'flex',flexDirection:'column',gap:5}}>
                       {designSlots.map(s=>(
                         <div key={s.id} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',borderRadius:10,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)'}}>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{fontSize:'0.7rem',fontWeight:700,color:'rgba(255,255,255,0.75)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</div>
-                            <div style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.28)'}}>{s.layers.length} layers · {new Date(s.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            <div style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.62)'}}>{s.layers.length} layers · {new Date(s.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                           </div>
                           <button onClick={()=>loadDesignSlot(s.id)} style={{padding:'4px 10px',borderRadius:7,border:'1px solid rgba(0,229,200,0.3)',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Load</button>
                           <button aria-label={`Delete ${s.name}`} onClick={()=>deleteDesignSlot(s.id)} style={{width:20,height:20,borderRadius:6,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'0.62rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:0}}>×</button>
@@ -1036,7 +870,7 @@ function DesignStudio() {
                     </div>
                   )}
                 </div>
-                <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.3)',marginBottom:12,lineHeight:1.5}}>Start with a pre-built design, then customize it.</div>
+                <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.62)',marginBottom:12,lineHeight:1.5}}>Start with a pre-built design, then customize it.</div>
                 <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:14}}>
                   {TEMPLATES.map(tpl=>(
                     <button key={tpl.id} onClick={()=>{applyTemplate(tpl);setActiveTool('text');}}
@@ -1051,13 +885,13 @@ function DesignStudio() {
                       </div>
                       <div>
                         <div style={{fontSize:'0.78rem',fontWeight:700,color:'rgba(255,255,255,0.85)',marginBottom:2}}>{tpl.name}</div>
-                        <div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.3)'}}>{tpl.cat} · {tpl.build('').length} layers</div>
+                        <div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)'}}>{tpl.cat} · {tpl.build('').length} layers</div>
                       </div>
-                      <span style={{marginLeft:'auto',fontSize:'0.65rem',color:'rgba(255,255,255,0.2)'}}>→</span>
+                      <span style={{marginLeft:'auto',fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>→</span>
                     </button>
                   ))}
                 </div>
-                <button onClick={()=>{setLayersWithHistory([]);setSelected(null);}} style={{width:'100%',padding:'9px',borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'rgba(255,255,255,0.22)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',letterSpacing:'0.04em',transition:'all 0.15s'}}
+                <button onClick={()=>{setLayersWithHistory([]);setSelected(null);}} style={{width:'100%',padding:'9px',borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'rgba(255,255,255,0.62)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',letterSpacing:'0.04em',transition:'all 0.15s'}}
                   onMouseEnter={e=>(e.currentTarget.style.color='rgba(255,255,255,0.5)')} onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.22)')}>
                   Start from scratch →
                 </button>
@@ -1078,7 +912,7 @@ function DesignStudio() {
                   </div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
                     {['YOUR NAME','EST. 2025','ORIGINAL','NO RULES','MADE IN','100%'].map(t=>(
-                      <button key={t} onClick={()=>setTextInput(t)} style={{padding:'3px 9px',borderRadius:20,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.3)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.04em',transition:'all 0.12s'}}
+                      <button key={t} onClick={()=>setTextInput(t)} style={{padding:'3px 9px',borderRadius:20,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.62)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.04em',transition:'all 0.12s'}}
                         onMouseEnter={e=>{(e.currentTarget.style.borderColor='rgba(0,229,200,0.32)');(e.currentTarget.style.color='rgba(0,229,200,0.8)');}}
                         onMouseLeave={e=>{(e.currentTarget.style.borderColor='rgba(255,255,255,0.07)');(e.currentTarget.style.color='rgba(255,255,255,0.3)');}}>
                         {t}
@@ -1154,7 +988,7 @@ function DesignStudio() {
                   </div>
                   {/* Hex input */}
                   <div style={{display:'flex',alignItems:'center',gap:5,marginTop:7,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'4px 8px'}}>
-                    <span style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.25)',fontFamily:'monospace',fontWeight:700}}>#</span>
+                    <span style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)',fontFamily:'monospace',fontWeight:700}}>#</span>
                     <input value={hexInput} onChange={e=>{const v=e.target.value.replace(/[^0-9a-fA-F]/g,'').slice(0,6);setHexInput(v);if(v.length===6){const col='#'+v;setTextColor(col);if(selected)updateLayer(selected,{color:col});}}}
                       placeholder="ffffff" maxLength={6}
                       style={{flex:1,background:'none',border:'none',color:'rgba(255,255,255,0.75)',fontSize:'0.72rem',fontFamily:'monospace',outline:'none',textTransform:'uppercase'}}/>
@@ -1183,14 +1017,14 @@ function DesignStudio() {
                     <div style={{display:'flex',gap:5,flexWrap:'wrap',flex:1}}>
                       {['','#000000','#ffffff','#00E5C8','#FFD700','#FF4D1C'].map(c=>(
                         <button key={c||'none'} aria-pressed={strokeCol===c} onClick={()=>{setStrokeCol(c);if(selected)updateLayer(selected,{strokeColor:c,strokeWidth:c&&strokeW===0?1.5:strokeW});}}
-                          style={{width:26,height:26,borderRadius:'50%',border:`2px solid ${strokeCol===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c||'transparent',cursor:'pointer',transition:'all 0.12s',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'rgba(255,255,255,0.4)'}}>
+                          style={{width:26,height:26,borderRadius:'50%',border:`2px solid ${strokeCol===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c||'transparent',cursor:'pointer',transition:'all 0.12s',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'rgba(255,255,255,0.66)'}}>
                           {!c&&'○'}
                         </button>
                       ))}
                     </div>
                     {strokeCol&&(
                       <div style={{width:60}}>
-                        <div style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.25)',marginBottom:2}}>{strokeW}px</div>
+                        <div style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)',marginBottom:2}}>{strokeW}px</div>
                         <input type="range" min={0.5} max={5} step={0.5} value={strokeW||1.5} onChange={e=>{const v=+e.target.value;setStrokeW(v);if(selected)updateLayer(selected,{strokeWidth:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
                       </div>
                     )}
@@ -1228,8 +1062,8 @@ function DesignStudio() {
                     onChange={e=>{const v=+e.target.value;setArcAngle(v);if(selected)updateLayer(selected,{arcAngle:v});}}
                     style={{width:'100%',accentColor:'#00E5C8'}}/>
                   <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
-                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.18)'}}>↓ Arch down</span>
-                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.18)'}}>↑ Arch up</span>
+                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>↓ Arch down</span>
+                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>↑ Arch up</span>
                   </div>
                 </div>
 
@@ -1239,13 +1073,13 @@ function DesignStudio() {
                   {/* Shadow */}
                   <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:shadowBlur>0?8:0}}>
-                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.4)',letterSpacing:'0.06em'}}>SHADOW</span>
+                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.66)',letterSpacing:'0.06em'}}>SHADOW</span>
                       <div style={{display:'flex',gap:5,alignItems:'center'}}>
                         {['rgba(0,0,0,0.8)','#ffffff','#00E5C8','#FFD700','#FF4D1C'].map(c=>(
                           <button key={c} onClick={()=>{const col=shadowColor===c&&shadowBlur===0?'rgba(0,0,0,0.8)':c;setShadowColor(col);if(selected)updateLayer(selected,{shadowColor:col,shadowBlur:shadowBlur===0?4:shadowBlur});}}
                             style={{width:20,height:20,borderRadius:'50%',border:`2px solid ${shadowColor===c&&shadowBlur>0?'#00E5C8':'rgba(255,255,255,0.12)'}`,background:c,cursor:'pointer'}}/>
                         ))}
-                        <button onClick={()=>{setShadowBlur(0);if(selected)updateLayer(selected,{shadowBlur:0});}} style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.25)',background:'none',border:'none',cursor:'pointer'}}>off</button>
+                        <button onClick={()=>{setShadowBlur(0);if(selected)updateLayer(selected,{shadowBlur:0});}} style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',background:'none',border:'none',cursor:'pointer'}}>off</button>
                       </div>
                     </div>
                     {shadowBlur>0&&<>
@@ -1259,13 +1093,13 @@ function DesignStudio() {
                   {/* Glow */}
                   <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:10,padding:'10px 12px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:glowBlur>0?8:0}}>
-                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.4)',letterSpacing:'0.06em'}}>GLOW</span>
+                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.66)',letterSpacing:'0.06em'}}>GLOW</span>
                       <div style={{display:'flex',gap:5,alignItems:'center'}}>
                         {['#00E5C8','#0099FF','#FFD700','#FF4D1C','#8B5CF6'].map(c=>(
                           <button key={c} onClick={()=>{setGlowColor(c);if(selected)updateLayer(selected,{glowColor:c,glowBlur:glowBlur===0?8:glowBlur});}}
                             style={{width:20,height:20,borderRadius:'50%',border:`2px solid ${glowColor===c&&glowBlur>0?'#fff':'rgba(255,255,255,0.12)'}`,background:c,cursor:'pointer',boxShadow:glowColor===c&&glowBlur>0?`0 0 8px ${c}`:'none'}}/>
                         ))}
-                        <button onClick={()=>{setGlowBlur(0);if(selected)updateLayer(selected,{glowBlur:0});}} style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.25)',background:'none',border:'none',cursor:'pointer'}}>off</button>
+                        <button onClick={()=>{setGlowBlur(0);if(selected)updateLayer(selected,{glowBlur:0});}} style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',background:'none',border:'none',cursor:'pointer'}}>off</button>
                       </div>
                     </div>
                     {glowBlur>0&&<div><div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Intensity</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none'}}>{glowBlur}</span></div><input type="range" min={1} max={20} value={glowBlur} onChange={e=>{const v=+e.target.value;setGlowBlur(v);if(selected)updateLayer(selected,{glowBlur:v});}} style={{width:'100%',accentColor:glowColor}}/></div>}
@@ -1297,8 +1131,8 @@ function DesignStudio() {
                               <button aria-label={l.locked?'Unlock layer':'Lock layer'} aria-pressed={l.locked} title={l.locked?'Unlock':'Lock'} onClick={e=>{e.stopPropagation();updateLayer(l.id,{locked:!l.locked});}} style={{width:16,height:16,borderRadius:3,border:`1px solid ${l.locked?'rgba(0,229,200,0.3)':'rgba(255,255,255,0.07)'}`,background:l.locked?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.03)',color:l.locked?'#00E5C8':'rgba(255,255,255,0.3)',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
                                 <svg viewBox="0 0 12 12" width={8} height={8} fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="7" height="5" rx="1"/>{l.locked?<path d="M4 5.5V4a2 2 0 014 0v1.5"/>:<path d="M4 5.5V4a2 2 0 014-0.5"/>}</svg>
                               </button>
-                              <button aria-label="Move up" onClick={e=>{e.stopPropagation();moveLayer(l.id,'up');}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.3)',fontSize:'0.5rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>↑</button>
-                              <button aria-label="Move down" onClick={e=>{e.stopPropagation();moveLayer(l.id,'down');}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.3)',fontSize:'0.5rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>↓</button>
+                              <button aria-label="Move up" onClick={e=>{e.stopPropagation();moveLayer(l.id,'up');}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.62)',fontSize:'0.5rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>↑</button>
+                              <button aria-label="Move down" onClick={e=>{e.stopPropagation();moveLayer(l.id,'down');}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.62)',fontSize:'0.5rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>↓</button>
                               <button aria-label="Duplicate" onClick={e=>{e.stopPropagation();duplicateLayer(l.id);}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'rgba(0,229,200,0.5)',fontSize:'0.5rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>⊕</button>
                               <button aria-label="Delete" onClick={e=>{e.stopPropagation();deleteLayer(l.id);}} style={{width:16,height:16,borderRadius:3,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.03)',color:'#f87171',fontSize:'0.6rem',cursor:'pointer',padding:0,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
                             </div>
@@ -1325,8 +1159,8 @@ function DesignStudio() {
                 <div onDragEnter={e=>{e.preventDefault();setFileDragging(true);}} onDragLeave={()=>setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();setFileDragging(false);const f=e.dataTransfer.files[0];if(f)handleFile(f);}} onClick={()=>fileRef.current?.click()}
                   style={{border:`2px dashed ${fileDragging?'rgba(0,229,200,0.6)':uploads[uploadSlot]?'rgba(16,185,129,0.4)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:uploads[uploadSlot]?'1.2rem':'2.5rem 1rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(0,229,200,0.05)':uploads[uploadSlot]?'rgba(16,185,129,0.02)':'rgba(255,255,255,0.01)',transition:'all 0.2s',marginBottom:12}}>
                   <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);e.target.value='';}}/>
-                  {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>✓ Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.25)',marginTop:3}}>Click to replace</div></div></div>
-                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.22)'}}>PNG · JPG · SVG · WEBP</div></>}
+                  {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>✓ Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',marginTop:3}}>Click to replace</div></div></div>
+                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>PNG · JPG · SVG · WEBP</div></>}
                 </div>
                 {uploadSlot!=='chest'&&(
                   <div style={{marginBottom:12}}>
@@ -1384,7 +1218,7 @@ function DesignStudio() {
                       <div style={{width:34,height:34}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="34" height="34" ')}}/>
                     </div>
                     <div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>✓ Applied to shirt</div><div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.32)',marginTop:2}}>Showing on preview</div></div>
-                    <button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.2)',cursor:'pointer',fontSize:18}}>×</button>
+                    <button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:18}}>×</button>
                   </div>
                 )}
                 <div>
@@ -1433,7 +1267,7 @@ function DesignStudio() {
                             {v.kind==='line'&&<rect x={-10} y={-1} width={20} height={2} rx={1} fill="currentColor"/>}
                             {v.kind==='capsule'&&<rect x={-10} y={-5} width={20} height={10} rx={5} fill="currentColor"/>}
                           </svg>
-                          <span style={{fontSize:'0.48rem',color:'rgba(255,255,255,0.3)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{v.label}</span>
+                          <span style={{fontSize:'0.48rem',color:'rgba(255,255,255,0.62)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{v.label}</span>
                         </button>
                       ))}
                     </div>
@@ -1450,7 +1284,7 @@ function DesignStudio() {
                           onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.09)');(x.currentTarget.style.borderColor='rgba(0,229,200,0.25)');(x.currentTarget.style.transform='scale(1.04)');}}
                           onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.03)');(x.currentTarget.style.borderColor='rgba(255,255,255,0.07)');(x.currentTarget.style.transform='scale(1)');}}>
                           <span style={{fontSize:'1.5rem',lineHeight:1,color:'rgba(255,255,255,0.85)'}}>{s.char}</span>
-                          <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.3)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{s.label}</span>
+                          <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{s.label}</span>
                         </button>
                       ))}
                     </div>
@@ -1495,7 +1329,7 @@ function DesignStudio() {
                 <div style={{marginTop:14}}>
                   <div style={LS}>Print Area Background</div>
                   <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-                    <button onClick={()=>setPrintBg(null)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${!printBg?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.4)'}}>✕</button>
+                    <button onClick={()=>setPrintBg(null)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${!printBg?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.66)'}}>✕</button>
                     {['#000000','#ffffff','#FF4D1C','#FFD700','#10B981','#0099FF','#6C63FF','#FF69B4'].map(c=>(
                       <button key={c} onClick={()=>setPrintBg(c)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${printBg===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c,cursor:'pointer',transition:'all 0.12s',transform:printBg===c?'scale(1.15)':'scale(1)'}}/>
                     ))}
@@ -1534,7 +1368,7 @@ function DesignStudio() {
                         style={{width:50,height:50,borderRadius:12,cursor:'pointer',border:`2px solid ${size===s?'#00E5C8':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.02)',color:size===s?'#00E5C8':'rgba(255,255,255,0.35)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.06)':'scale(1)',boxShadow:size===s?'0 0 16px rgba(0,229,200,0.18)':'none'}}>{s}</button>
                     ))}
                   </div>
-                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.18)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex · 100% ring-spun cotton · Pre-shrunk · Standard fit · True to size</p>
+                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex · 100% ring-spun cotton · Pre-shrunk · Standard fit · True to size</p>
                 </div>
               </div>
             )}
@@ -1556,7 +1390,7 @@ function DesignStudio() {
                 </div>
 
                 <div style={{background:'rgba(255,255,255,0.02)',borderRadius:12,border:'1px solid rgba(255,255,255,0.07)',padding:'12px 13px',marginBottom:13}}>
-                  <div style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.2)',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Order Summary</div>
+                  <div style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Order Summary</div>
                   {[
                     [`Custom shirt × ${qty}`,`$${(24.99*qty).toFixed(2)}`],
                     [`Shipping`,`$${SHIPPING_PRICE.toFixed(2)}`],
@@ -1608,7 +1442,7 @@ function DesignStudio() {
               </button>
             ):(
               <button onClick={()=>setActiveTool('order')}
-                style={{width:'100%',padding:'14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.02)',color:'rgba(255,255,255,0.2)',fontWeight:700,fontSize:'0.78rem',cursor:'pointer',letterSpacing:'0.02em',transition:'all 0.15s'}}
+                style={{width:'100%',padding:'14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.02)',color:'rgba(255,255,255,0.62)',fontWeight:700,fontSize:'0.78rem',cursor:'pointer',letterSpacing:'0.02em',transition:'all 0.15s'}}
                 onMouseEnter={e=>{(e.currentTarget.style.borderColor='rgba(255,255,255,0.14)');(e.currentTarget.style.color='rgba(255,255,255,0.5)');(e.currentTarget.style.background='rgba(255,255,255,0.04)');}}
                 onMouseLeave={e=>{(e.currentTarget.style.borderColor='rgba(255,255,255,0.08)');(e.currentTarget.style.color='rgba(255,255,255,0.2)');(e.currentTarget.style.background='rgba(255,255,255,0.02)');}}>
                 {!size?'Select shirt size to continue →':'Complete order details →'}
@@ -1620,7 +1454,7 @@ function DesignStudio() {
                 {label:'72h shipping',icon:<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1.5 1.5"/></svg>},
                 {label:'Free returns',icon:<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M3 5H8M5 3l-2 2 2 2"/></svg>},
               ].map(b=>(
-                <span key={b.label} style={{fontSize:'0.53rem',color:'rgba(255,255,255,0.12)',fontWeight:600,letterSpacing:'0.04em',display:'flex',alignItems:'center',gap:2}}>{b.icon}{b.label}</span>
+                <span key={b.label} style={{fontSize:'0.53rem',color:'rgba(255,255,255,0.62)',fontWeight:600,letterSpacing:'0.04em',display:'flex',alignItems:'center',gap:2}}>{b.icon}{b.label}</span>
               ))}
             </div>
           </div>
@@ -1649,11 +1483,11 @@ function DesignStudio() {
 
 export default function DesignPage() {
   return (
-    <Suspense fallback={<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#070709',color:'rgba(255,255,255,0.18)',fontSize:'0.72rem',letterSpacing:'0.16em',textTransform:'uppercase'}}>Loading Studio...</div>}>
+    <Suspense fallback={<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#070709',color:'rgba(255,255,255,0.62)',fontSize:'0.72rem',letterSpacing:'0.16em',textTransform:'uppercase'}}>Loading Studio...</div>}>
       <DesignStudio/>
     </Suspense>
   );
 }
 
-const LS: React.CSSProperties  = {display:'block',fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.24)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:5};
+const LS: React.CSSProperties  = {display:'block',fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:5};
 const INP: React.CSSProperties = {width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:9,padding:'9px 11px',color:'#fff',fontSize:'0.8rem',outline:'none',transition:'border-color 0.15s'};

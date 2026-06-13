@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated Prisma client — machine-written, not subject to lint
     "lib/generated/**",
+    // Standalone dev tool (axe-core a11y audit runner), not app code
+    "verify-a11y.mjs",
   ]),
   {
     // These pages render user-generated designs as data-URLs (SVG/base64);
