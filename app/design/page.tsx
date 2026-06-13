@@ -595,12 +595,18 @@ function DesignStudio() {
         </defs>
         <ellipse cx="100" cy="227" rx="68" ry="6" fill="rgba(0,0,0,0.28)" filter="url(#pb)"/>
         <path d={SHIRT_PATH} fill="url(#sg)" filter="url(#ss)"/>
-        <path d="M30 58 C18 65,2 79,2 82 L26 97 L30 97 C28 80,20 68,30 58Z" fill="rgba(0,0,0,0.07)"/>
-        <path d="M170 58 C182 65,198 79,198 82 L174 97 L170 97 C172 80,180 68,170 58Z" fill="rgba(0,0,0,0.06)"/>
-        <path d="M56 72 Q70 52,100 50 Q130 52,144 72 Q130 60,100 58 Q70 60,56 72Z" fill="rgba(0,0,0,0.18)"/>
-        <line x1="35" y1="100" x2="25" y2="220" stroke="rgba(0,0,0,0.05)" strokeWidth="1.2"/>
-        <line x1="165" y1="100" x2="175" y2="220" stroke="rgba(0,0,0,0.04)" strokeWidth="1.2"/>
-        <line x1="22" y1="218" x2="178" y2="218" stroke="rgba(0,0,0,0.07)" strokeWidth="1"/>
+        {/* Armhole seams (sleeve-to-body) */}
+        <path d="M53 48 C49 64,51 82,54 95" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M147 48 C151 64,149 82,146 95" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1.1" strokeLinecap="round"/>
+        {/* Sleeve-hem creases */}
+        <path d="M18 93 Q32 99,45 100" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeLinecap="round"/>
+        <path d="M182 93 Q168 99,155 100" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" strokeLinecap="round"/>
+        {/* Soft center fold + hem line */}
+        <line x1="100" y1="70" x2="100" y2="207" stroke="rgba(0,0,0,0.035)" strokeWidth="1"/>
+        <path d="M54 206 Q100 214,146 206" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1"/>
+        {/* Crew-neck collar rib */}
+        <path d="M76 50 Q100 68,124 50 Q100 60,76 50 Z" fill="rgba(0,0,0,0.13)"/>
+        <path d="M78 52 Q100 66,122 52" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8"/>
         <path d={SHIRT_PATH} fill="url(#sh)"/>
         <path d={SHIRT_PATH} fill="url(#sp)"/>
         {printBg&&<rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={printBg} rx="3" clipPath="url(#ccb)"/>}
