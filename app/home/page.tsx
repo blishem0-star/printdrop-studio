@@ -50,7 +50,11 @@ export default function HomePage() {
     if (!session) { router.replace('/'); return; }
     if (session.customerId) {
       fetch('/api/subscription')
-        .then(r => r.ok ? r.json() : null)
+        .then(r => {
+          // 401 = stale localStorage hint with no valid cookie → session expired
+          if (r.status === 401) { setLocalSession(null); router.replace('/'); return null; }
+          return r.ok ? r.json() : null;
+        })
         .then(s => { if (s && s.id) setSub(s); })  // ignore error bodies / null
         .catch(() => {});
     }

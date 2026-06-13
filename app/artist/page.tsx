@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
-import { useLocalSession } from '@/lib/useLocalSession';
+import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 import { svgToDataUrl } from '@/lib/svgDataUrl';
 type DesignStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 type ArtistDesign = {
@@ -58,7 +58,7 @@ export default function ArtistPage() {
       fetch('/api/artist/earnings'),
     ]).then(async ([dr, er]) => {
       // Stale localStorage hint without a valid session cookie → 401: treat as logged out
-      if (dr.status === 401 || er.status === 401) { router.replace('/'); return; }
+      if (dr.status === 401 || er.status === 401) { setLocalSession(null); router.replace('/'); return; }
       const d = dr.ok ? await dr.json() : [];
       const e = er.ok ? await er.json() : null;
       if (Array.isArray(d)) setDesigns(d);

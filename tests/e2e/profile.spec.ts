@@ -30,3 +30,18 @@ test('authenticated profile page renders without errors', async ({ page }) => {
   await expect(page.getByText(/Orders?/).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('a stale session hint with no cookie self-heals to login (no crash/loop)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(String(e)));
+
+  // localStorage says "logged in" but there is no valid session cookie
+  await page.addInitScript(() => localStorage.setItem('pd_session', JSON.stringify({ type: 'user', customerId: 'ghost-id', name: 'Ghost', email: 'ghost@test.local', role: 'USER' })));
+
+  await page.goto('/profile');
+  // Bounced off the gated page; the stale hint is cleared so it lands on the login screen
+  await expect(page).not.toHaveURL(/\/profile/);
+  const hint = await page.evaluate(() => localStorage.getItem('pd_session'));
+  expect(hint).toBeNull();
+  expect(errors).toEqual([]);
+});
