@@ -9,7 +9,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
-  if (!rateLimit(`register:${ip}`, 5, 15 * 60 * 1000)) {
+  // 20 per 15 min per IP — accommodates shared/NAT'd IPs; account lockout and the
+  // per-account login throttle are the real abuse controls.
+  if (!rateLimit(`register:${ip}`, 20, 15 * 60 * 1000)) {
     return NextResponse.json({ error: 'Too many attempts. Try again in 15 minutes.' }, { status: 429 });
   }
 

@@ -65,8 +65,15 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!session?.customerId) return;
     fetch('/api/user/profile')
-      .then(r => r.json())
-      .then((p: Profile) => {
+      .then(async r => {
+        // A stale localStorage hint without a valid session cookie (e.g. logged in
+        // before the cookie migration) returns 401 — treat that as logged out.
+        if (r.status === 401) { setLocalSession(null); router.replace('/'); return null; }
+        if (!r.ok) return null;
+        return r.json() as Promise<Profile>;
+      })
+      .then((p) => {
+        if (!p || !p._count) return; // guard against error bodies
         setProfile(p);
         setEditName(p.name);
         setEditEmail(p.email);
@@ -77,7 +84,7 @@ export default function ProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [session, router]);
 
   async function saveProfile() {
     if (!session?.customerId) return;
@@ -148,7 +155,7 @@ export default function ProfilePage() {
 
   const role = (profile?.role ?? session?.role ?? 'USER') as Role;
   const badge = ROLE_BADGE[role];
-  const orderCount = profile?._count.orders ?? 0;
+  const orderCount = profile?._count?.orders ?? 0;
   const aiUnlocked = orderCount >= 3;
 
   if (!session || loading) return (

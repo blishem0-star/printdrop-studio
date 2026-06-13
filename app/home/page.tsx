@@ -50,7 +50,9 @@ export default function HomePage() {
     if (!session) { router.replace('/'); return; }
     if (session.customerId) {
       fetch('/api/subscription')
-        .then(r => r.json()).then(s => { if (s) setSub(s); }).catch(() => {});
+        .then(r => r.ok ? r.json() : null)
+        .then(s => { if (s && s.id) setSub(s); })  // ignore error bodies / null
+        .catch(() => {});
     }
   }, [session, router]);
 

@@ -54,13 +54,17 @@ export default function ArtistPage() {
   useEffect(() => {
     if (!session?.customerId) return;
     Promise.all([
-      fetch('/api/artist/designs').then(r => r.json()),
-      fetch('/api/artist/earnings').then(r => r.json()),
-    ]).then(([d, e]) => {
-      setDesigns(d);
-      setEarnings(e);
+      fetch('/api/artist/designs'),
+      fetch('/api/artist/earnings'),
+    ]).then(async ([dr, er]) => {
+      // Stale localStorage hint without a valid session cookie → 401: treat as logged out
+      if (dr.status === 401 || er.status === 401) { router.replace('/'); return; }
+      const d = dr.ok ? await dr.json() : [];
+      const e = er.ok ? await er.json() : null;
+      if (Array.isArray(d)) setDesigns(d);
+      if (e && typeof e === 'object' && 'designs' in e) setEarnings(e);
     }).catch(() => {}).finally(() => setLoadingDesigns(false));
-  }, [session]);
+  }, [session, router]);
 
   const handleFile = useCallback((file: File) => {
     const reader = new FileReader();
