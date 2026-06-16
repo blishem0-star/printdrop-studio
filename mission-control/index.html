@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-scroll-behavior="smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STYLX · Mission Control</title>
+<style>
+  :root{
+    --bg:#050507; --bg2:#0a0a12; --surface:rgba(255,255,255,0.025); --surface2:rgba(255,255,255,0.05);
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+    --text:#fff; --text2:rgba(255,255,255,0.62); --text3:rgba(255,255,255,0.4);
+    --teal:#00E5C8; --blue:#0099FF; --purple:#7B61FF; --pink:#FF4D8D; --amber:#F59E0B; --green:#10B981; --red:#FF5A5A;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+    --sans:'Outfit','Segoe UI',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(ellipse at 50% -10%,#0d0d1a 0%,var(--bg) 55%);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1340px;margin:0 auto;padding:22px 22px 80px}
+
+  /* Top bar */
+  header.bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;border:1px solid var(--border);border-radius:18px;
+    background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));backdrop-filter:blur(20px);position:sticky;top:14px;z-index:50;margin-bottom:22px}
+  .brand{font-weight:800;font-size:1.15rem;letter-spacing:.04em}
+  .brand b{color:var(--teal)}
+  .brand small{display:block;font-size:.6rem;font-weight:700;color:var(--text3);letter-spacing:.22em;text-transform:uppercase;margin-top:1px}
+  .spacer{flex:1}
+  .stat{display:flex;flex-direction:column;align-items:center;min-width:62px}
+  .stat .n{font-size:1.4rem;font-weight:800;line-height:1}
+  .stat .l{font-size:.55rem;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+  .stat.teal .n{color:var(--teal)} .stat.amber .n{color:var(--amber)} .stat.green .n{color:var(--green)} .stat.blue .n{color:var(--blue)}
+  .btn{border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-weight:700;font-size:.82rem;padding:9px 16px;border-radius:11px;cursor:pointer;transition:.15s;font-family:inherit}
+  .btn:hover{border-color:rgba(255,255,255,0.3)}
+  .btn.primary{background:var(--teal);color:#03241f;border-color:var(--teal)}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent}
+  .btn.danger{color:var(--red);border-color:rgba(255,90,90,0.3);background:rgba(255,90,90,0.06)}
+
+  /* Pipeline strip */
+  .pipe{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:22px}
+  .pipe .node{border:1px solid var(--border);border-radius:14px;padding:13px 15px;background:var(--surface);position:relative;overflow:hidden}
+  .pipe .node h4{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+  .pipe .node .big{font-size:1.7rem;font-weight:800;margin-top:4px}
+  .pipe .node .sub{font-size:.66rem;color:var(--text3);margin-top:2px}
+  .pipe .node .bar{position:absolute;top:0;right:0;left:0;height:2px;background:linear-gradient(90deg,var(--teal),transparent)}
+
+  /* Layout */
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+  @media(max-width:1040px){.grid{grid-template-columns:1fr}.pipe{grid-template-columns:1fr 1fr}}
+
+  .dept{margin-bottom:26px}
+  .dept-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .dept-h .dot{width:9px;height:9px;border-radius:3px}
+  .dept-h h3{font-size:.92rem;font-weight:800;letter-spacing:.02em}
+  .dept-h .meta{font-size:.62rem;color:var(--text3);font-weight:700}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+
+  .card{border:1px solid var(--border);border-radius:15px;background:var(--surface);padding:13px;transition:.18s;position:relative;overflow:hidden}
+  .card.on{border-color:var(--border2)}
+  .card.off{opacity:.5}
+  .card.run{border-color:rgba(0,229,200,0.4);box-shadow:0 0 0 1px rgba(0,229,200,0.12),0 10px 30px rgba(0,0,0,0.35)}
+  .card .accent{position:absolute;top:0;right:0;left:0;height:2px;opacity:.0;transition:.2s}
+  .card.run .accent{opacity:1}
+  .chead{display:flex;align-items:center;gap:10px}
+  .mono{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;color:#03130f}
+  .cname{font-weight:800;font-size:.86rem;line-height:1.1}
+  .crole{font-size:.6rem;color:var(--text3);font-weight:700;letter-spacing:.04em;margin-top:1px}
+  .badge{font-size:.5rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;border:1px solid}
+  .badge.coder{color:var(--pink);border-color:rgba(255,77,141,0.35);background:rgba(255,77,141,0.08)}
+  .badge.gate{color:var(--green);border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.08)}
+
+  /* switch */
+  .sw{margin-inline-start:auto;width:38px;height:21px;border-radius:20px;background:rgba(255,255,255,0.1);position:relative;cursor:pointer;transition:.18s;flex-shrink:0}
+  .sw::after{content:'';position:absolute;top:2px;inset-inline-start:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.18s}
+  .sw.on{background:var(--teal)}
+  .sw.on::after{inset-inline-start:19px}
+
+  .status{display:flex;align-items:center;gap:7px;margin-top:11px;font-size:.7rem;font-weight:700}
+  .sdot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+  .sdot.queued{background:var(--amber);animation:pulse 1.2s infinite}
+  .sdot.working{background:var(--teal);animation:pulse 1s infinite}
+  .sdot.review{background:var(--blue);animation:pulse 1s infinite}
+  .sdot.done{background:var(--green)}
+  .sdot.failed{background:var(--red)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .task{font-size:.7rem;color:var(--text2);margin-top:7px;min-height:1em;font-family:var(--mono)}
+  .prog{height:4px;border-radius:3px;background:rgba(255,255,255,0.07);margin-top:9px;overflow:hidden}
+  .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width .4s}
+  .cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:.58rem;color:var(--text3);font-weight:700}
+  .tok{display:flex;align-items:center;gap:4px}
+  .tok b{color:var(--text2)}
+  details.resp{margin-top:8px}
+  details.resp summary{font-size:.6rem;color:var(--text3);cursor:pointer;font-weight:700;list-style:none}
+  details.resp summary::-webkit-details-marker{display:none}
+  details.resp ul{margin:6px 14px 0 6px;font-size:.66rem;color:var(--text2)}
+  details.resp li{margin-bottom:2px}
+
+  /* feed */
+  .side{position:sticky;top:90px}
+  .panel{border:1px solid var(--border);border-radius:15px;background:var(--surface);padding:14px;margin-bottom:16px}
+  .panel h4{font-size:.62rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .feed{max-height:420px;overflow:auto;display:flex;flex-direction:column;gap:7px}
+  .ev{font-size:.68rem;display:flex;gap:7px;line-height:1.35}
+  .ev .t{color:var(--text3);font-family:var(--mono);font-size:.6rem;flex-shrink:0;margin-top:1px}
+  .ev .who{font-weight:800;flex-shrink:0}
+  .ev .msg{color:var(--text2)}
+  .empty{color:var(--text3);font-size:.7rem;text-align:center;padding:18px}
+  .qrow{display:flex;align-items:center;gap:8px;font-size:.7rem;padding:7px 0;border-bottom:1px solid var(--border)}
+  .qrow:last-child{border:0}
+  .qrow .pill{font-size:.5rem;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:5px;flex-shrink:0}
+  .pill.backlog{background:rgba(245,158,11,0.12);color:var(--amber)}
+  .pill.coding{background:rgba(255,77,141,0.12);color:var(--pink)}
+  .pill.review{background:rgba(0,153,255,0.12);color:var(--blue)}
+  .pill.shipped{background:rgba(16,185,129,0.12);color:var(--green)}
+  .note{font-size:.62rem;color:var(--text3);line-height:1.5;border:1px dashed var(--border2);border-radius:11px;padding:10px 12px}
+  .filterbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .chip{font-size:.66rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer}
+  .chip.active{border-color:var(--teal);color:var(--teal);background:rgba(0,229,200,0.07)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <div class="brand">STYLX <b>·</b> Mission Control<small>Autonomous Agent Operations</small></div>
+    <div class="spacer"></div>
+    <div class="stat teal"><span class="n" id="s-on">0</span><span class="l">פעילים</span></div>
+    <div class="stat"><span class="n" id="s-run">0</span><span class="l">רצים</span></div>
+    <div class="stat green"><span class="n" id="s-ship">0</span><span class="l">שוחררו</span></div>
+    <div class="stat amber"><span class="n" id="s-tok">0</span><span class="l">~טוקנים</span></div>
+    <button class="btn ghost" id="btn-reset">איפוס</button>
+    <button class="btn ghost" id="btn-stop">עצור הכל</button>
+    <button class="btn primary" id="btn-start">▶ הפעל הכל</button>
+  </header>
+
+  <div class="pipe">
+    <div class="node"><span class="bar"></span><h4>Backlog · המתנה</h4><div class="big" id="p-backlog">0</div><div class="sub">מפרטים מהמייעצים</div></div>
+    <div class="node"><span class="bar"></span><h4>Implementation · קוד</h4><div class="big" id="p-coding">0</div><div class="sub">סוכן יחיד כותב קוד</div></div>
+    <div class="node"><span class="bar"></span><h4>QA · אישור</h4><div class="big" id="p-review">0</div><div class="sub">שומר־סף בודק</div></div>
+    <div class="node"><span class="bar"></span><h4>Shipped · שוחרר</h4><div class="big" id="p-shipped">0</div><div class="sub">עבר ביקורת ונקי</div></div>
+  </div>
+
+  <div class="filterbar" id="filters"></div>
+
+  <div class="grid">
+    <main id="depts"></main>
+    <aside class="side">
+      <div class="panel">
+        <h4><span class="sdot working" style="position:static"></span> פיד פעילות חי</h4>
+        <div class="feed" id="feed"><div class="empty">לחץ "הפעל הכל" כדי להתחיל. הסוכנים הכבויים לא יצרכו טוקנים.</div></div>
+      </div>
+      <div class="panel">
+        <h4>תור משימות → קוד</h4>
+        <div id="queue"><div class="empty">אין משימות בתור</div></div>
+      </div>
+      <div class="panel">
+        <div class="note">
+          <b style="color:var(--teal)">מודל חסכוני בטוקנים:</b> רק סוכן ה־Implementation כותב קוד, וה־QA מאשר אותו —
+          כך אין כפילות עבודה ואין כתיבה חוזרת. מייעצים מפיקים מפרט תמציתי בלבד.
+          סוכן כבוי = 0 טוקנים. כבה מה שלא רלוונטי עכשיו; הכל נשמר אוטומטית.
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const DEPTS = [
+  {id:'lead', name:'הנהלה', color:'var(--teal)', tile:'#00E5C8'},
+  {id:'design', name:'עיצוב וחוויית משתמש', color:'var(--purple)', tile:'#7B61FF'},
+  {id:'eng', name:'הנדסה', color:'var(--blue)', tile:'#0099FF'},
+  {id:'ai', name:'AI וקטלוג', color:'var(--pink)', tile:'#FF4D8D'},
+  {id:'growth', name:'צמיחה ושיווק', color:'var(--amber)', tile:'#F59E0B'},
+  {id:'biz', name:'עסקי ותפעול', color:'var(--green)', tile:'#10B981'},
+];
+
+// role: advisor (produces specs) | coder (writes code) | gate (reviews) | ops
+const AGENTS = [
+  // Leadership
+  {id:'ceo',mono:'CE',name:'CEO',dept:'lead',role:'advisor',cost:'נמוך',summary:'מנהל את כל הסוכנים',resp:['קובע סדרי עדיפויות','מאשר משימות גדולות','עוקב אחרי KPI ורווחיות','מכוון אסטרטגיה'],tasks:['סוקר KPI שבועיים','מתעדף יעדים רבעוניים','מאשר משימות מהתור','מקצה תקציב מאמץ']},
+  {id:'pm',mono:'PM',name:'Project Manager',dept:'lead',role:'advisor',cost:'נמוך',summary:'מתאם בין הסוכנים',resp:['מפרק משימות','מנהל Roadmap','מוודא עמידה בלו"ז','מתאם בין הסוכנים'],tasks:['מפרק אפיק ל-3 משימות','מעדכן Roadmap','מתזמן תלויות','מסנכרן סטטוס סוכנים']},
+  {id:'pdm',mono:'PD',name:'Product Manager',dept:'lead',role:'advisor',cost:'בינוני',summary:'אחראי על המוצר',resp:['מחליט אילו פיצ\'רים להוסיף','מנתח התנהגות משתמשים','משפר המרות','מגדיר דרישות'],tasks:['מנתח משפך המרה','מגדיר פיצ\'ר חדש','כותב user stories','מתעדף backlog מוצר']},
+  // Design & UX
+  {id:'ui',mono:'UI',name:'UI Designer',dept:'design',role:'advisor',cost:'בינוני',summary:'עיצוב מסכים וקומפוננטות',resp:['צבעים, טיפוגרפיה, אנימציות','אחידות עיצובית','יצירת קומפוננטות','design tokens'],tasks:['מעצב קומפוננטת כרטיס','בודק אחידות צבעים','מגדיר מפרט אנימציה','מכין spec ל-Implementation']},
+  {id:'ux',mono:'UX',name:'UX Research',dept:'design',role:'advisor',cost:'בינוני',summary:'חוויית משתמש וזרימות',resp:['מזהה נקודות נטישה','בונה זרימות משתמש','מייעל תהליך רכישה','שיפור חוויה'],tasks:['ממפה זרימת checkout','מזהה נקודת נטישה','מציע שיפור UX','כותב מפרט זרימה']},
+  // Engineering
+  {id:'fe',mono:'FE',name:'Frontend',dept:'eng',role:'advisor',cost:'בינוני',summary:'מפרט צד-לקוח',resp:['משפר ביצועים','רספונסיביות','מזהה באגים','מפרט שינויי UI'],tasks:['בודק ביצועי קטלוג','מאתר באג רספונסיבי','מכין מפרט תיקון','מודד גודל bundle']},
+  {id:'be',mono:'BE',name:'Backend',dept:'eng',role:'advisor',cost:'בינוני',summary:'מפרט API ולוגיקה',resp:['API ומסדי נתונים','לוגיקה עסקית','אינטגרציות','מפרט endpoints'],tasks:['בודק ולידציית API','מתכנן סכמת DB','מפרט endpoint חדש','בודק אינטגרציה']},
+  {id:'impl',mono:'IM',name:'Implementation',dept:'eng',role:'coder',cost:'גבוה',summary:'הסוכן היחיד שכותב קוד',resp:['מקבל מפרט מכל המייעצים','כותב את הקוד בפועל','עובד ב-worktree מבודד','מגיש ל-QA לאישור'],tasks:['מושך משימה מאושרת','כותב את הקוד','מריץ lint מקומי','מגיש ל-QA']},
+  {id:'qa',mono:'QA',name:'QA / Reviewer',dept:'eng',role:'gate',cost:'בינוני',summary:'שומר-סף: מוודא קוד נקי',resp:['בדיקות אוטומטיות (e2e+unit)','סוקר את קוד ה-Implementation','מוודא אין בעיות באתר','מאשר או מחזיר לתיקון'],tasks:['מריץ lint+build','מריץ 34 בדיקות e2e','סוקר diff','מאשר לשחרור']},
+  {id:'sec',mono:'SE',name:'Security',dept:'eng',role:'advisor',cost:'בינוני',summary:'אבטחת מידע וניטור',resp:['הרשאות ובדיקות חדירה','ניטור איומים','סורק IDOR/סשנים/secrets','מפרט תיקוני אבטחה'],tasks:['סורק IDOR ב-API','בודק תקפות סשנים','מחפש secrets חשופים','מפרט תיקון אבטחה']},
+  {id:'devops',mono:'DO',name:'DevOps',dept:'eng',role:'ops',cost:'נמוך',summary:'CI/CD, ניטור, גיבויים',resp:['שרתים ו-CI/CD','ניטור','גיבויים','health checks'],tasks:['מריץ pipeline CI','בודק health endpoint','מאמת גיבוי DB','מנטר זמני תגובה']},
+  // AI & Catalog
+  {id:'aigen',mono:'AG',name:'AI Generation',dept:'ai',role:'advisor',cost:'גבוה',summary:'איכות העיצובים שה-AI מייצר',resp:['שיפור איכות העיצובים','בניית פרומפטים','ניהול מודלי AI','העלאת איכות תוצרים'],tasks:['משפר פרומפט SVG','בודק איכות תוצר','מכייל פרמטרים','מפרט שדרוג מחולל']},
+  {id:'print',mono:'PR',name:'Print & Mockup',dept:'ai',role:'advisor',cost:'בינוני',summary:'בדיקות הדפס ו-Mockups',resp:['בדיקת מיקום הדפס','איכות PNG','יצירת Mockups','בדיקות לפני ייצור'],tasks:['בודק מיקום הדפס','מאמת 300DPI','בודק ייצוא PNG','אישור טרום-ייצור']},
+  {id:'mp',mono:'MP',name:'Marketplace',dept:'ai',role:'advisor',cost:'נמוך',summary:'ניהול מאגר העיצובים',resp:['ניהול מאגר עיצובים','אישור יוצרים','גילוי עיצובים איכותיים','ניהול תגמולים'],tasks:['סוקר עיצובים ממתינים','מאשר יוצר חדש','מדרג איכות','מחשב תגמול']},
+  {id:'cg',mono:'CG',name:'Creator Growth',dept:'ai',role:'advisor',cost:'נמוך',summary:'גיוס והגדלת קהילת יוצרים',resp:['גיוס מעצבים','הגדלת קהילת יוצרים','תוכניות תגמול','מעקב ביצועי יוצרים'],tasks:['מזהה יוצרים פוטנציאליים','בונה תוכנית תגמול','עוקב ביצועי יוצר','מתכנן קמפיין גיוס']},
+  // Growth & Marketing
+  {id:'seo',mono:'SO',name:'SEO',dept:'growth',role:'advisor',cost:'בינוני',summary:'קידום אורגני ומילות מפתח',resp:['מחקר מילות מפתח','בניית תוכן','שיפור דירוגים','מפרט שיפורי SEO טכני'],tasks:['מחקר מילות מפתח','בודק meta + JSON-LD','מפרט דפי קטגוריה','בונה sitemap plan']},
+  {id:'content',mono:'CO',name:'Content',dept:'growth',role:'advisor',cost:'בינוני',summary:'תוכן: מוצר, נחיתה, אימייל',resp:['תיאורי מוצרים','דפי נחיתה','בלוג','אימיילים'],tasks:['כותב תיאור מוצר','טיוטת דף נחיתה','רעיון לפוסט בלוג','כותב אימייל']},
+  {id:'mkt',mono:'MK',name:'Marketing',dept:'growth',role:'advisor',cost:'בינוני',summary:'קמפיינים ורשתות',resp:['קמפיינים','משפיענים','TikTok / Instagram','Facebook'],tasks:['בונה תוכנית קמפיין','מזהה משפיענים','רעיון ל-TikTok','לוח תוכן שבועי']},
+  {id:'ads',mono:'AD',name:'Ads Optimization',dept:'growth',role:'advisor',cost:'בינוני',summary:'פרסום ממומן ו-ROAS',resp:['ניהול פרסום ממומן','ROAS','A/B Testing','הקצאת תקציבים'],tasks:['מנתח ROAS','מציע A/B test','מקצה תקציב','מכבה מודעה חלשה']},
+  {id:'sales',mono:'SA',name:'Sales',dept:'growth',role:'advisor',cost:'נמוך',summary:'הגדלת מכירות והמרות',resp:['Upsell ו-Cross-Sell','שיפור Conversion','הצעות ערך','מפרט שיפורי מכירה'],tasks:['מציע upsell','מזהה cross-sell','בודק שיעור המרה','מפרט שיפור עגלה']},
+  {id:'amazon',mono:'AM',name:'Amazon',dept:'growth',role:'advisor',cost:'נמוך',summary:'העלאה וקידום באמזון',resp:['העלאת מוצרים לאמזון','SEO לאמזון','מחקר מוצרים','ניהול קטלוג'],tasks:['מחקר מוצרים','כותב listing','בודק תחרות','מתעדף קטלוג']},
+  // Business & Ops
+  {id:'support',mono:'CS',name:'Customer Support',dept:'biz',role:'advisor',cost:'נמוך',summary:'תמיכה והחזרים',resp:['מענה לשאלות','טיפול בהחזרים','מעקב הזמנות','בניית FAQ'],tasks:['מנסח תשובת FAQ','בודק החזר','עוקב הזמנה תקועה','מסכם פניות']},
+  {id:'data',mono:'DA',name:'Data Analyst',dept:'biz',role:'advisor',cost:'בינוני',summary:'נתונים, דוחות ותחזיות',resp:['ניתוח נתונים','דוחות','זיהוי מגמות','תחזיות'],tasks:['בונה דוח שבועי','מזהה מגמה','חוזה ביקוש','מסמן אנומליה']},
+  {id:'fin',mono:'FI',name:'Finance',dept:'biz',role:'advisor',cost:'נמוך',summary:'רווחיות, תמחור, תחזיות',resp:['רווחיות','עלויות ייצור','תמחור','תחזיות הכנסות'],tasks:['מחשב מרווח','בודק עלות ייצור','מציע תמחור','חוזה הכנסות']},
+  {id:'inno',mono:'IN',name:'Innovation',dept:'biz',role:'advisor',cost:'נמוך',summary:'מתחרים, טרנדים, רעיונות',resp:['מחקר מתחרים','זיהוי טרנדים','רעיונות חדשים','הצעות לפיצ\'רים עתידיים'],tasks:['סורק מתחרים','מזהה טרנד','מציע פיצ\'ר עתידי','מתעדף רעיונות']},
+];
+
+const costTok = {'נמוך':1,'בינוני':3,'גבוה':6};
+const deptOf = id => DEPTS.find(d=>d.id===id);
+const LS='mc_enabled_v1';
+
+// ---- state ----
+let enabled = {};
+try{ enabled = JSON.parse(localStorage.getItem(LS)) || {}; }catch{}
+AGENTS.forEach(a=>{ if(!(a.id in enabled)) enabled[a.id] = !['amazon','sales','mkt','ads','support','fin','cg','mp'].includes(a.id); });
+const saveEnabled = ()=>localStorage.setItem(LS, JSON.stringify(enabled));
+
+const rt = {}; // runtime per agent
+AGENTS.forEach(a=>rt[a.id]={status:'idle',prog:0,task:'',ti:0,tokens:0});
+let backlog=[], coding=[], review=[], shipped=0, tokens=0, running=false, feed=[];
+let filter='all';
+
+// ---- render ----
+const el = sel=>document.querySelector(sel);
+function fmtTokens(n){ return n>=1000 ? (n/1000).toFixed(1)+'k' : n; }
+
+function buildFilters(){
+  const f=el('#filters');
+  const chips=[['all','הכל'],...DEPTS.map(d=>[d.id,d.name])];
+  f.innerHTML=chips.map(([id,n])=>`<button class="chip ${filter===id?'active':''}" data-f="${id}">${n}</button>`).join('');
+  f.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;buildFilters();renderDepts();});
+}
+
+function renderDepts(){
+  const host=el('#depts'); host.innerHTML='';
+  DEPTS.filter(d=>filter==='all'||filter===d.id).forEach(d=>{
+    const ags=AGENTS.filter(a=>a.dept===d.id);
+    const onCount=ags.filter(a=>enabled[a.id]).length;
+    const sec=document.createElement('section'); sec.className='dept';
+    sec.innerHTML=`<div class="dept-h"><span class="dot" style="background:${d.color}"></span><h3>${d.name}</h3><span class="meta">${onCount}/${ags.length} פעילים</span></div><div class="cards"></div>`;
+    const cards=sec.querySelector('.cards');
+    ags.forEach(a=>cards.appendChild(card(a)));
+    host.appendChild(sec);
+  });
+}
+
+function card(a){
+  const d=deptOf(a.dept), s=rt[a.id], on=enabled[a.id];
+  const c=document.createElement('div');
+  c.className='card '+(on?'on':'off')+(['queued','working','review'].includes(s.status)?' run':'');
+  c.id='card-'+a.id;
+  const roleBadge = a.role==='coder'?'<span class="badge coder">כותב קוד</span>'
+    : a.role==='gate'?'<span class="badge gate">שומר-סף</span>':'';
+  c.innerHTML=`
+    <span class="accent" style="background:linear-gradient(90deg,${d.color},transparent)"></span>
+    <div class="chead">
+      <div class="mono" style="background:${d.tile}">${a.mono}</div>
+      <div style="min-width:0">
+        <div class="cname">${a.name} ${roleBadge}</div>
+        <div class="crole">${a.summary}</div>
+      </div>
+      <div class="sw ${on?'on':''}" data-id="${a.id}" title="הדלק/כבה"></div>
+    </div>
+    <div class="status"><span class="sdot ${s.status}"></span><span class="stxt">${statusLabel(s.status)}</span></div>
+    <div class="task">${s.task||'&nbsp;'}</div>
+    <div class="prog"><i style="width:${s.prog}%"></i></div>
+    <div class="cfoot">
+      <span class="tok">צריכה: <b>${on?fmtTokens(s.tokens):0}</b> tok</span>
+      <span>עלות: ${a.cost}</span>
+    </div>
+    <details class="resp"><summary>תחומי אחריות</summary><ul>${a.resp.map(r=>`<li>${r}</li>`).join('')}</ul></details>`;
+  c.querySelector('.sw').onclick=e=>{ const id=e.target.dataset.id; enabled[id]=!enabled[id]; saveEnabled(); if(!enabled[id]){rt[id]={status:'idle',prog:0,task:'',ti:0,tokens:0};} renderDepts(); updateStats(); };
+  return c;
+}
+function statusLabel(s){return{idle:'ממתין',queued:'בתור',working:'עובד...',review:'בבדיקה',done:'הושלם',failed:'נכשל'}[s]||s;}
+
+function updateCard(a){
+  const c=el('#card-'+a.id); if(!c)return; const s=rt[a.id];
+  c.className='card '+(enabled[a.id]?'on':'off')+(['queued','working','review'].includes(s.status)?' run':'');
+  c.querySelector('.sdot').className='sdot '+s.status;
+  c.querySelector('.stxt').textContent=statusLabel(s.status);
+  c.querySelector('.task').innerHTML=s.task||'&nbsp;';
+  c.querySelector('.prog i').style.width=s.prog+'%';
+  c.querySelector('.tok b').textContent=enabled[a.id]?fmtTokens(s.tokens):0;
+}
+
+function updateStats(){
+  const on=AGENTS.filter(a=>enabled[a.id]).length;
+  const run=AGENTS.filter(a=>['queued','working','review'].includes(rt[a.id].status)).length;
+  el('#s-on').textContent=on; el('#s-run').textContent=run;
+  el('#s-ship').textContent=shipped; el('#s-tok').textContent=fmtTokens(tokens);
+  el('#p-backlog').textContent=backlog.length; el('#p-coding').textContent=coding.length;
+  el('#p-review').textContent=review.length; el('#p-shipped').textContent=shipped;
+  renderQueue();
+}
+function renderQueue(){
+  const q=el('#queue'); const items=[...coding.map(t=>['coding','כותב קוד',t]),...review.map(t=>['review','בבדיקה',t]),...backlog.slice(0,5).map(t=>['backlog','בתור',t])];
+  q.innerHTML = items.length? items.map(([p,l,t])=>`<div class="qrow"><span class="pill ${p}">${l}</span><span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t}</span></div>`).join('') : '<div class="empty">אין משימות בתור</div>';
+}
+function addFeed(who,whoColor,msg){
+  const t=new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  feed.unshift({t,who,whoColor,msg}); feed=feed.slice(0,60);
+  el('#feed').innerHTML=feed.map(e=>`<div class="ev"><span class="t">${e.t}</span><span class="who" style="color:${e.whoColor}">${e.who}</span><span class="msg">${e.msg}</span></div>`).join('');
+}
+
+// ---- simulation engine ----
+let loop=null;
+function start(){
+  if(running) return; running=true;
+  AGENTS.forEach(a=>{ if(enabled[a.id]){ rt[a.id].status='queued'; rt[a.id].task='בתור...'; rt[a.id].prog=0; rt[a.id].ti=0; } });
+  addFeed('SYSTEM','var(--teal)','הופעלו '+AGENTS.filter(a=>enabled[a.id]).length+' סוכנים. סוכנים כבויים = 0 טוקנים.');
+  if(enabled.impl && !enabled.qa) addFeed('SYSTEM','var(--amber)','שים לב: ה-QA כבוי — קוד ייכתב אך לא ישוחרר עד שתדליק אישור.');
+  renderDepts(); updateStats();
+  loop=setInterval(tick,850);
+}
+function stop(){ running=false; clearInterval(loop); AGENTS.forEach(a=>{ if(['queued','working'].includes(rt[a.id].status)){rt[a.id].status='idle';rt[a.id].task='';rt[a.id].prog=0;} updateCard(a);}); addFeed('SYSTEM','var(--red)','כל הסוכנים נעצרו.'); updateStats(); }
+function reset(){ stop(); AGENTS.forEach(a=>rt[a.id]={status:'idle',prog:0,task:'',ti:0,tokens:0}); backlog=[];coding=[];review=[];shipped=0;tokens=0;feed=[]; el('#feed').innerHTML='<div class="empty">אופס. הכל אופס.</div>'; renderDepts(); updateStats(); }
+
+function tick(){
+  AGENTS.forEach(a=>{
+    if(!enabled[a.id]) return;
+    const s=rt[a.id];
+    if(a.role==='coder'){ tickCoder(a,s); return; }
+    if(a.role==='gate'){ tickGate(a,s); return; }
+    // advisors & ops: cycle their tasks, then emit a spec to backlog
+    if(s.status==='queued'){ s.status='working'; }
+    if(s.status==='working'){
+      if(!s.task || s.prog>=100){ s.task=a.tasks[s.ti % a.tasks.length]; s.prog=0; addFeed(a.name,deptOf(a.dept).color,s.task); }
+      s.prog=Math.min(100,s.prog+18+Math.random()*22);
+      const burn=costTok[a.cost]; s.tokens+=burn; tokens+=burn;
+      if(s.prog>=100){
+        s.ti++;
+        // every couple of tasks, an advisor (not ops) emits a spec into the code backlog
+        if(a.role==='advisor' && s.ti%2===0){ const spec=a.name+': '+a.tasks[(s.ti-1)%a.tasks.length]; backlog.push(spec); addFeed(a.name,deptOf(a.dept).color,'→ הגיש מפרט לתור הקוד'); }
+        if(s.ti>=a.tasks.length){ s.status='done'; s.task='סיים סבב — '+ (a.role==='advisor'?'מפרטים בתור':'מוכן'); }
+      }
+    }
+    updateCard(a);
+  });
+  // pipeline: move backlog -> coding handled by coder tick; render
+  updateStats();
+}
+
+function tickCoder(a,s){ // Implementation — sole code writer
+  if(coding.length===0){
+    if(backlog.length===0){ s.status= running?'queued':'idle'; s.task='ממתין למפרט מאושר...'; s.prog=0; updateCard(a); return; }
+    const item=backlog.shift(); coding.push(item); s.status='working'; s.prog=0; s.task='כותב קוד: '+item; addFeed(a.name,'var(--pink)','התחיל לכתוב קוד — '+item);
+  }
+  s.status='working'; s.prog=Math.min(100,s.prog+16+Math.random()*16);
+  const burn=costTok[a.cost]; s.tokens+=burn; tokens+=burn;
+  if(s.prog>=100){
+    const done=coding.shift(); review.push(done); s.prog=0;
+    addFeed(a.name,'var(--pink)','→ הגיש ל-QA: '+done);
+    if(!coding.length && !backlog.length){ s.task='ממתין למפרט מאושר...'; }
+  }
+  updateCard(a);
+}
+function tickGate(a,s){ // QA — verifier
+  if(review.length===0){ s.status= running?'queued':'idle'; s.task='ממתין לקוד לבדיקה...'; s.prog=0; updateCard(a); return; }
+  s.status='review'; s.prog=Math.min(100,s.prog+20+Math.random()*18);
+  const burn=costTok[a.cost]; s.tokens+=burn; tokens+=burn;
+  if(s.prog===0||!s.task.includes('בודק')) s.task='בודק: lint · build · 34 e2e';
+  if(s.prog>=100){
+    const done=review.shift(); s.prog=0;
+    if(Math.random()<0.12){ backlog.unshift(done); addFeed(a.name,'var(--blue)','✗ החזיר לתיקון: '+done); }
+    else { shipped++; addFeed(a.name,'var(--green)','✓ אושר ושוחרר: '+done); }
+  }
+  updateCard(a);
+}
+
+// ---- wire ----
+el('#btn-start').onclick=start;
+el('#btn-stop').onclick=stop;
+el('#btn-reset').onclick=reset;
+buildFilters(); renderDepts(); updateStats();
+</script>
+</body>
+</html>
