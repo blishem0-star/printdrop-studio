@@ -54,3 +54,6 @@ dev.db
 # misc logs (e.g. chromium/playwright crash output)
 debug.log
 *.log
+
+# auto-improver runtime log
+agents/improver/log.md

@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "lib/generated/**",
     // Standalone dev tool (axe-core a11y audit runner), not app code
     "verify-a11y.mjs",
+    // Agent tooling (autonomous improver runner) — not part of the app
+    "agents/**",
   ]),
   {
     // These pages render user-generated designs as data-URLs (SVG/base64);

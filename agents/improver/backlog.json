@@ -1,0 +1,30 @@
+{
+  "updated": "2026-06-14",
+  "note": "Real, high-impact, user-visible tasks for the Auto-Improver. priority 1=highest. status: pending|done|blocked. blocked=needs an external key/account.",
+  "tasks": [
+    { "id": "studio-text-on-path", "area": "studio", "priority": 1, "status": "pending",
+      "title": "Add curved text-on-path presets (wave/arch/circle) as one-click options in the studio text panel, rendering via SVG textPath" },
+    { "id": "studio-distress", "area": "studio", "priority": 2, "status": "pending",
+      "title": "Add a 'distress / vintage texture' overlay toggle for layers (SVG turbulence filter) — a real print-style effect" },
+    { "id": "catalog-virtualize", "area": "performance", "priority": 2, "status": "pending",
+      "title": "Virtualize the catalog grid so 200+ SVG designs don't all mount at once — measurable scroll/perf win" },
+    { "id": "seo-category-pages", "area": "seo", "priority": 3, "status": "pending",
+      "title": "Add /catalog/category/[name] static pages (Nature, Urban, Minimal...) with metadata + JSON-LD CollectionPage, linked from the catalog filter" },
+    { "id": "product-related", "area": "product", "priority": 3, "status": "pending",
+      "title": "On /catalog/[id], add a 'More like this' related-designs strip (same category) to deepen the product page" },
+    { "id": "studio-onboarding", "area": "ux", "priority": 4, "status": "pending",
+      "title": "First-visit 3-step studio onboarding overlay (type → customize → order), dismissible and remembered in localStorage" },
+    { "id": "studio-keyboard", "area": "a11y", "priority": 4, "status": "pending",
+      "title": "Full keyboard operability in the studio: focusable layers, Enter to select, documented shortcuts panel, aria-live status" },
+    { "id": "home-empty-states", "area": "ux", "priority": 5, "status": "pending",
+      "title": "Polished empty/loading skeletons across home, profile, artist (consistent shimmer), replacing bare 'Loading...' text" },
+    { "id": "perf-lighthouse", "area": "performance", "priority": 5, "status": "pending",
+      "title": "Add a Lighthouse-CI budget check (scripted) and fix the top regression it surfaces" },
+    { "id": "stripe-checkout", "area": "commerce", "priority": 1, "status": "blocked",
+      "title": "Real Stripe Checkout + webhook before marking orders PAID (BLOCKED: needs Stripe keys)" },
+    { "id": "emails", "area": "comms", "priority": 2, "status": "blocked",
+      "title": "Transactional emails via Resend (BLOCKED: needs Resend key)" },
+    { "id": "ai-real", "area": "studio", "priority": 1, "status": "blocked",
+      "title": "Real AI SVG generation from a prompt (BLOCKED: needs ANTHROPIC_API_KEY)" }
+  ]
+}
