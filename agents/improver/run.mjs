@@ -29,6 +29,8 @@ const args = process.argv.slice(2);
 const has = f => args.includes(f);
 const intervalArg = args.find(a => a.startsWith('--interval='));
 const INTERVAL_MIN = intervalArg ? Number(intervalArg.split('=')[1]) : null;
+const taskArg = args.find(a => a.startsWith('--task='));
+const FORCE_TASK = taskArg ? taskArg.split('=')[1] : null;
 const DRY = has('--dry');
 const RUN_CHECKS = has('--checks');
 
@@ -40,9 +42,10 @@ function cleanTree() {
 }
 function pickTask() {
   const data = JSON.parse(readFileSync(BACKLOG, 'utf8'));
-  const t = data.tasks
-    .filter(t => t.status === 'pending')
-    .sort((a, b) => a.priority - b.priority)[0];
+  const pending = data.tasks.filter(t => t.status === 'pending');
+  const t = FORCE_TASK
+    ? pending.find(t => t.id === FORCE_TASK)
+    : pending.sort((a, b) => a.priority - b.priority)[0];
   return { data, task: t };
 }
 function setTaskStatus(data, id, status, extra = {}) {
@@ -79,8 +82,11 @@ function doRealWork(task) {
     `all pass. Do NOT commit — the runner will verify and commit. If you cannot make it pass, ` +
     `revert your own changes and say so.`;
   log(`spawning claude for: ${task.id}`);
-  const r = spawnSync('claude', ['-p', prompt, '--permission-mode', 'acceptEdits'],
-    { cwd: ROOT, encoding: 'utf8', stdio: 'inherit' });
+  // Prompt via stdin (avoids shell-quoting issues); shell:true resolves claude.ps1 on Windows.
+  // --dangerously-skip-permissions is required for unattended headless runs; the safety net
+  // is the runner's verify gate + auto-revert + clean-tree requirement (never pushes).
+  const r = spawnSync('claude', ['-p', '--dangerously-skip-permissions'],
+    { cwd: ROOT, input: prompt, stdio: ['pipe', 'inherit', 'inherit'], shell: true, encoding: 'utf8' });
   return r.status === 0;
 }
 
