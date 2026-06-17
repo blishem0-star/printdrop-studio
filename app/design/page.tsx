@@ -596,17 +596,17 @@ function DesignStudio() {
         <ellipse cx="100" cy="227" rx="68" ry="6" fill="rgba(0,0,0,0.28)" filter="url(#pb)"/>
         <path d={SHIRT_PATH} fill="url(#sg)" filter="url(#ss)"/>
         {/* Armhole seams (sleeve-to-body) */}
-        <path d="M53 48 C49 64,51 82,54 95" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M147 48 C151 64,149 82,146 95" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M56 53 C52 62,53 70,54 77" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M144 53 C148 62,147 70,146 77" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1.1" strokeLinecap="round"/>
         {/* Sleeve-hem creases */}
-        <path d="M18 93 Q32 99,45 100" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeLinecap="round"/>
-        <path d="M182 93 Q168 99,155 100" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" strokeLinecap="round"/>
+        <path d="M28 80 Q37 86,46 87" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeLinecap="round"/>
+        <path d="M172 80 Q163 86,154 87" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" strokeLinecap="round"/>
         {/* Soft center fold + hem line */}
-        <line x1="100" y1="70" x2="100" y2="207" stroke="rgba(0,0,0,0.035)" strokeWidth="1"/>
-        <path d="M54 206 Q100 214,146 206" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1"/>
+        <line x1="100" y1="64" x2="100" y2="203" stroke="rgba(0,0,0,0.035)" strokeWidth="1"/>
+        <path d="M55 203 Q100 211,145 203" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1"/>
         {/* Crew-neck collar rib */}
-        <path d="M76 50 Q100 68,124 50 Q100 60,76 50 Z" fill="rgba(0,0,0,0.13)"/>
-        <path d="M78 52 Q100 66,122 52" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8"/>
+        <path d="M74 52 Q100 64,126 52 Q100 58,74 52 Z" fill="rgba(0,0,0,0.13)"/>
+        <path d="M76 54 Q100 62,124 54" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8"/>
         <path d={SHIRT_PATH} fill="url(#sh)"/>
         <path d={SHIRT_PATH} fill="url(#sp)"/>
         {printBg&&<rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={printBg} rx="3" clipPath="url(#ccb)"/>}

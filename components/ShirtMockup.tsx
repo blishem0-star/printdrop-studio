@@ -40,7 +40,7 @@ export default function ShirtMockup({ colorHex, size = 200, children, className,
       <path d={SHIRT_PATH} fill={`url(#fg-${id})`} />
       <path d={SHIRT_PATH} fill={`url(#fold-${id})`} />
       {/* Crew-neck collar rib */}
-      <path d="M76 50 Q100 68,124 50 Q100 60,76 50 Z" fill="rgba(0,0,0,0.13)" />
+      <path d="M74 52 Q100 64,126 52 Q100 58,74 52 Z" fill="rgba(0,0,0,0.13)" />
 
       {children && <g clipPath={`url(#clip-${id})`}>{children}</g>}
     </svg>

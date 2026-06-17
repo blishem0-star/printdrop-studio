@@ -7,7 +7,7 @@ export const PRINT = { x:60, y:85, w:80, h:105 };
 // Realistic crew-neck tee, front view, in a 200x230 space. Symmetric about x=100:
 // shoulders -> tapered sleeve caps -> body with slight waist -> curved hem,
 // and a neckline that dips DOWN between the shoulders (a real crew cut-out).
-export const SHIRT_PATH = 'M76 50 C68 47,60 45,52 46 C40 49,26 53,18 60 C14 72,13 84,14 96 C24 100,36 102,46 102 C50 100,52 98,54 96 C52 130,51 170,52 208 Q100 216,148 208 C149 170,148 130,146 96 C148 98,150 100,154 102 C164 102,176 100,186 96 C187 84,186 72,182 60 C174 53,160 49,148 46 C140 45,132 47,124 50 Q100 68,76 50 Z';
+export const SHIRT_PATH = 'M74 52 C68 50,62 49,56 51 L44 55 C35 59,28 67,25 78 C24 82,26 85,30 86 L46 89 C50 87,53 83,53 77 C54 120,53 165,54 205 Q100 213,146 205 C147 165,146 120,147 77 C147 83,150 87,154 89 L170 86 C174 85,176 82,175 78 C172 67,165 59,156 55 L144 51 C138 49,132 50,126 52 Q100 64,74 52 Z';
 
 export const IMG_ZONE: Record<ImagePos,{x:number;y:number;w:number;h:number;clip:'body'|'full';slice?:boolean}> = {
   top:          {x:60,y:90,  w:80,h:44, clip:'body'},
