@@ -467,7 +467,7 @@ function DesignStudio() {
     }
   }
 
-  function renderLayers(interactive=true){
+  function renderLayers(interactive=true,idScope='live'){
     return layers.map(layer=>{
       if(layer.hidden) return null;
       const lx=PRINT.x+(layer.x/100)*PRINT.w, ly=PRINT.y+(layer.y/100)*PRINT.h;
@@ -479,12 +479,12 @@ function DesignStudio() {
       const hasShadow=(layer.shadowBlur??0)>0&&(layer.shadowColor??'')!=='';
       const hasGlow=(layer.glowBlur??0)>0&&(layer.glowColor??'')!=='';
       const hasFilter=hasShadow||hasGlow;
-      const filterId=`flt-${layer.id}`;
-      const arcPathId=`arc-${layer.id}`;
+      const filterId=`flt-${idScope}-${layer.id}`;
+      const arcPathId=`arc-${idScope}-${layer.id}`;
       const displayContent=layer.textTransform==='uppercase'?layer.content.toUpperCase():layer.textTransform==='lowercase'?layer.content.toLowerCase():layer.content;
       const commonTextProps={
         fontSize:layer.fontSize,
-        fill:layer.gradient&&GRADIENT_PRESETS[layer.gradient]?`url(#lg-${layer.id})`:layer.color,
+        fill:layer.gradient&&GRADIENT_PRESETS[layer.gradient]?`url(#lg-${idScope}-${layer.id})`:layer.color,
         fontFamily:layer.fontFamily, fontWeight:layer.fontWeight,
         fontStyle:layer.italic?'italic' as const:'normal' as const,
         stroke:layer.strokeColor||undefined,
@@ -539,42 +539,48 @@ function DesignStudio() {
 
   // Render helper (plain function, not a component — avoids remounting on every render)
   function renderShirtCanvas(w:number,h:number,interactive=true){
+    const idScope=interactive?'live':'preview';
+    const svgId=(name:string)=>`${name}-${idScope}`;
     return (
       <svg width={w} height={h} viewBox={`0 0 ${SVG_W} ${SVG_H}`} fill="none" style={{overflow:'visible'}}>
         <defs>
-          <filter id="ss" x="-30%" y="-10%" width="160%" height="140%">
-            <feDropShadow dx="0" dy="18" stdDeviation="22" floodColor="rgba(0,0,0,0.45)"/>
-            <feDropShadow dx="0" dy="4"  stdDeviation="8"  floodColor="rgba(0,0,0,0.25)"/>
+          <filter id={svgId('ss')} x="-30%" y="-10%" width="160%" height="140%">
+            <feDropShadow dx="0" dy="18" stdDeviation="22" floodColor="rgba(0,0,0,0.42)"/>
+            <feDropShadow dx="0" dy="4"  stdDeviation="8"  floodColor="rgba(0,0,0,0.24)"/>
           </filter>
-          <filter id="pb"><feGaussianBlur stdDeviation="6"/></filter>
-          <linearGradient id="sg" x1="0.18" y1="0" x2="0.82" y2="1">
+          <filter id={svgId('pb')}><feGaussianBlur stdDeviation="6"/></filter>
+          <pattern id={svgId('weave')} width="6" height="6" patternUnits="userSpaceOnUse">
+            <path d="M0 1.5H6M1.5 0V6" stroke={isLight?'rgba(0,0,0,0.032)':'rgba(255,255,255,0.05)'} strokeWidth="0.35"/>
+          </pattern>
+          <linearGradient id={svgId('sg')} x1="0.18" y1="0" x2="0.82" y2="1">
             <stop offset="0%"   stopColor={color.hex} stopOpacity="1"/>
             <stop offset="100%" stopColor={color.hex} stopOpacity="0.92"/>
           </linearGradient>
-          <linearGradient id="sh" x1="0.12" y1="0" x2="0.88" y2="0.55">
-            <stop offset="0%"   stopColor="rgba(255,255,255,0.22)"/>
+          <linearGradient id={svgId('sh')} x1="0.12" y1="0" x2="0.88" y2="0.55">
+            <stop offset="0%"   stopColor="rgba(255,255,255,0.24)"/>
             <stop offset="45%"  stopColor="rgba(255,255,255,0.04)"/>
             <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
           </linearGradient>
-          <radialGradient id="sp" cx="48%" cy="18%" r="65%">
-            <stop offset="0%"   stopColor="rgba(255,255,255,0.12)"/>
-            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+          <radialGradient id={svgId('sp')} cx="50%" cy="20%" r="70%">
+            <stop offset="0%"   stopColor="rgba(255,255,255,0.18)"/>
+            <stop offset="72%"  stopColor="rgba(255,255,255,0)"/>
+            <stop offset="100%" stopColor="rgba(0,0,0,0.08)"/>
           </radialGradient>
-          <clipPath id="ccb"><rect x="56" y="82" width="88" height="130"/></clipPath>
-          <clipPath id="ccf"><path d={SHIRT_PATH}/></clipPath>
+          <clipPath id={svgId('ccb')}><rect x="56" y="82" width="88" height="130" rx="3"/></clipPath>
+          <clipPath id={svgId('ccf')}><path d={SHIRT_PATH}/></clipPath>
           {/* Arc text paths */}
           {layers.filter(l=>Math.abs(l.arcAngle??0)>=2).map(l=>{
             const lx=PRINT.x+(l.x/100)*PRINT.w, ly=PRINT.y+(l.y/100)*PRINT.h;
-            return <path key={l.id} id={`arc-${l.id}`} d={calcArcPath(lx,ly,l.arcAngle,l.content.length,l.fontSize)} fill="none"/>;
+            return <path key={l.id} id={`arc-${idScope}-${l.id}`} d={calcArcPath(lx,ly,l.arcAngle,l.content.length,l.fontSize)} fill="none"/>;
           })}
           {/* Image effect filters */}
-          <filter id="fx-gray"><feColorMatrix type="saturate" values="0"/></filter>
-          <filter id="fx-sepia"><feColorMatrix type="matrix" values="0.39 0.77 0.19 0 0  0.35 0.69 0.17 0 0  0.27 0.53 0.13 0 0  0 0 0 1 0"/></filter>
-          <filter id="fx-invert"><feComponentTransfer><feFuncR type="table" tableValues="1 0"/><feFuncG type="table" tableValues="1 0"/><feFuncB type="table" tableValues="1 0"/></feComponentTransfer></filter>
-          <filter id="fx-punch"><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.12"/><feFuncG type="linear" slope="1.35" intercept="-0.12"/><feFuncB type="linear" slope="1.35" intercept="-0.12"/></feComponentTransfer><feColorMatrix type="saturate" values="1.4"/></filter>
+          <filter id={svgId('fx-gray')}><feColorMatrix type="saturate" values="0"/></filter>
+          <filter id={svgId('fx-sepia')}><feColorMatrix type="matrix" values="0.39 0.77 0.19 0 0  0.35 0.69 0.17 0 0  0.27 0.53 0.13 0 0  0 0 0 1 0"/></filter>
+          <filter id={svgId('fx-invert')}><feComponentTransfer><feFuncR type="table" tableValues="1 0"/><feFuncG type="table" tableValues="1 0"/><feFuncB type="table" tableValues="1 0"/></feComponentTransfer></filter>
+          <filter id={svgId('fx-punch')}><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.12"/><feFuncG type="linear" slope="1.35" intercept="-0.12"/><feFuncB type="linear" slope="1.35" intercept="-0.12"/></feComponentTransfer><feColorMatrix type="saturate" values="1.4"/></filter>
           {/* Per-layer gradient fills */}
           {layers.filter(l=>l.gradient&&GRADIENT_PRESETS[l.gradient]).map(l=>(
-            <linearGradient key={`lg-${l.id}`} id={`lg-${l.id}`} x1="0" y1="0" x2="1" y2="1">
+            <linearGradient key={`lg-${l.id}`} id={`lg-${idScope}-${l.id}`} x1="0" y1="0" x2="1" y2="1">
               {GRADIENT_PRESETS[l.gradient].stops.map((s,i,arr)=>(
                 <stop key={i} offset={`${Math.round((i/(arr.length-1))*100)}%`} stopColor={s}/>
               ))}
@@ -582,7 +588,7 @@ function DesignStudio() {
           ))}
           {/* Layer effect filters */}
           {layers.filter(l=>(l.shadowBlur??0)>0||(l.glowBlur??0)>0).map(l=>(
-            <filter key={l.id} id={`flt-${l.id}`} x="-50%" y="-50%" width="200%" height="200%">
+            <filter key={l.id} id={`flt-${idScope}-${l.id}`} x="-50%" y="-50%" width="200%" height="200%">
               {(l.shadowBlur??0)>0&&l.shadowColor&&<feDropShadow dx={l.shadowDx??2} dy={l.shadowDy??2} stdDeviation={(l.shadowBlur??0)/2} floodColor={l.shadowColor} floodOpacity="1"/>}
               {(l.glowBlur??0)>0&&l.glowColor&&<>
                 <feGaussianBlur in="SourceGraphic" stdDeviation={(l.glowBlur??0)/2.5} result="gblur"/>
@@ -593,34 +599,41 @@ function DesignStudio() {
             </filter>
           ))}
         </defs>
-        <ellipse cx="100" cy="227" rx="68" ry="6" fill="rgba(0,0,0,0.28)" filter="url(#pb)"/>
-        <path d={SHIRT_PATH} fill="url(#sg)" filter="url(#ss)"/>
+        <ellipse cx="100" cy="224" rx="63" ry="5.5" fill="rgba(0,0,0,0.25)" filter={`url(#${svgId('pb')})`}/>
+        <path d={SHIRT_PATH} fill={color.hex} filter={`url(#${svgId('ss')})`}/>
+        <path d={SHIRT_PATH} fill={`url(#${svgId('weave')})`} opacity="0.72"/>
         {/* Armhole seams (sleeve-to-body) */}
-        <path d="M56 53 C52 62,53 70,54 77" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M144 53 C148 62,147 70,146 77" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M54 54 C51 64,53 74,56 82" fill="none" stroke={isLight?'rgba(0,0,0,0.11)':'rgba(255,255,255,0.13)'} strokeWidth="1" strokeLinecap="round"/>
+        <path d="M146 54 C149 64,147 74,144 82" fill="none" stroke={isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.12)'} strokeWidth="1" strokeLinecap="round"/>
         {/* Sleeve-hem creases */}
-        <path d="M28 80 Q37 86,46 87" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeLinecap="round"/>
-        <path d="M172 80 Q163 86,154 87" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" strokeLinecap="round"/>
+        <path d="M27 84 Q36 91,47 92" fill="none" stroke={isLight?'rgba(0,0,0,0.12)':'rgba(255,255,255,0.13)'} strokeWidth="0.9" strokeLinecap="round"/>
+        <path d="M173 84 Q164 91,153 92" fill="none" stroke={isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.12)'} strokeWidth="0.9" strokeLinecap="round"/>
         {/* Soft center fold + hem line */}
-        <line x1="100" y1="64" x2="100" y2="203" stroke="rgba(0,0,0,0.035)" strokeWidth="1"/>
-        <path d="M55 203 Q100 211,145 203" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1"/>
+        <path d="M60 87 C57 121,57 167,58 203" fill="none" stroke={isLight?'rgba(0,0,0,0.055)':'rgba(255,255,255,0.07)'} strokeWidth="0.8" strokeLinecap="round"/>
+        <path d="M140 87 C143 121,143 167,142 203" fill="none" stroke={isLight?'rgba(0,0,0,0.045)':'rgba(255,255,255,0.065)'} strokeWidth="0.8" strokeLinecap="round"/>
+        <line x1="100" y1="70" x2="100" y2="201" stroke={isLight?'rgba(0,0,0,0.035)':'rgba(255,255,255,0.055)'} strokeWidth="0.7"/>
+        <path d="M58 203 Q100 211,142 203" fill="none" stroke={isLight?'rgba(0,0,0,0.13)':'rgba(255,255,255,0.13)'} strokeWidth="0.9" strokeLinecap="round"/>
         {/* Crew-neck collar rib */}
-        <path d="M74 52 Q100 64,126 52 Q100 58,74 52 Z" fill="rgba(0,0,0,0.13)"/>
-        <path d="M76 54 Q100 62,124 54" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8"/>
-        <path d={SHIRT_PATH} fill="url(#sh)"/>
-        <path d={SHIRT_PATH} fill="url(#sp)"/>
-        {printBg&&<rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={printBg} rx="3" clipPath="url(#ccb)"/>}
-        {activeImg&&<image href={activeImg} x={zone.x} y={zone.y} width={zone.w} height={zone.h} preserveAspectRatio={zone.slice?'xMidYMid slice':'xMidYMid meet'} clipPath={`url(#cc${zone.clip==='full'?'f':'b'})`} opacity={imgOpacity[showBack?'back':'front']} filter={imgFx[showBack?'back':'front']!=='none'?`url(#fx-${imgFx[showBack?'back':'front']})`:undefined}/>}
-        {!showBack&&uploads.chest&&<image href={uploads.chest} x="66" y="87" width="26" height="26" preserveAspectRatio="xMidYMid meet" clipPath="url(#ccb)" opacity={imgOpacity.chest} filter={imgFx.chest!=='none'?`url(#fx-${imgFx.chest})`:undefined}/>}
+        <path d="M73 50 C81 56,91 59,100 59 C109 59,119 56,127 50 C122 66,78 66,73 50 Z" fill={isLight?'rgba(0,0,0,0.12)':'rgba(0,0,0,0.22)'}/>
+        <path d="M77 53 C84 59,92 61,100 61 C108 61,116 59,123 53" fill="none" stroke={isLight?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)'} strokeWidth="1.2" strokeLinecap="round"/>
+        <path d={SHIRT_PATH} fill={`url(#${svgId('sh')})`} pointerEvents="none"/>
+        <path d={SHIRT_PATH} fill={`url(#${svgId('sp')})`} pointerEvents="none"/>
+        {printBg&&<rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={printBg} rx="3" clipPath={`url(#${svgId('ccb')})`}/>}
+        {activeImg&&<image href={activeImg} x={zone.x} y={zone.y} width={zone.w} height={zone.h} preserveAspectRatio={zone.slice?'xMidYMid slice':'xMidYMid meet'} clipPath={`url(#${svgId(zone.clip==='full'?'ccf':'ccb')})`} opacity={imgOpacity[showBack?'back':'front']} filter={imgFx[showBack?'back':'front']!=='none'?`url(#${svgId(`fx-${imgFx[showBack?'back':'front']}`)})`:undefined}/>}
+        {!showBack&&uploads.chest&&<image href={uploads.chest} x="66" y="87" width="26" height="26" preserveAspectRatio="xMidYMid meet" clipPath={`url(#${svgId('ccb')})`} opacity={imgOpacity.chest} filter={imgFx.chest!=='none'?`url(#${svgId(`fx-${imgFx.chest}`)})`:undefined}/>}
         {!showBack&&!uploads.front&&aiSvg&&<g transform="translate(71,93)" dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,color.textColor).replace(/<svg[^>]*>/,'').replace('</svg>','').replace(/width="[^"]*"/,'width="58"').replace(/height="[^"]*"/,'height="58"')}}/>}
         {interactive&&layers.length===0&&!activeImg&&!aiSvg&&!printBg&&(
-          <rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={isLight?'rgba(0,0,0,0.02)':'rgba(255,255,255,0.03)'} stroke={isLight?'rgba(0,0,0,0.18)':'rgba(255,255,255,0.22)'} strokeDasharray="3,2" rx="3" strokeWidth="0.85"/>
+          <g opacity="0.95">
+            <rect x={PRINT.x} y={PRINT.y} width={PRINT.w} height={PRINT.h} fill={isLight?'rgba(0,0,0,0.018)':'rgba(255,255,255,0.035)'} stroke={isLight?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.24)'} strokeDasharray="4,3" rx="5" strokeWidth="0.85"/>
+            <rect x={PRINT.x+3} y={PRINT.y+3} width={PRINT.w-6} height={PRINT.h-6} fill="none" stroke={isLight?'rgba(255,255,255,0.42)':'rgba(255,255,255,0.08)'} rx="3.5" strokeWidth="0.55"/>
+          </g>
         )}
         {showBack&&<text x="100" y="170" textAnchor="middle" fill={isLight?'rgba(0,0,0,0.18)':'rgba(255,255,255,0.18)'} fontSize="7" fontWeight="700" letterSpacing="3">BACK</text>}
         {/* Snap guides while dragging */}
         {interactive&&snapGuide.x&&<line x1={PRINT.x+PRINT.w/2} y1={PRINT.y-6} x2={PRINT.x+PRINT.w/2} y2={PRINT.y+PRINT.h+6} stroke="#00E5C8" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.9"/>}
         {interactive&&snapGuide.y&&<line x1={PRINT.x-6} y1={PRINT.y+PRINT.h/2} x2={PRINT.x+PRINT.w+6} y2={PRINT.y+PRINT.h/2} stroke="#00E5C8" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.9"/>}
-        {renderLayers(interactive)}
+        <path d={SHIRT_PATH} fill="none" stroke={isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)'} strokeWidth="0.7" pointerEvents="none"/>
+        {renderLayers(interactive,idScope)}
       </svg>
     );
   }

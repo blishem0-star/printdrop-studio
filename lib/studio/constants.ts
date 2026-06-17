@@ -5,9 +5,8 @@ import type { ImagePos, Layer } from './types';
 export const SVG_W = 200, SVG_H = 230;
 export const PRINT = { x:60, y:85, w:80, h:105 };
 // Realistic crew-neck tee, front view, in a 200x230 space. Symmetric about x=100:
-// shoulders -> tapered sleeve caps -> body with slight waist -> curved hem,
-// and a neckline that dips DOWN between the shoulders (a real crew cut-out).
-export const SHIRT_PATH = 'M74 52 C68 50,62 49,56 51 L44 55 C35 59,28 67,25 78 C24 82,26 85,30 86 L46 89 C50 87,53 83,53 77 C54 120,53 165,54 205 Q100 213,146 205 C147 165,146 120,147 77 C147 83,150 87,154 89 L170 86 C174 85,176 82,175 78 C172 67,165 59,156 55 L144 51 C138 49,132 50,126 52 Q100 64,74 52 Z';
+// rounded shoulders, shaped sleeves, a relaxed body, and a subtle curved hem.
+export const SHIRT_PATH = 'M73 50 C66 48,59 49,51 52 L41 57 C32 62,26 70,23 80 C21 86,24 90,30 91 L45 94 C49 94,53 90,56 82 C56 115,55 162,55 204 C68 208,84 210,100 210 C116 210,132 208,145 204 C145 162,144 115,144 82 C147 90,151 94,155 94 L170 91 C176 90,179 86,177 80 C174 70,168 62,159 57 L149 52 C141 49,134 48,127 50 C120 55,110 58,100 58 C90 58,80 55,73 50 Z';
 
 export const IMG_ZONE: Record<ImagePos,{x:number;y:number;w:number;h:number;clip:'body'|'full';slice?:boolean}> = {
   top:          {x:60,y:90,  w:80,h:44, clip:'body'},
