@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import ShirtMockup from '@/components/ShirtMockup';
 
 type Phase = 'hero' | 'generating' | 'results' | 'auth';
 type AuthMode = 'signup' | 'signin';
@@ -40,6 +41,36 @@ function ShirtSVG({ shirt, prompt }: { shirt: typeof SHIRTS[0]; prompt: string }
   const inkDim = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)';
   const ac   = shirt.accent;
   const words = prompt.trim().split(/\s+/);
+
+  return (
+    <div role="img" aria-label={`${shirt.label} custom shirt design${prompt ? ` - ${prompt}` : ''}`} style={{ position: 'relative', width: '100%', aspectRatio: '360 / 445', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <ShirtMockup colorHex={shirt.base} size={330} style={{ width: '92%', height: 'auto' }} />
+      <svg viewBox="0 0 160 160" width="42%" height="42%" style={{ position: 'absolute', top: '31%', left: '50%', transform: 'translate(-50%,-50%)', overflow: 'visible' }} aria-hidden="true">
+        {shirt.style === 'geo' && (
+          <>
+            <polygon points="80,34 108,50 108,82 80,98 52,82 52,50" fill="none" stroke={ac} strokeWidth="3" opacity="0.95" />
+            <polygon points="80,20 120,43 120,89 80,112 40,89 40,43" fill="none" stroke={ac} strokeWidth="1.5" opacity="0.4" />
+            <circle cx="80" cy="66" r="6" fill={ac} opacity="0.92" />
+            <text x="80" y="132" textAnchor="middle" fill={inkDim} fontSize="9" fontFamily="system-ui" fontWeight="800" letterSpacing="3">{words[0]?.toUpperCase().slice(0,8)}</text>
+          </>
+        )}
+        {shirt.style === 'type' && (
+          <>
+            <text x="80" y="64" textAnchor="middle" fill={ink} fontSize="30" fontFamily="Georgia,serif" fontWeight="900">{words[0]?.toUpperCase().slice(0,6) ?? 'STYLE'}</text>
+            <line x1="28" y1="75" x2="132" y2="75" stroke={ac} strokeWidth="3" />
+            <text x="80" y="94" textAnchor="middle" fill={inkDim} fontSize="9" fontFamily="system-ui" fontWeight="700" letterSpacing="3">{words.slice(1,3).join(' ').toUpperCase().slice(0,14) || 'ORIGINAL DESIGN'}</text>
+          </>
+        )}
+        {shirt.style === 'wave' && (
+          <>
+            <path d="M 26 48 Q 48 34 70 48 Q 92 62 114 48 Q 136 34 152 48" fill="none" stroke={ac} strokeWidth="4" opacity="0.95" />
+            <path d="M 26 66 Q 48 52 70 66 Q 92 80 114 66 Q 136 52 152 66" fill="none" stroke={ac} strokeWidth="2.6" opacity="0.55" />
+            <path d="M 26 84 Q 48 70 70 84 Q 92 98 114 84 Q 136 70 152 84" fill="none" stroke={ac} strokeWidth="1.8" opacity="0.28" />
+          </>
+        )}
+      </svg>
+    </div>
+  );
 
   // Shirt path: proper flat-lay T silhouette
   const shirtPath = 'M 122,14 C 107,30 88,60 80,82 L 8,56 L 0,86 L 0,168 L 80,152 L 80,432 L 280,432 L 280,152 L 360,168 L 360,86 L 352,56 L 280,82 C 272,60 253,30 238,14 Q 222,54 200,68 Q 178,54 162,34 Q 145,18 122,14 Z';

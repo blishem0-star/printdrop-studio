@@ -57,3 +57,6 @@ debug.log
 
 # auto-improver runtime log
 agents/improver/log.md
+
+# local file backups (not for the repo)
+.backup/

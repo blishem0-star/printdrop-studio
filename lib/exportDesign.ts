@@ -1,5 +1,7 @@
 'use client';
 
+import type { DesignDocument } from '@/lib/studio/types';
+
 function escapeXml(s: string): string {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
@@ -37,6 +39,18 @@ export function buildDesignSvg(opts: {
   ${customLine}
 </svg>`;
 
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
+export function buildDesignDocumentSvgDataUrl(document: DesignDocument): string {
+  const json = JSON.stringify(document);
+  const encodedJson = escapeXml(json);
+  const svg = `<svg width="200" height="230" viewBox="0 0 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <metadata id="stylx-design-document" data-version="1">${encodedJson}</metadata>
+  <rect width="200" height="230" rx="10" fill="${escapeXml(document.colorHex)}"/>
+  <text x="100" y="108" text-anchor="middle" font-size="10" fill="${escapeXml(document.colorHex === '#000000' ? '#ffffff' : '#111111')}" font-family="system-ui, sans-serif" font-weight="700">STYLX DESIGN</text>
+  <text x="100" y="124" text-anchor="middle" font-size="7" fill="${escapeXml(document.colorHex === '#000000' ? '#ffffff' : '#111111')}" font-family="system-ui, sans-serif" opacity="0.6">${document.layers.length} layers · ${Object.values(document.uploads).filter(Boolean).length} uploads</text>
+</svg>`;
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
 }
 

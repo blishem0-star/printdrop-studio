@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".backup/**",
     // Generated Prisma client — machine-written, not subject to lint
     "lib/generated/**",
     // Standalone dev tool (axe-core a11y audit runner), not app code

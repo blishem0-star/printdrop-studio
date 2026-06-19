@@ -79,6 +79,25 @@ function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, fr
   const p = PRODUCT_PATHS[productType];
   const isSocks = productType === 'SOCKS';
 
+  if (productType === 'TSHIRT') {
+    return (
+      <div style={{ position: 'relative', width: 130, height: 150 }}>
+        <ShirtMockup colorHex={bg} size={130} style={{ width: 130, height: 150 }} />
+        {!showBack && (
+          <div style={{ position: 'absolute', top: '34%', left: '50%', transform: 'translate(-50%,-50%)' }}>
+            <SvgPreview svg={design.svg} color={tc} size={46} />
+          </div>
+        )}
+        {activeText && (
+          <div style={{ position: 'absolute', top: textY(activePos), left: '50%', transform: 'translateX(-50%)', fontSize: '7.5px', color: tc, maxWidth: 82, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', ...FONT_CSS[activeFont] }}>
+            {activeText}
+          </div>
+        )}
+        {showBack && <div style={{ position: 'absolute', bottom: 10, width: '100%', textAlign: 'center', fontSize: '6px', color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.1em' }}>BACK</div>}
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'relative', width: 130, height: 130 }}>
       <svg width="130" height="130" viewBox="0 0 200 200" fill="none">
@@ -544,4 +563,3 @@ export default function CatalogPage() {
 }
 
 const lbl: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 };
-
