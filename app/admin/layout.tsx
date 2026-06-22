@@ -39,6 +39,12 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
       <path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" />
     </svg>
   ),
+  integrations: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={15} height={15} aria-hidden="true">
+      <path d="M5.5 5.5h5v5h-5z" /><path d="M8 1.5v4M8 10.5v4M1.5 8h4M10.5 8h4" />
+      <path d="M3.2 3.2l2.3 2.3M10.5 10.5l2.3 2.3M12.8 3.2l-2.3 2.3M5.5 10.5l-2.3 2.3" />
+    </svg>
+  ),
 };
 
 const NAV = [
@@ -48,6 +54,7 @@ const NAV = [
   { href: '/admin/designs',     label: 'Designs',        iconKey: 'designs' },
   { href: '/admin/artists',     label: 'Artists',        iconKey: 'artists' },
   { href: '/admin/subscriptions', label: 'Subscriptions', iconKey: 'subscriptions' },
+  { href: '/admin/integrations', label: 'Integrations',   iconKey: 'integrations' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

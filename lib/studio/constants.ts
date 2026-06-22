@@ -31,24 +31,22 @@ export const FONTS = [
 ];
 
 export const SHAPES_LIB = [
-  {char:'★', label:'Star'},    {char:'♥', label:'Heart'},  {char:'◆', label:'Diamond'},
-  {char:'●', label:'Circle'},  {char:'■', label:'Square'}, {char:'▲', label:'Triangle'},
-  {char:'✦', label:'Sparkle'}, {char:'✚', label:'Cross'},  {char:'☾', label:'Moon'},
-  {char:'∞', label:'Infinity'},{char:'⬡', label:'Hex'},    {char:'⚡', label:'Bolt'},
-  {char:'↑', label:'Arrow'},   {char:'⊕', label:'Target'}, {char:'☀', label:'Sun'},
-  {char:'❋', label:'Flower'},  {char:'⌘', label:'Cmd'},    {char:'⟁', label:'Tri2'},
-  {char:'☮', label:'Peace'},   {char:'♠', label:'Spade'},  {char:'♪', label:'Note'},
-  {char:'☄', label:'Comet'},   {char:'✈', label:'Plane'},  {char:'⚓', label:'Anchor'},
-  {char:'☘', label:'Clover'},  {char:'✺', label:'Burst'},  {char:'❖', label:'Gem'},
-  {char:'⌖', label:'Scope'},   {char:'♜', label:'Rook'},   {char:'∴', label:'Dots'},
+  {char:'*', label:'Star'},      {char:'<3', label:'Heart'},   {char:'<>', label:'Diamond'},
+  {char:'o', label:'Circle'},    {char:'[]', label:'Square'},  {char:'^', label:'Triangle'},
+  {char:'+', label:'Sparkle'},   {char:'x', label:'Cross'},    {char:'C', label:'Moon'},
+  {char:'oo', label:'Infinity'}, {char:'#', label:'Hex'},      {char:'!', label:'Bolt'},
+  {char:'->', label:'Arrow'},    {char:'@', label:'Target'},   {char:'O', label:'Sun'},
+  {char:'fl', label:'Flower'},   {char:'cmd', label:'Cmd'},    {char:'tri', label:'Tri2'},
+  {char:'peace', label:'Peace'}, {char:'sp', label:'Spade'},   {char:'note', label:'Note'},
+  {char:'comet', label:'Comet'}, {char:'fly', label:'Plane'},  {char:'anc', label:'Anchor'},
+  {char:'cl', label:'Clover'},   {char:'burst', label:'Burst'},{char:'gem', label:'Gem'},
+  {char:'scope', label:'Scope'}, {char:'rook', label:'Rook'},  {char:'...', label:'Dots'},
 ];
-
 export const EMOJIS_LIB = [
-  '🔥','⚡','💀','🎭','🌊','🦁','🎨','🎵','🏆','💎',
-  '🌙','⭐','🚀','🎯','🐉','👑','✊','🎪','🌈','🦋',
-  '🐺','🦅','🐆','🌺','🍂','🦊','🐉','🌊','⛰','🌴',
+  'FIRE','BOLT','SKULL','MASK','WAVE','LION','ART','MUSIC','TROPHY','GEM',
+  'MOON','STAR','ROCKET','TARGET','DRAGON','CROWN','FIST','GAME','RAINBOW','WING',
+  'TIGER','EAGLE','PANTHER','LEAF','MAPLE','FOX','SEA','MOUNT','PALM','SPARK',
 ];
-
 // True vector shapes (crisp at any size, unlike glyph characters)
 export const VECTOR_SHAPES: {kind:string;label:string}[] = [
   {kind:'rect',label:'Square'},  {kind:'circle',label:'Circle'},   {kind:'ring',label:'Ring'},
@@ -67,7 +65,7 @@ export const GRADIENT_PRESETS: Record<string,{label:string;stops:string[]}> = {
   toxic:  {label:'Toxic',  stops:['#A8E063','#56AB2F']},
 };
 
-// One-click text styles — applied on top of the selected text layer
+// One-click text styles, applied on top of the selected text layer
 export const TEXT_PRESETS: {name:string;patch:Partial<Layer>}[] = [
   {name:'Neon',    patch:{color:'#00E5C8',glowBlur:7,glowColor:'#00E5C8',strokeWidth:0,gradient:'',shadowBlur:0}},
   {name:'Holo',    patch:{gradient:'holo',glowBlur:0,strokeWidth:0,shadowBlur:0}},

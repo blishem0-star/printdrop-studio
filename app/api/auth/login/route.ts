@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, isLegacyHash, hashPassword } from '@/lib/auth';
+import { isOwnerEmail } from '@/lib/owner';
 import { rateLimit } from '@/lib/rateLimit';
 import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from '@/lib/session';
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Account temporarily locked. Try again later.' }, { status: 429 });
   }
 
-  const customer = await prisma.customer.findUnique({ where: { email: normEmail } });
+  let customer = await prisma.customer.findUnique({ where: { email: normEmail } });
 
   const match = !!customer?.password && verifyPassword(password, customer.password);
   if (!customer || !match) {
@@ -41,7 +42,11 @@ export async function POST(req: NextRequest) {
 
   // Transparent migration: rehash legacy SHA-256 passwords with bcrypt
   if (customer.password && isLegacyHash(customer.password)) {
-    await prisma.customer.update({ where: { id: customer.id }, data: { password: hashPassword(password) } });
+    customer = await prisma.customer.update({ where: { id: customer.id }, data: { password: hashPassword(password) } });
+  }
+
+  if (isOwnerEmail(customer.email) && customer.role !== 'OWNER') {
+    customer = await prisma.customer.update({ where: { id: customer.id }, data: { role: 'OWNER' } });
   }
 
   const res = NextResponse.json({ id: customer.id, name: customer.name, email: customer.email, role: customer.role });

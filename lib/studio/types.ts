@@ -31,6 +31,7 @@ export type Layer = {
   hidden: boolean;
   locked: boolean;
   gradient: string; // key of GRADIENT_PRESETS, '' = solid color
+  collarMode?: 'front'|'full';
 };
 
 export type ImagePos = 'top'|'center'|'bottom'|'full-body'|'full-shirt';

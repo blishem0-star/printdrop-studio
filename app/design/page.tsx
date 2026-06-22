@@ -16,7 +16,7 @@ import {
 } from "@/lib/studio/constants";
 import { uid, mkLayer, calcArcPath, starPoints, TEMPLATES } from "@/lib/studio/helpers";
 
-// ─── Component ────────────────────────────────────────────────
+// Component
 function DesignStudio() {
   const stored = useLocalSession();
   const session = useMemo<Session|null>(
@@ -39,7 +39,7 @@ function DesignStudio() {
   const dragging = useRef<{id:string;sx:number;sy:number;ox:number;oy:number;mode:'move'|'resize'|'rotate';startFs:number;startRot:number;ccx:number;ccy:number}|null>(null);
   const printDragging = useRef<{sx:number;sy:number;x:number;y:number;w:number;h:number;mode:'move'|'resize'}|null>(null);
   const [snapGuide,setSnapGuide]=useState<{x:boolean;y:boolean}>({x:false,y:false});
-  // After a handle/layer drag, the release fires a click on the canvas — don't let it deselect
+  // Drag
   const justDragged=useRef(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const panelRef  = useRef<HTMLDivElement>(null);
@@ -108,15 +108,6 @@ function DesignStudio() {
     {label:'Shirt', tools:['shirt'], primary:'shirt', detail:'Choose color and size'},
     {label:'Order', tools:['order'], primary:'order', detail:'Finish quantity and delivery'},
   ];
-  const toolLabels: Record<ActiveTool,string> = {
-    templates:'Ready designs',
-    text:'Add text',
-    upload:'Add image',
-    ai:'AI help',
-    shapes:'Icons & shapes',
-    shirt:'Color & size',
-    order:'Checkout',
-  };
   const activeWorkflow = activeTool ? (workflowGroups.find(g=>g.tools.includes(activeTool)) ?? workflowGroups[0]) : null;
   function activateTool(tool: ActiveTool) {
     setActiveTool(tool);
@@ -127,6 +118,7 @@ function DesignStudio() {
   const [arcAngle,      setArcAngle]      = useState(0);
   const [textTransform, setTextTransform] = useState<'none'|'uppercase'|'lowercase'>('none');
   const [showAdvancedText,setShowAdvancedText]=useState(false);
+  const [collarText,setCollarText]=useState('');
   const [shadowDx,      setShadowDx]      = useState(2);
   const [shadowDy,      setShadowDy]      = useState(2);
   const [shadowBlur,    setShadowBlur]    = useState(0);
@@ -137,6 +129,7 @@ function DesignStudio() {
 
   // Canvas zoom
   const [zoom, setZoom] = useState(1);
+  const [previewMode,setPreviewMode]=useState<'edit'|'premium'>('edit');
   const zoomRef = useRef(1);
   useEffect(()=>{ zoomRef.current=zoom; },[zoom]);
   const canvasAreaRef   = useRef<HTMLDivElement>(null);
@@ -185,6 +178,7 @@ function DesignStudio() {
   const [ordered,   setOrdered]  = useState(false);
   const [orderId,   setOrderId]  = useState<string|null>(null);
   const [orderError,setOrderError]=useState<string|null>(null);
+  const [shareFanOpen,setShareFanOpen]=useState(false);
   const {show:showToast,element:toastEl}=useToast();
 
   function buildDesignDocument(): DesignDocument {
@@ -232,7 +226,7 @@ function DesignStudio() {
 
   useEffect(()=>{
     if(!session) return;
-    // deferred prefill — avoids synchronous setState cascades in the effect body
+    // deferred prefill avoids synchronous setState cascades in the effect body
     const t=setTimeout(()=>{
       if(session.name&&session.name!=='Guest') setShipName(prev=>prev||session.name);
       if(session.email) setShipEmail(prev=>prev||session.email!);
@@ -251,7 +245,7 @@ function DesignStudio() {
     try{localStorage.setItem('pd_design',JSON.stringify(buildDesignDocument()));}catch{}
   },[layers,uploads,imgPos,imgOpacity,imgFx,color.id,size,printBg,printArea,aiPrompt,aiSvg,garmentView]); // eslint-disable-line
 
-  // Load saved design + saved slots on mount (deferred — restoring is async by nature)
+  // Load saved design + saved slots on mount
   useEffect(()=>{
     const t=setTimeout(()=>{
       try{
@@ -310,20 +304,52 @@ function DesignStudio() {
     return()=>{ el.removeEventListener('pointerdown',down); el.removeEventListener('pointermove',move); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up); };
   },[]);
 
-  // ── Layer ops ────────────────────────────────────────────────
+  // Layer ops
   const selLayer = layers.find(l=>l.id===selected)??null;
+
+  function fittedFontSize(content:string,type:Layer['type'],desired:number) {
+    const area=printAreaRef.current;
+    const maxByHeight=area.h*(type==='text'?0.28:0.46);
+    const maxByWidth=type==='text'
+      ? (area.w*0.9)/Math.max(1,content.length*0.58)
+      : area.w*0.62;
+    return Math.max(8,Math.min(desired,Math.floor(maxByHeight),Math.floor(maxByWidth)));
+  }
+
+  function autoFitLayer(layer:Layer): Layer {
+    return {
+      ...layer,
+      x: Math.max(8,Math.min(92,layer.x)),
+      y: Math.max(8,Math.min(92,layer.y)),
+      fontSize: fittedFontSize(layer.content,layer.type,layer.fontSize),
+    };
+  }
 
   function addText() {
     if(!textInput.trim()) return;
-    const l=mkLayer({type:'text',content:textInput,x:50,y:50,fontSize,fontFamily:fontFam,color:textColor,fontWeight,italic,letterSpacing:letterSp,strokeColor:strokeCol,strokeWidth:strokeW,opacity:layerOpacity,arcAngle,textTransform,shadowDx,shadowDy,shadowBlur,shadowColor,glowBlur,glowColor});
+    const l=autoFitLayer(mkLayer({type:'text',content:textInput,x:50,y:50,fontSize,fontFamily:fontFam,color:textColor,fontWeight,italic,letterSpacing:letterSp,strokeColor:strokeCol,strokeWidth:strokeW,opacity:layerOpacity,arcAngle,textTransform,shadowDx,shadowDy,shadowBlur,shadowColor,glowBlur,glowColor}));
     setLayersWithHistory([...layers,l]); setSelected(l.id); setTextInput('');
+  }
+
+  function addCollarText(scope:'front'|'full') {
+    const content=(collarText || textInput || 'YOUR BRAND').trim();
+    if(!content) return;
+    setGarmentView('front');
+    const l=mkLayer({
+      type:'text',content,x:50,y:0,fontSize:scope==='full'?7.8:8.6,
+      fontFamily:fontFam,color:textColor,fontWeight,italic,letterSpacing:scope==='full'?1.15:0.75,
+      strokeColor:strokeCol,strokeWidth:strokeW,opacity:layerOpacity,
+      arcAngle:0,textTransform,shadowDx,shadowDy,shadowBlur,shadowColor,glowBlur,glowColor,
+      collarMode:scope,
+    });
+    setLayersWithHistory([...layers,l]); setSelected(l.id); setCollarText('');
   }
 
   // Alignment helpers
   function alignLayer(id:string, axis:'x'|'y', val:number){ updateLayer(id,{[axis]:val}); }
   function alignCenter(id:string){ updateLayer(id,{x:50,y:50}); }
   function addGfx(c:string) {
-    const l=mkLayer({type:'gfx',content:c,x:50,y:45,fontSize:34,color:color.textColor,opacity:layerOpacity});
+    const l=autoFitLayer(mkLayer({type:'gfx',content:c,x:50,y:45,fontSize:34,color:color.textColor,opacity:layerOpacity}));
     setLayersWithHistory([...layers,l]); setSelected(l.id);
   }
   function addChestSymbol() {
@@ -332,8 +358,60 @@ function DesignStudio() {
     setLayersWithHistory([...layers,l]); setSelected(l.id); activateTool('shapes');
   }
   function addShape(kind:string) {
-    const l=mkLayer({type:'shape',content:kind,x:50,y:45,fontSize:36,color:color.textColor,opacity:layerOpacity});
+    const l=autoFitLayer(mkLayer({type:'shape',content:kind,x:50,y:45,fontSize:36,color:color.textColor,opacity:layerOpacity}));
     setLayersWithHistory([...layers,l]); setSelected(l.id);
+  }
+  function smartFitDesign() {
+    const next=layers.map(l=>l.collarMode?l:autoFitLayer(l));
+    setLayersWithHistory(next);
+    showToast('Design fitted to the print area.','success');
+  }
+  function applyStudioPreset(kind:'street'|'luxury'|'minimal'|'sport'|'vintage') {
+    if(layers.length===0) {
+      const starter: Record<typeof kind,string> = {
+        street:'NO RULES',
+        luxury:'STYLX',
+        minimal:'ESSENTIAL',
+        sport:'TEAM 01',
+        vintage:'ORIGINAL',
+      };
+      const l=autoFitLayer(mkLayer({type:'text',content:starter[kind],x:50,y:44,fontSize:kind==='minimal'?24:30,fontFamily:fontFam,color:textColor,fontWeight:'bold',italic:false,letterSpacing:kind==='luxury'?4:kind==='sport'?1:2,opacity:1}));
+      setLayersWithHistory([l]);
+      setSelected(l.id);
+    } else {
+      const patch: Record<typeof kind,Partial<Layer>> = {
+        street:{fontFamily:'"Impact","Arial Black",sans-serif',fontWeight:'bold',letterSpacing:1,gradient:'holo',glowBlur:3,glowColor:'#00E5C8',shadowBlur:2,shadowDx:2,shadowDy:3},
+        luxury:{fontFamily:'"Playfair Display",Georgia,serif',fontWeight:'bold',letterSpacing:4,color:'#F8FAFC',gradient:'gold',glowBlur:0,shadowBlur:0,strokeWidth:0},
+        minimal:{fontFamily:'system-ui,sans-serif',fontWeight:'bold',letterSpacing:2,color:color.textColor,gradient:'',glowBlur:0,shadowBlur:0,strokeWidth:0,opacity:1},
+        sport:{fontFamily:'"Arial Narrow","Helvetica Neue",sans-serif',fontWeight:'bold',letterSpacing:1,color:'#ffffff',strokeColor:'#000000',strokeWidth:1.2,gradient:'',shadowBlur:1,shadowDx:2,shadowDy:2},
+        vintage:{fontFamily:'"Georgia",serif',fontWeight:'bold',italic:true,letterSpacing:1,color:'#FFD700',gradient:'',opacity:0.9,shadowBlur:1,shadowDx:2,shadowDy:2},
+      };
+      const next=layers.map(l=>l.type==='text'?autoFitLayer({...l,...patch[kind]}):l);
+      setLayersWithHistory(next);
+    }
+    showToast(`${kind[0].toUpperCase()+kind.slice(1)} style applied.`, 'success');
+  }
+  function applySmartFix(kind:'fit'|'center'|'contrast'|'premium'|'collar') {
+    if(kind==='fit') { smartFitDesign(); return; }
+    if(kind==='center') {
+      if(layers.length===0) return;
+      setLayersWithHistory(layers.map(l=>l.collarMode?l:{...l,x:50}));
+      showToast('Design centered.', 'success');
+      return;
+    }
+    if(kind==='contrast') {
+      const next=layers.map(l=>l.type==='text'||l.type==='shape'||l.type==='gfx'?{...l,color:color.textColor,strokeColor:isLight?'#ffffff':'#000000',strokeWidth:l.type==='text'?0.8:l.strokeWidth}:l);
+      setLayersWithHistory(next);
+      setTextColor(color.textColor);
+      showToast('Contrast improved for this shirt color.', 'success');
+      return;
+    }
+    if(kind==='premium') { applyStudioPreset('luxury'); setPreviewMode('premium'); return; }
+    if(kind==='collar') {
+      setCollarText(collarText || 'STYLX');
+      addCollarText('front');
+      showToast('Front collar text added.', 'success');
+    }
   }
   function updateLayer(id:string,patch:Partial<Layer>) {
     const next=layers.map(l=>l.id===id?{...l,...patch}:l);
@@ -360,14 +438,14 @@ function DesignStudio() {
     setLayersWithHistory(newLayers); setSelected(null);
   }
 
-  // ── My Designs (saved slots, localStorage) ──────────────────
+  // My Designs (saved slots, localStorage)
   function persistSlots(next:DesignSlot[]){
     setDesignSlots(next);
     try{localStorage.setItem('pd_design_slots',JSON.stringify(next));}catch{}
   }
   function saveDesignSlot(){
     if(layers.length===0&&!Object.values(uploads).some(Boolean)&&!aiSvg&&!printBg) return;
-    const name=`${layers.find(l=>l.type==='text')?.content?.slice(0,18)??'Design'} · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+    const name=`${layers.find(l=>l.type==='text')?.content?.slice(0,18)??'Design'} - ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
     const doc=buildDesignDocument();
     const slot:DesignSlot={id:uid(),name,savedAt:Date.now(),layers:doc.layers,colorId:color.id,sizeVal:size,printBg,document:doc};
     persistSlots([slot,...designSlots].slice(0,8));
@@ -409,7 +487,7 @@ function DesignStudio() {
     return()=>clearTimeout(t);
   },[selected]); // eslint-disable-line
 
-  // ── Drag ─────────────────────────────────────────────────────
+  // Drag
   const onLayerDown=useCallback((e:React.PointerEvent,id:string)=>{
     e.stopPropagation(); setSelected(id);
     const l=layersRef.current.find(x=>x.id===id);
@@ -417,7 +495,7 @@ function DesignStudio() {
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   },[]);
 
-  // Handle-drag (resize / rotate) — anchored to the layer's center in client coords
+  // Drag
   const onHandleDown=useCallback((e:React.PointerEvent,id:string,mode:'resize'|'rotate')=>{
     e.stopPropagation(); setSelected(id);
     const l=layersRef.current.find(x=>x.id===id);
@@ -499,11 +577,16 @@ function DesignStudio() {
   useEffect(()=>{
     function onKey(e:KeyboardEvent){
       const notInput=!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement);
+      const key=e.key.toLowerCase();
+      if(e.key==='PrintScreen'||((e.metaKey||e.ctrlKey)&&e.shiftKey&&(key==='s'||key==='4'||key==='5'))||((e.metaKey||e.ctrlKey)&&key==='p')){
+        e.preventDefault();
+        return;
+      }
       if((e.metaKey||e.ctrlKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
       if((e.metaKey||e.ctrlKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
       if((e.metaKey||e.ctrlKey)&&e.key==='d'&&selected&&notInput){e.preventDefault();duplicateLayer(selected);return;}
       if((e.key==='Delete'||e.key==='Backspace')&&selected&&notInput){deleteLayer(selected);return;}
-      if(e.key==='Escape'){setSelected(null);setFullscreen(false);setCheckoutOpen(false);return;}
+      if(e.key==='Escape'){setSelected(null);setFullscreen(false);setCheckoutOpen(false);setShareFanOpen(false);return;}
       if(selected&&notInput){
         const s=e.shiftKey?5:1;
         if(e.key==='ArrowLeft') {e.preventDefault();const l=layers.find(x=>x.id===selected);if(l)updateLayer(selected,{x:Math.max(0,l.x-s)});}
@@ -515,7 +598,7 @@ function DesignStudio() {
     window.addEventListener('keydown',onKey); return()=>window.removeEventListener('keydown',onKey);
   },[selected,layers]); // eslint-disable-line
 
-  // ── Upload ───────────────────────────────────────────────────
+  // Upload
   function handleFile(file:File){
     const allowed = ['image/png','image/jpeg','image/webp'];
     if(!allowed.includes(file.type)) {
@@ -529,7 +612,7 @@ function DesignStudio() {
     const r=new FileReader(); r.onload=e=>setUploads(p=>({...p,[uploadSlot]:e.target?.result as string})); r.readAsDataURL(file);
   }
 
-  // ── AI ───────────────────────────────────────────────────────
+  //
   function generateAI(){
     if(!aiPrompt.trim()) return;
     setAiLoading(true); setAiProgress(0); setAiSvg(null);
@@ -543,7 +626,7 @@ function DesignStudio() {
     },2800);
   }
 
-  // ── Order ────────────────────────────────────────────────────
+  //
   const emailValid=  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipEmail);
   const phoneValid=  shipPhone.replace(/\D/g,'').length>=7;
   const deliveryDone=shipName.trim().length>1&&emailValid&&phoneValid&&shipStreet.trim().length>3&&shipCity.trim().length>1&&/^\d{5}$/.test(shipZip)&&shipState!=='';
@@ -565,17 +648,20 @@ function DesignStudio() {
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
         shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,
-        design:{title:aiPrompt||'Custom Design',emoji:'✏️',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
+        design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
       });
       if(result){
         if(saveShipping){try{localStorage.setItem('pd_shipping',JSON.stringify({phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}));}catch{}}
-        setOrderId(result.id); setOrdered(true); showToast('Order placed! 🎉','success');
+        setOrderId(result.id); setOrdered(true); showToast('Order placed!','success');
       } else { setOrderError('Order failed.'); showToast('Order failed.','error'); }
     }catch{setOrderError('Network error.');showToast('Network error.','error');}finally{setSubmitting(false);}
   }
 
-  // ── Export ───────────────────────────────────────────────────
+  //
   function downloadPng(){
+    if(!ordered){
+      return;
+    }
     const svgEl=canvasRef.current?.querySelector('svg');
     if(!svgEl) return;
     const xml=new XMLSerializer().serializeToString(svgEl);
@@ -592,11 +678,44 @@ function DesignStudio() {
       a.click();
       showToast('Design downloaded!','success');
     };
-    img.onerror=()=>showToast('Export failed — try again.','error');
+    img.onerror=()=>showToast('Export failed. Try again.','error');
     img.src='data:image/svg+xml;utf8,'+encodeURIComponent(xml);
   }
 
-  // ── SVG helpers ──────────────────────────────────────────────
+  async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'){
+    const url=typeof window==='undefined'
+      ? '/design'
+      : ordered && orderId
+        ? `${window.location.origin}/orders/${orderId}`
+        : `${window.location.origin}/design`;
+    const text=ordered
+      ? `I just designed a custom STYLX shirt${orderId?` #${orderId.slice(0,8).toUpperCase()}`:''}`
+      : 'I am designing a custom STYLX shirt';
+    const shareUrl=encodeURIComponent(url);
+    const shareText=encodeURIComponent(`${text} ${url}`);
+    setShareFanOpen(false);
+    if(channel==='whatsapp'){
+      window.open(`https://wa.me/?text=${shareText}`,'_blank','noopener,noreferrer');
+      return;
+    }
+    if(channel==='facebook'){
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,'_blank','noopener,noreferrer');
+      return;
+    }
+    if(channel==='x'){
+      window.open(`https://twitter.com/intent/tweet?text=${shareText}`,'_blank','noopener,noreferrer');
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      showToast('Link copied. Paste it in Instagram.','success');
+    }catch{
+      showToast('Open Instagram and paste your design link.','success');
+    }
+    window.open('https://www.instagram.com/','_blank','noopener,noreferrer');
+  }
+
+  //
   const activeImg=garmentView==='back'?uploads.back:garmentView==='front'?uploads.front:null;
   const isLight=  color.id==='white'||color.id==='sand';
   const hasDesignContent = layers.length>0 || Object.values(uploads).some(Boolean) || Boolean(aiSvg) || Boolean(printBg);
@@ -613,6 +732,21 @@ function DesignStudio() {
   const selectedLabel = selLayer
     ? (selLayer.type === 'text' ? selLayer.content || 'Text layer' : selLayer.type === 'shape' ? `${selLayer.content} shape` : selLayer.content)
     : 'No layer selected';
+  const qualityChecks = [
+    {label:'Design content', ok:hasDesignContent, fix:'text'},
+    {label:'Shirt size', ok:Boolean(size), fix:'shirt'},
+    {label:'Print area fit', ok:layers.every(l=>l.collarMode || (l.x>=8&&l.x<=92&&l.y>=8&&l.y<=92)), fix:'fit'},
+    {label:'Strong contrast', ok:layers.length===0 || layers.some(l=>l.gradient || l.strokeWidth>0 || l.color===color.textColor || l.glowBlur>0), fix:'contrast'},
+    {label:'Ready preview', ok:previewMode==='premium', fix:'preview'},
+  ];
+  const qualityScore = Math.round((qualityChecks.filter(c=>c.ok).length / qualityChecks.length) * 100);
+  const smartSuggestions = [
+    {label:'Auto fit all', hint:'Keep every layer inside print area', fix:'fit'},
+    {label:'Center layout', hint:'Align artwork to the shirt center', fix:'center'},
+    {label:'Fix contrast', hint:'Make the design readable on this color', fix:'contrast'},
+    {label:'Premium look', hint:'Apply a luxury style and preview mode', fix:'premium'},
+    {label:'Add collar', hint:'Add a small brand detail near the neck', fix:'collar'},
+  ];
 
   function renderVectorShape(l:Layer, fill:string, filter?:string){
     const s=l.fontSize;
@@ -633,17 +767,18 @@ function DesignStudio() {
   function renderLayers(interactive=true,idScope='live'){
     return layers.map(layer=>{
       if(layer.hidden) return null;
+      const isCollar=Boolean(layer.collarMode);
       const lx=printArea.x+(layer.x/100)*printArea.w, ly=printArea.y+(layer.y/100)*printArea.h;
       const isSel=selected===layer.id&&interactive;
       const aw=layer.type==='text'?layer.content.length*layer.fontSize*0.58:layer.fontSize*1.15;
       const ah=layer.fontSize*1.3;
       const ls=layer.letterSpacing??0;
-      const hasArc=Math.abs(layer.arcAngle??0)>=2;
+      const hasArc=!isCollar&&Math.abs(layer.arcAngle??0)>=2;
       const hasShadow=(layer.shadowBlur??0)>0&&(layer.shadowColor??'')!=='';
       const hasGlow=(layer.glowBlur??0)>0&&(layer.glowColor??'')!=='';
       const hasFilter=hasShadow||hasGlow;
       const filterId=`flt-${idScope}-${layer.id}`;
-      const arcPathId=`arc-${idScope}-${layer.id}`;
+      const arcPathId=isCollar?`collar-${idScope}-${layer.id}`:`arc-${idScope}-${layer.id}`;
       const displayContent=layer.textTransform==='uppercase'?layer.content.toUpperCase():layer.textTransform==='lowercase'?layer.content.toLowerCase():layer.content;
       const commonTextProps={
         fontSize:layer.fontSize,
@@ -656,6 +791,27 @@ function DesignStudio() {
         filter:hasFilter?`url(#${filterId})`:undefined,
         style:{userSelect:'none' as const},
       };
+      if(isCollar) {
+        const hitPath=layer.collarMode==='full'
+          ? 'M72 51 C79 67,88 75,100 75 C112 75,121 67,128 51'
+          : 'M80 58 C89 66,111 66,120 58';
+        return (
+          <g key={layer.id} opacity={layer.opacity??1}
+            style={interactive&&!layer.locked?{cursor:'pointer'}:{}}
+            onPointerDown={interactive&&!layer.locked?e=>{e.stopPropagation();setSelected(layer.id);}:undefined}>
+            <path d={hitPath} fill="none" stroke="transparent" strokeWidth="15"/>
+            <text {...commonTextProps}>
+              <textPath href={`#${arcPathId}`} startOffset="50%" textAnchor="middle" letterSpacing={ls>0?ls:undefined}>
+                {displayContent}
+              </textPath>
+            </text>
+            {isSel&&<>
+              <path d={hitPath} fill="none" stroke="#00E5C8" strokeWidth="1" strokeDasharray="2.5,1.5" opacity="0.85"/>
+              <circle cx="100" cy={layer.collarMode==='full'?75:66} r={3} fill="#050507" stroke="#00E5C8" strokeWidth="1"/>
+            </>}
+          </g>
+        );
+      }
       return (
         <g key={layer.id} transform={`translate(${lx},${ly}) rotate(${layer.rotation}) scale(${layer.flipH?-1:1},${layer.flipV?-1:1})`}
           opacity={layer.opacity??1}
@@ -683,7 +839,7 @@ function DesignStudio() {
               fill="rgba(0,229,200,0.06)" stroke="#00E5C8" strokeWidth="0.8" strokeDasharray="2.5,1.5" rx="2"/>
             {[[-aw/2-6,-ah/2-4],[aw/2+6,-ah/2-4],[-aw/2-6,ah/2+4]].map(([cx,cy],i)=>
               <circle key={i} cx={cx} cy={cy} r={isTouch?'3':'2.2'} fill="#00E5C8"/>)}
-            {/* Resize handle (bottom-right) — large transparent hit-area for touch */}
+            {/* Section */}
             <circle cx={aw/2+6} cy={ah/2+4} r={isTouch?12:8} fill="transparent"
               style={{cursor:'nwse-resize',touchAction:'none'}}
               onPointerDown={e=>onHandleDown(e,layer.id,'resize')}/>
@@ -700,7 +856,7 @@ function DesignStudio() {
     });
   }
 
-  // Render helper (plain function, not a component — avoids remounting on every render)
+  // Component
   function renderShirtCanvas(w:number,h:number,interactive=true,view:GarmentView=garmentView){
     const idScope=interactive?'live':'preview';
     const svgId=(name:string)=>`${name}-${idScope}`;
@@ -746,10 +902,17 @@ function DesignStudio() {
           <clipPath id={svgId('ccb')}><rect x="56" y="82" width="88" height="130" rx="3"/></clipPath>
           <clipPath id={svgId('ccf')}><path d={SHIRT_PATH}/></clipPath>
           {/* Arc text paths */}
-          {layers.filter(l=>Math.abs(l.arcAngle??0)>=2).map(l=>{
+          {layers.filter(l=>Math.abs(l.arcAngle??0)>=2&&!l.collarMode).map(l=>{
             const lx=area.x+(l.x/100)*area.w, ly=area.y+(l.y/100)*area.h;
             return <path key={l.id} id={`arc-${idScope}-${l.id}`} d={calcArcPath(lx,ly,l.arcAngle,l.content.length,l.fontSize)} fill="none"/>;
           })}
+          {layers.filter(l=>l.collarMode).map(l=>(
+            <path key={`collar-${l.id}`} id={`collar-${idScope}-${l.id}`}
+              d={l.collarMode==='full'
+                ? 'M70 51 C78 70,88 78,100 78 C112 78,122 70,130 51'
+                : 'M80 58 C89 67,111 67,120 58'}
+              fill="none"/>
+          ))}
           {/* Image effect filters */}
           <filter id={svgId('fx-gray')}><feColorMatrix type="saturate" values="0"/></filter>
           <filter id={svgId('fx-sepia')}><feColorMatrix type="matrix" values="0.39 0.77 0.19 0 0  0.35 0.69 0.17 0 0  0.27 0.53 0.13 0 0  0 0 0 1 0"/></filter>
@@ -810,21 +973,77 @@ function DesignStudio() {
     );
   }
 
-  // ── Order success ─────────────────────────────────────────────
+  //
+  function renderSocialIcon(channel:'instagram'|'facebook'|'x'|'whatsapp') {
+    if(channel==='instagram') return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><rect x="7" y="7" width="18" height="18" rx="6" stroke="currentColor" strokeWidth="2.2"/><circle cx="16" cy="16" r="4.2" stroke="currentColor" strokeWidth="2.2"/><circle cx="21.4" cy="10.8" r="1.3" fill="currentColor"/></svg>;
+    if(channel==='facebook') return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><path d="M18 27V17.5h3.2l.6-4H18v-2.1c0-1.1.4-1.9 2-1.9h2V6.1c-.9-.1-1.8-.2-2.7-.2-3.2 0-5.4 2-5.4 5.3v2.3h-3.5v4H14V27h4z" fill="currentColor"/></svg>;
+    if(channel==='x') return <svg viewBox="0 0 32 32" width={24} height={24} fill="none" aria-hidden="true"><path d="M8 7h5.2l4.2 5.8L22.7 7H25l-6.5 7.2L25.6 25h-5.2l-4.8-6.8L9.5 25H7.2l7.3-8.2L8 7zm3.1 1.8 10.2 14.4h1.2L12.3 8.8h-1.2z" fill="currentColor"/></svg>;
+    return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><path d="M8.7 25.1 10 20.8a9.3 9.3 0 1 1 3.8 3.3l-5.1 1z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round"/><path d="M13.3 11.8c.3-.4.7-.4 1-.1l1.1 1.5c.3.4.2.8-.1 1.2l-.5.6c.9 1.6 2.1 2.7 3.7 3.5l.7-.6c.3-.3.8-.3 1.1 0l1.4 1.1c.4.3.4.8.1 1.1-.6.8-1.4 1.2-2.3 1-3.4-.7-6.8-4-7.6-7.5-.2-.8.3-1.5 1.4-1.8z" fill="currentColor"/></svg>;
+  }
+
+  function renderShareFan() {
+    if(!shareFanOpen) return null;
+    const options: {label:string;channel:'instagram'|'facebook'|'x'|'whatsapp';accent:string;angle:number;distance:number}[] = [
+      {label:'Instagram',channel:'instagram',accent:'#f472b6',angle:-154,distance:234},
+      {label:'Facebook',channel:'facebook',accent:'#60a5fa',angle:-113,distance:250},
+      {label:'X',channel:'x',accent:'#e5e7eb',angle:-67,distance:250},
+      {label:'WhatsApp',channel:'whatsapp',accent:'#34d399',angle:-26,distance:234},
+    ];
+    return (
+      <>
+        <div onClick={()=>setShareFanOpen(false)} style={{position:'fixed',inset:0,zIndex:8,background:'radial-gradient(circle at 50% 78%,rgba(0,229,200,0.15),rgba(96,165,250,0.08) 28%,rgba(2,2,5,0.52) 52%,rgba(2,2,5,0.72)),linear-gradient(180deg,rgba(244,114,182,0.05),rgba(0,229,200,0.04))',backdropFilter:'blur(14px) saturate(1.24)',pointerEvents:'auto'}}/>
+        <div role="menu" aria-label="Share your design" className="share-fan" style={{position:'absolute',left:'50%',bottom:'calc(100% + 10px)',width:560,height:330,transform:'translateX(-50%) scale(var(--fan-scale,1))',transformOrigin:'50% 100%',zIndex:35,pointerEvents:'none'}}>
+          <div className="share-fan-shell" style={{position:'absolute',left:'50%',bottom:0,width:500,height:246,transform:'translateX(-50%)',borderRadius:'500px 500px 0 0',background:'radial-gradient(circle at 50% 104%,rgba(0,229,200,0.34),rgba(8,8,14,0.98) 34%,rgba(19,19,34,0.84) 62%,rgba(255,255,255,0.04) 100%),conic-gradient(from 236deg at 50% 100%,rgba(244,114,182,0.34),rgba(96,165,250,0.22),rgba(0,229,200,0.23),rgba(52,211,153,0.3))',border:'1px solid rgba(255,255,255,0.18)',borderBottom:'none',boxShadow:'0 -34px 100px rgba(0,0,0,0.72),0 0 92px rgba(0,229,200,0.22),inset 0 1px 0 rgba(255,255,255,0.14)',pointerEvents:'none',overflow:'hidden'}}>
+            <div style={{position:'absolute',inset:0,background:'repeating-conic-gradient(from 236deg at 50% 100%,rgba(255,255,255,0.24) 0deg,rgba(255,255,255,0.24) 0.55deg,transparent 0.9deg,transparent 13.5deg)',opacity:0.36}}/>
+            <div style={{position:'absolute',inset:12,borderRadius:'480px 480px 0 0',border:'1px solid rgba(255,255,255,0.08)',borderBottom:'none'}}/>
+            <div style={{position:'absolute',left:'50%',bottom:-92,width:250,height:250,transform:'translateX(-50%)',borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.42),rgba(0,229,200,0.08) 48%,transparent 70%)'}}/>
+            <div style={{position:'absolute',left:'14%',top:'28%',width:7,height:7,borderRadius:'50%',background:'rgba(244,114,182,0.62)',boxShadow:'0 0 18px rgba(244,114,182,0.72)'}}/>
+            <div style={{position:'absolute',right:'17%',top:'24%',width:6,height:6,borderRadius:'50%',background:'rgba(52,211,153,0.62)',boxShadow:'0 0 18px rgba(52,211,153,0.72)'}}/>
+          </div>
+          <div style={{position:'absolute',left:'50%',bottom:-4,width:72,height:72,transform:'translateX(-50%)',borderRadius:'50%',background:'linear-gradient(145deg,rgba(0,229,200,0.26),rgba(5,5,8,0.96))',border:'1px solid rgba(0,229,200,0.32)',boxShadow:'0 14px 42px rgba(0,0,0,0.55),0 0 34px rgba(0,229,200,0.28)',pointerEvents:'none'}}/>
+          <div style={{position:'absolute',left:'50%',bottom:28,transform:'translateX(-50%)',padding:'8px 16px',borderRadius:999,background:'rgba(5,5,8,0.78)',border:'1px solid rgba(255,255,255,0.14)',fontSize:'0.72rem',fontWeight:950,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.82)',whiteSpace:'nowrap',boxShadow:'0 12px 34px rgba(0,0,0,0.38)'}}>Share your design</div>
+          {options.map((opt,i)=>{
+            const rad=(opt.angle*Math.PI)/180;
+            const x=Math.cos(rad)*opt.distance;
+            const y=Math.sin(rad)*opt.distance;
+            return (
+              <button key={opt.channel} role="menuitem" onClick={()=>shareTo(opt.channel)}
+                className="share-fan-item"
+                style={{position:'absolute',left:`calc(50% + ${x}px)`,bottom:`${24 - y}px`,width:108,height:108,borderRadius:28,border:`1px solid ${opt.accent}70`,background:`linear-gradient(145deg,rgba(10,10,16,0.98),${opt.accent}26)`,boxShadow:`0 26px 62px rgba(0,0,0,0.6),0 0 46px ${opt.accent}30,inset 0 1px 0 rgba(255,255,255,0.14)`,color:opt.accent,cursor:'pointer',pointerEvents:'auto',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,transform:`translate(-50%,0) rotate(${(i-1.5)*-6}deg)`,animation:`fanOpen 340ms cubic-bezier(.16,1.34,.38,1) ${i*52}ms both`}}>
+                <span style={{width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center'}}>{renderSocialIcon(opt.channel)}</span>
+                <span style={{fontSize:'0.72rem',fontWeight:950,color:'rgba(255,255,255,0.88)'}}>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </>
+    );
+  }
+
   if(ordered) return (
     <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',position:'relative',overflow:'hidden'}}>
+      {toastEl}
       <div style={{position:'absolute',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.07) 0%,transparent 60%)',top:'-15%',right:'5%',pointerEvents:'none'}}/>
       <div style={{textAlign:'center',maxWidth:400,position:'relative',zIndex:1,padding:'0 24px'}}>
         <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(0,229,200,0.1)',border:'1px solid rgba(0,229,200,0.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px',boxShadow:'0 0 40px rgba(0,229,200,0.15)'}}>
           <svg viewBox="0 0 32 32" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} aria-hidden="true"><path d="M6 16l8 8 12-14"/></svg>
         </div>
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Placed!</h1>
-        <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} · Size {size} · Qty {qty}</p>
+        <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} - Size {size} - Qty {qty}</p>
         {orderId&&<p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:10}}>#{orderId.slice(0,8).toUpperCase()}</p>}
-        <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.62)',marginBottom:28,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
+        <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.62)',marginBottom:18,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
+        <div ref={canvasRef} style={{height:210,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:18}}>
+          {renderShirtCanvas(180,207,false,garmentView)}
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap',marginBottom:18}}>
+          <button title="Download PNG preview" onClick={downloadPng} style={{padding:'0.72rem 1rem',borderRadius:11,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontWeight:800,cursor:'pointer'}}>Download PNG</button>
+          <div style={{position:'relative',display:'inline-flex'}}>
+            <button onClick={()=>setShareFanOpen(true)} style={{padding:'0.72rem 1rem',borderRadius:11,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.78)',fontWeight:800,cursor:'pointer'}}>Share</button>
+            {renderShareFan()}
+          </div>
+        </div>
         <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-          <button onClick={()=>{setOrdered(false);setLayers([]);setAiSvg(null);setUploads({front:null,back:null,chest:null,leftSleeve:null,rightSleeve:null});setPrintBg(null);}} style={{padding:'0.85rem 1.5rem',borderRadius:12,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.75)',fontWeight:700,cursor:'pointer'}}>Design another</button>
-          <Link href="/catalog" style={{padding:'0.85rem 1.8rem',borderRadius:12,background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontWeight:800,textDecoration:'none',display:'inline-flex',alignItems:'center'}}>Browse catalog →</Link>
+          <Link href="/catalog" style={{padding:'0.85rem 1.8rem',borderRadius:12,background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontWeight:800,textDecoration:'none',display:'inline-flex',alignItems:'center'}}>Browse catalog</Link>
         </div>
       </div>
     </div>
@@ -834,10 +1053,12 @@ function DesignStudio() {
     {id:'templates',icon:'T', label:'Ready design', hint:'Start from a template'},
     {id:'text',     icon:'Aa', label:'Add text', hint:'Names, slogans, numbers'},
     {id:'upload',   icon:'Up', label:'Add image', hint:'Logo, photo, sleeve art'},
+    {id:'ai',       icon:'AI', label:'AI helper', hint:'Ideas, layout, smart fixes'},
     {id:'shapes',   icon:'S', label:'Icons', hint:'Symbols and shapes'},
+    {id:'order',    icon:'OK', label:'Finish', hint:'Review, share, and checkout'},
   ];
 
-  // ─────────────────────────────────────────────────────────────
+  //
   return (
     <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'#070709',color:'white',overflow:'hidden'}}>
       {toastEl}
@@ -856,7 +1077,7 @@ function DesignStudio() {
             ))}
           </div>
           <p style={{marginTop:24,color:'rgba(255,255,255,0.62)',fontSize:'0.65rem',letterSpacing:'0.14em',textTransform:'uppercase'}}>360 product preview</p>
-          <button onClick={e=>{e.stopPropagation();setFullscreen(false);}} style={{position:'absolute',top:24,right:28,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'8px 20px',color:'rgba(255,255,255,0.5)',fontSize:'0.75rem',fontWeight:700,cursor:'pointer'}}>✕ Close</button>
+          <button onClick={e=>{e.stopPropagation();setFullscreen(false);}} style={{position:'absolute',top:24,right:28,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'8px 20px',color:'rgba(255,255,255,0.5)',fontSize:'0.75rem',fontWeight:700,cursor:'pointer'}}>Close</button>
         </div>
       )}
 
@@ -891,6 +1112,29 @@ function DesignStudio() {
 
               {!size&&<div style={{padding:'12px 13px',borderRadius:12,border:'1px solid rgba(245,158,11,0.2)',background:'rgba(245,158,11,0.07)',color:'rgba(245,158,11,0.92)',fontSize:'0.86rem',fontWeight:800,marginBottom:14}}>Choose a shirt size before placing the order.</div>}
 
+              <div style={{border:'1px solid rgba(0,229,200,0.16)',background:'linear-gradient(145deg,rgba(0,229,200,0.06),rgba(255,255,255,0.02))',borderRadius:13,padding:12,marginBottom:14}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:'0.72rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.12em',textTransform:'uppercase'}}>Production review</div>
+                    <div style={{fontSize:'0.66rem',fontWeight:750,color:'rgba(255,255,255,0.48)',marginTop:3}}>Final check before payment.</div>
+                  </div>
+                  <div style={{width:44,height:44,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',background:qualityScore>=80?'rgba(0,229,200,0.12)':'rgba(245,158,11,0.1)',border:`1px solid ${qualityScore>=80?'rgba(0,229,200,0.32)':'rgba(245,158,11,0.24)'}`,color:qualityScore>=80?'#00E5C8':'#fbbf24',fontWeight:950}}>{qualityScore}</div>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:7}}>
+                  {[
+                    ['Color',color.name],
+                    ['Size',size || 'Missing'],
+                    ['Artwork',hasDesignContent?'Added':'Missing'],
+                    ['Sides',Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ') || 'Front'],
+                  ].map(([label,value])=>(
+                    <div key={label} style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.025)',borderRadius:9,padding:'8px 9px'}}>
+                      <div style={{fontSize:'0.54rem',fontWeight:950,color:'rgba(255,255,255,0.36)',letterSpacing:'0.08em',textTransform:'uppercase'}}>{label}</div>
+                      <div style={{fontSize:'0.78rem',fontWeight:900,color:value==='Missing'?'#fbbf24':'rgba(255,255,255,0.78)',marginTop:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div style={{display:'grid',gap:12}}>
                 <div>
                   <div style={{fontSize:'0.82rem',fontWeight:900,color:'rgba(255,255,255,0.68)',marginBottom:8}}>Quantity</div>
@@ -924,7 +1168,7 @@ function DesignStudio() {
         </div>
       )}
 
-      {/* ── HEADER ─────────────────────────────────────────────── */}
+      {/* Section */}
       <header style={{height:50,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',padding:'0 16px 0 12px',gap:12,background:'rgba(7,7,9,0.98)',backdropFilter:'blur(24px)',position:'relative',zIndex:20}}>
         <div style={{position:'absolute',top:0,left:0,right:0,height:'1px',background:'linear-gradient(90deg,transparent,rgba(0,229,200,0.55) 35%,rgba(0,153,255,0.35) 65%,transparent)'}}/>
         <Link href="/" style={{color:'rgba(255,255,255,0.62)',fontSize:'0.67rem',textDecoration:'none',fontWeight:700,letterSpacing:'0.06em',transition:'color 0.15s',textTransform:'uppercase',flexShrink:0}} onMouseEnter={e=>(e.currentTarget.style.color='rgba(255,255,255,0.65)')} onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.28)')}>Back home</Link>
@@ -944,7 +1188,7 @@ function DesignStudio() {
 
       </header>
 
-      {/* ── 3-PANEL ──────────────────────────────────────────────── */}
+      {/* Section */}
       <div className="studio-ai-helper" style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(90deg,rgba(0,229,200,0.055),rgba(6,6,9,0.98) 28%,rgba(0,153,255,0.045))',display:'grid',gridTemplateColumns:'220px 1fr auto',alignItems:'center',gap:10,padding:'0 14px',position:'relative',zIndex:13}}>
         <div style={{minWidth:0}}>
           <div style={{fontSize:'0.58rem',fontWeight:900,color:'#00E5C8',letterSpacing:'0.14em',textTransform:'uppercase'}}>AI design assistant</div>
@@ -965,19 +1209,19 @@ function DesignStudio() {
 
       <div className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'280px minmax(420px,1fr) 390px',overflow:'hidden',minHeight:0}}>
 
-        {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
+        {/* Section */}
         <div className="studio-rail" style={{background:'rgba(5,5,8,1)',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',alignItems:'stretch',padding:'12px',gap:7,zIndex:10,overflowY:'auto'}}>
           {sideTools.map(t=>(
             <button key={t.id} title={t.label} onClick={()=>activateTool(t.id)}
-              style={{width:'100%',minHeight:58,borderRadius:11,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.58)',display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:12,padding:'8px 11px',transition:'all 0.15s',position:'relative'}}
-              onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.65)');}}}
-              onMouseLeave={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='transparent');(e.currentTarget.style.color='rgba(255,255,255,0.28)');}}}
+              style={{width:'100%',minHeight:68,borderRadius:12,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.72)',display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:14,padding:'10px 12px',transition:'all 0.15s',position:'relative'}}
+              onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.82)');}}}
+              onMouseLeave={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='transparent');(e.currentTarget.style.color='rgba(255,255,255,0.72)');}}}
             >
               {activeTool===t.id&&<div style={{position:'absolute',left:0,top:'22%',bottom:'22%',width:2,borderRadius:'0 2px 2px 0',background:'#00E5C8'}}/>}
-              <span style={{width:28,textAlign:'center',fontSize:t.id==='text'?'0.95rem':'0.78rem',fontWeight:900,lineHeight:1}}>{t.icon}</span>
+              <span style={{width:34,textAlign:'center',fontSize:t.id==='text'?'1.18rem':'1rem',fontWeight:950,lineHeight:1}}>{t.icon}</span>
               <span style={{minWidth:0}}>
-                <span style={{display:'block',fontSize:'0.82rem',fontWeight:900,letterSpacing:'0.01em'}}>{t.label}</span>
-                <span style={{display:'block',fontSize:'0.66rem',fontWeight:700,color:'rgba(255,255,255,0.44)',marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.hint}</span>
+                <span style={{display:'block',fontSize:'0.98rem',fontWeight:950,letterSpacing:'0.01em'}}>{t.label}</span>
+                <span style={{display:'block',fontSize:'0.76rem',fontWeight:750,color:'rgba(255,255,255,0.58)',marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.hint}</span>
               </span>
             </button>
           ))}
@@ -986,21 +1230,21 @@ function DesignStudio() {
             {id:'shirt' as ActiveTool, label:'Color & size', hint:'Pick the shirt details', svgPath:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} aria-hidden="true"><path d="M3 3C2 4 1 5 1 6l2 1c0 3.5-.2 6-.2 8h10.4c0-2-.2-4.5-.2-8L15 6c0-1-1-2-2-3l-2 .8Q8 2,8 2Q8 2,7 2.8z"/></svg>},
           ]).map(t=>(
             <button key={t.id} title={t.label} onClick={()=>activateTool(t.id)}
-              style={{width:'100%',minHeight:58,borderRadius:11,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.58)',display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:12,padding:'8px 11px',transition:'all 0.15s',position:'relative'}}
-              onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.65)');}}}
-              onMouseLeave={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='transparent');(e.currentTarget.style.color='rgba(255,255,255,0.28)');}}}
+              style={{width:'100%',minHeight:68,borderRadius:12,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.72)',display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:14,padding:'10px 12px',transition:'all 0.15s',position:'relative'}}
+              onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.82)');}}}
+              onMouseLeave={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='transparent');(e.currentTarget.style.color='rgba(255,255,255,0.72)');}}}
             >
               {activeTool===t.id&&<div style={{position:'absolute',left:0,top:'22%',bottom:'22%',width:2,borderRadius:'0 2px 2px 0',background:'#00E5C8'}}/>}
-              <span style={{width:28,lineHeight:1,display:'flex',justifyContent:'center'}}>{t.svgPath}</span>
+              <span style={{width:34,lineHeight:1,display:'flex',justifyContent:'center'}}>{t.svgPath}</span>
               <span style={{minWidth:0}}>
-                <span style={{display:'block',fontSize:'0.82rem',fontWeight:900,letterSpacing:'0.01em'}}>{t.label}</span>
-                <span style={{display:'block',fontSize:'0.66rem',fontWeight:700,color:'rgba(255,255,255,0.44)',marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.hint}</span>
+                <span style={{display:'block',fontSize:'0.98rem',fontWeight:950,letterSpacing:'0.01em'}}>{t.label}</span>
+                <span style={{display:'block',fontSize:'0.76rem',fontWeight:750,color:'rgba(255,255,255,0.58)',marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.hint}</span>
               </span>
             </button>
           ))}
         </div>
 
-        {/* ── CANVAS ───────────────────────────────────────────── */}
+        {/* Section */}
         <div className="studio-canvas" ref={canvasAreaRef} style={{background:'radial-gradient(ellipse at 50% 35%,rgba(13,13,22,1) 0%,rgba(5,5,8,1) 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}} onClick={()=>{if(justDragged.current){justDragged.current=false;return;}setSelected(null);}}>
           <div style={{position:'absolute',width:480,height:480,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.04) 0%,transparent 60%)',top:'-20%',right:'-5%',pointerEvents:'none'}}/>
           <div style={{position:'absolute',width:360,height:360,borderRadius:'50%',background:'radial-gradient(circle,rgba(0,100,255,0.03) 0%,transparent 65%)',bottom:'-10%',left:'-5%',pointerEvents:'none'}}/>
@@ -1020,46 +1264,53 @@ function DesignStudio() {
             <div style={{position:'absolute',width:380,height:420,borderRadius:'50%',background:`radial-gradient(ellipse,${color.hex}0c 0%,transparent 60%)`,pointerEvents:'none',filter:'blur(24px)'}}/>
             <div ref={canvasRef} role="img" aria-label="Shirt design canvas"
               style={{position:'relative',filter:`drop-shadow(0 45px 90px rgba(0,0,0,0.55))`,animation:'shirtIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',zIndex:2,transform:`scale(${zoom})`,transformOrigin:'center center',transition:'transform 0.15s',touchAction:'none'}}>
-              {renderShirtCanvas(canvasSize.w,canvasSize.h)}
+              {renderShirtCanvas(canvasSize.w,canvasSize.h,previewMode==='edit')}
             </div>
+            {previewMode==='premium'&&(
+              <div style={{position:'absolute',top:22,left:'50%',transform:'translateX(-50%)',zIndex:4,padding:'8px 13px',borderRadius:999,border:'1px solid rgba(0,229,200,0.24)',background:'rgba(4,4,7,0.74)',backdropFilter:'blur(14px)',color:'#00E5C8',fontSize:'0.62rem',fontWeight:950,letterSpacing:'0.12em',textTransform:'uppercase',boxShadow:'0 16px 48px rgba(0,0,0,0.35)'}}>Premium product preview</div>
+            )}
 
             {/* Selection bar with alignment tools */}
-            {selLayer&&(
+            {selLayer&&previewMode==='edit'&&(
               <div style={{position:'absolute',bottom:8,left:'50%',transform:'translateX(-50%)',background:'rgba(4,4,7,0.96)',border:'1px solid rgba(0,229,200,0.25)',borderRadius:13,padding:'7px 12px',display:'flex',alignItems:'center',gap:7,backdropFilter:'blur(16px)',animation:'fadeUp 0.15s ease',whiteSpace:'nowrap',zIndex:6,boxShadow:'0 4px 24px rgba(0,0,0,0.5)'}}>
                 <span style={{color:'rgba(255,255,255,0.62)',fontSize:'0.53rem',letterSpacing:'0.1em'}}>SELECTED</span>
                 <span style={{fontWeight:700,color:'#00E5C8',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',fontSize:'0.7rem'}}>{selLayer.content}</span>
                 <div style={{width:1,height:14,background:'rgba(255,255,255,0.1)'}}/>
                 {/* Alignment */}
-                {([['⊕','Center','c',0],['⇤','Left','x',15],['⇥','Right','x',85],['⤒','Top','y',15],['⤓','Bottom','y',85]] as [string,string,'c'|'x'|'y',number][]).map(([icon,label,axis,val])=>(
-                  <button key={label} title={label} onClick={e=>{e.stopPropagation();if(axis==='c')alignCenter(selLayer.id);else alignLayer(selLayer.id,axis,val);}} style={{width:24,height:24,borderRadius:5,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.45)',fontSize:'0.7rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.12s'}}
+                {([['Center','Center','c',0],['Left','Left','x',15],['Right','Right','x',85],['Top','Top','y',15],['Bottom','Bottom','y',85]] as [string,string,'c'|'x'|'y',number][]).map(([icon,label,axis,val])=>(
+                  <button key={label} title={label} onClick={e=>{e.stopPropagation();if(axis==='c')alignCenter(selLayer.id);else alignLayer(selLayer.id,axis,val);}} style={{minWidth:42,height:24,padding:'0 6px',borderRadius:5,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.45)',fontSize:'0.56rem',fontWeight:800,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.12s'}}
                     onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.12)');(e.currentTarget.style.color='#00E5C8');(e.currentTarget.style.borderColor='rgba(0,229,200,0.3)');}}
                     onMouseLeave={e=>{(e.currentTarget.style.background='rgba(255,255,255,0.04)');(e.currentTarget.style.color='rgba(255,255,255,0.45)');(e.currentTarget.style.borderColor='rgba(255,255,255,0.1)');}}>
                     {icon}
                   </button>
                 ))}
                 <div style={{width:1,height:14,background:'rgba(255,255,255,0.1)'}}/>
-                <button title="Flip horizontal" aria-pressed={selLayer.flipH} onClick={e=>{e.stopPropagation();updateLayer(selLayer.id,{flipH:!selLayer.flipH});}} style={{background:selLayer.flipH?'rgba(0,229,200,0.14)':'rgba(255,255,255,0.04)',border:`1px solid ${selLayer.flipH?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:6,padding:'3px 7px',color:selLayer.flipH?'#00E5C8':'rgba(255,255,255,0.45)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>⇋</button>
-                <button title="Flip vertical" aria-pressed={selLayer.flipV} onClick={e=>{e.stopPropagation();updateLayer(selLayer.id,{flipV:!selLayer.flipV});}} style={{background:selLayer.flipV?'rgba(0,229,200,0.14)':'rgba(255,255,255,0.04)',border:`1px solid ${selLayer.flipV?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:6,padding:'3px 7px',color:selLayer.flipV?'#00E5C8':'rgba(255,255,255,0.45)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>⇵</button>
+                <button title="Flip horizontal" aria-pressed={selLayer.flipH} onClick={e=>{e.stopPropagation();updateLayer(selLayer.id,{flipH:!selLayer.flipH});}} style={{background:selLayer.flipH?'rgba(0,229,200,0.14)':'rgba(255,255,255,0.04)',border:`1px solid ${selLayer.flipH?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:6,padding:'3px 7px',color:selLayer.flipH?'#00E5C8':'rgba(255,255,255,0.45)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Flip H</button>
+                <button title="Flip vertical" aria-pressed={selLayer.flipV} onClick={e=>{e.stopPropagation();updateLayer(selLayer.id,{flipV:!selLayer.flipV});}} style={{background:selLayer.flipV?'rgba(0,229,200,0.14)':'rgba(255,255,255,0.04)',border:`1px solid ${selLayer.flipV?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:6,padding:'3px 7px',color:selLayer.flipV?'#00E5C8':'rgba(255,255,255,0.45)',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Flip V</button>
                 <div style={{width:1,height:14,background:'rgba(255,255,255,0.1)'}}/>
-                <button title="Duplicate (Ctrl+D)" onClick={e=>{e.stopPropagation();duplicateLayer(selLayer.id);}} style={{background:'rgba(0,229,200,0.08)',border:'1px solid rgba(0,229,200,0.18)',borderRadius:6,padding:'3px 7px',color:'#00E5C8',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>⊕</button>
-                <button onClick={e=>{e.stopPropagation();deleteLayer(selLayer.id);}} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:6,padding:'3px 7px',color:'#f87171',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>✕</button>
+                <button title="Duplicate (Ctrl+D)" onClick={e=>{e.stopPropagation();duplicateLayer(selLayer.id);}} style={{background:'rgba(0,229,200,0.08)',border:'1px solid rgba(0,229,200,0.18)',borderRadius:6,padding:'3px 7px',color:'#00E5C8',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Copy</button>
+                <button onClick={e=>{e.stopPropagation();deleteLayer(selLayer.id);}} style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:6,padding:'3px 7px',color:'#f87171',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Del</button>
               </div>
             )}
 
             {/* Zoom controls */}
             <div style={{position:'absolute',bottom:8,right:12,display:'flex',gap:4,background:'rgba(4,4,7,0.85)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:3,backdropFilter:'blur(12px)',zIndex:5}}>
-              {([['−',()=>setZoom(z=>Math.max(0.5,+(z-0.1).toFixed(1)))],[`${Math.round(zoom*100)}%`,()=>setZoom(1)],['+',()=>setZoom(z=>Math.min(2,+(z+0.1).toFixed(1)))]] as [string,()=>void][]).map(([label,fn])=>(
-                <button key={label} aria-label={label==='+'?'Zoom in':label==='−'?'Zoom out':'Reset zoom'} onClick={e=>{e.stopPropagation();fn();}} style={{width:label==='+'||label==='−'?(isTouch?38:26):(isTouch?52:42),height:isTouch?38:26,borderRadius:7,border:'none',background:'transparent',color:'rgba(255,255,255,0.45)',fontSize:isTouch?'0.85rem':'0.68rem',fontWeight:700,cursor:'pointer',transition:'all 0.12s'}}
+              {([
+                {label:'-', aria:'Zoom out', action:()=>setZoom(z=>Math.max(0.5,+(z-0.1).toFixed(1))), compact:true},
+                {label:`${Math.round(zoom*100)}%`, aria:'Reset zoom', action:()=>setZoom(1), compact:false},
+                {label:'+', aria:'Zoom in', action:()=>setZoom(z=>Math.min(2,+(z+0.1).toFixed(1))), compact:true},
+              ] as {label:string;aria:string;action:()=>void;compact:boolean}[]).map(item=>(
+                <button key={item.aria} aria-label={item.aria} onClick={e=>{e.stopPropagation();item.action();}} style={{width:item.compact?(isTouch?38:26):(isTouch?52:42),height:isTouch?38:26,borderRadius:7,border:'none',background:'transparent',color:'rgba(255,255,255,0.45)',fontSize:isTouch?'0.85rem':'0.68rem',fontWeight:700,cursor:'pointer',transition:'all 0.12s'}}
                   onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,0.08)')}
                   onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
-                  {label}
+                  {item.label}
                 </button>
               ))}
             </div>
 
-            {layers.length===0&&!activeImg&&!aiSvg&&!showBack&&!printBg&&(
+            {previewMode==='edit'&&layers.length===0&&!activeImg&&!aiSvg&&!showBack&&!printBg&&(
               <div style={{position:'absolute',bottom:46,textAlign:'center',pointerEvents:'none',animation:'fadeUp 0.5s ease 0.4s both'}}>
-                <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase'}}>Choose a template or use the tools →</p>
+                <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase'}}>Choose a template or use the tools</p>
               </div>
             )}
           </div>
@@ -1068,8 +1319,11 @@ function DesignStudio() {
             <button onClick={undo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Undo</button>
             <button onClick={redo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Redo</button>
             <button onClick={addChestSymbol} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(0,229,200,0.18)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Add chest symbol</button>
-            <button onClick={downloadPng} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Download</button>
-            {hasDesignContent&&<button onClick={()=>{setLayersWithHistory([]);setSelected(null);setPrintBg(null);setAiSvg(null);setAiPrompt('');setUploads({front:null,back:null,chest:null,leftSleeve:null,rightSleeve:null});localStorage.removeItem('pd_design');}} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.07)',color:'#f87171',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Clear</button>}
+            {layers.some(l=>!l.collarMode)&&<button onClick={smartFitDesign} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.045)',color:'rgba(255,255,255,0.78)',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Smart fit</button>}
+            <div style={{position:'relative',display:'inline-flex'}}>
+              <button aria-haspopup="menu" onClick={()=>setShareFanOpen(true)} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(0,229,200,0.2)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Share</button>
+              {renderShareFan()}
+            </div>
             <button onClick={()=>setCheckoutOpen(true)} style={{padding:'10px 16px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.82rem',fontWeight:950,cursor:'pointer',boxShadow:'0 8px 28px rgba(0,229,200,0.24)'}}>Finish design</button>
           </div>
 
@@ -1082,7 +1336,7 @@ function DesignStudio() {
                   <div style={{height:4,borderRadius:999,background:'rgba(255,255,255,0.08)',overflow:'hidden'}}>
                     <div style={{height:'100%',width:`${designScore}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999}}/>
                   </div>
-                  <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.34)',marginTop:7,letterSpacing:'0.04em'}}>{size ? `Size ${size}` : 'Pick size'} · {uploadCount} uploads</div>
+                  <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.34)',marginTop:7,letterSpacing:'0.04em'}}>{size ? `Size ${size}` : 'Pick size'} - {uploadCount} uploads</div>
                 </div>
               </div>
             </div>
@@ -1153,11 +1407,84 @@ function DesignStudio() {
               {activeTool==='order'&&'CHECKOUT'}
             </span>
             {activeTool==='text'&&layers.length>0&&<span style={{fontSize:'0.56rem',color:'rgba(255,255,255,0.62)',background:'rgba(255,255,255,0.04)',padding:'2px 7px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)'}}>{layers.length} layers</span>}
-            {activeTool==='order'&&canOrder&&<span style={{fontSize:'0.56rem',color:'rgba(0,229,200,0.7)',fontWeight:700}}>ready ✓</span>}
+            {activeTool==='order'&&canOrder&&<span style={{fontSize:'0.56rem',color:'rgba(0,229,200,0.7)',fontWeight:700}}>ready</span>}
           </div>
 
           <div ref={panelRef} style={{flex:1,overflowY:'auto',minHeight:0}}>
             <div style={{padding:'12px 14px 0'}}>
+              <div style={{border:'1px solid rgba(0,229,200,0.14)',background:'linear-gradient(145deg,rgba(0,229,200,0.055),rgba(255,255,255,0.018))',borderRadius:12,padding:12,marginBottom:12}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:'0.72rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.12em',textTransform:'uppercase'}}>Studio control center</div>
+                    <div style={{fontSize:'0.66rem',fontWeight:750,color:'rgba(255,255,255,0.48)',marginTop:3}}>Start, improve, preview, and finish from one place.</div>
+                  </div>
+                  <button onClick={()=>setPreviewMode(p=>p==='premium'?'edit':'premium')} aria-pressed={previewMode==='premium'}
+                    style={{padding:'8px 10px',borderRadius:9,border:`1px solid ${previewMode==='premium'?'rgba(0,229,200,0.42)':'rgba(255,255,255,0.1)'}`,background:previewMode==='premium'?'rgba(0,229,200,0.12)':'rgba(255,255,255,0.035)',color:previewMode==='premium'?'#00E5C8':'rgba(255,255,255,0.72)',fontSize:'0.62rem',fontWeight:950,cursor:'pointer',whiteSpace:'nowrap'}}>Premium preview</button>
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:10}}>
+                  {workflowGroups.map(g=>(
+                    <button key={g.label} onClick={()=>activateTool(g.primary)}
+                      style={{minHeight:44,borderRadius:9,border:`1px solid ${activeWorkflow?.label===g.label?'rgba(0,229,200,0.38)':'rgba(255,255,255,0.08)'}`,background:activeWorkflow?.label===g.label?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.025)',color:activeWorkflow?.label===g.label?'#00E5C8':'rgba(255,255,255,0.62)',fontSize:'0.58rem',fontWeight:950,cursor:'pointer',padding:'6px 4px'}}>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}}>
+                  {(['street','luxury','minimal','sport','vintage'] as const).map(p=>(
+                    <button key={p} onClick={()=>applyStudioPreset(p)}
+                      style={{padding:'8px 9px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.7)',fontSize:'0.64rem',fontWeight:900,cursor:'pointer',textAlign:'left',textTransform:'capitalize'}}>
+                      {p}
+                    </button>
+                  ))}
+                  <button onClick={()=>activateTool('ai')}
+                    style={{padding:'8px 9px',borderRadius:9,border:'1px solid rgba(0,153,255,0.22)',background:'rgba(0,153,255,0.06)',color:'#7dd3fc',fontSize:'0.64rem',fontWeight:900,cursor:'pointer',textAlign:'left'}}>
+                    AI helper
+                  </button>
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:10}}>
+                  {smartSuggestions.map(s=>(
+                    <button key={s.label} title={s.hint} onClick={()=>applySmartFix(s.fix as 'fit'|'center'|'contrast'|'premium'|'collar')}
+                      style={{minHeight:38,borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.62)',fontSize:'0.54rem',fontWeight:850,cursor:'pointer',padding:'5px 4px'}}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'46px 1fr',gap:10,alignItems:'center'}}>
+                  <div style={{height:42,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',background:qualityScore>=80?'rgba(0,229,200,0.11)':'rgba(245,158,11,0.09)',border:`1px solid ${qualityScore>=80?'rgba(0,229,200,0.28)':'rgba(245,158,11,0.2)'}`,color:qualityScore>=80?'#00E5C8':'#fbbf24',fontSize:'0.78rem',fontWeight:950}}>{qualityScore}</div>
+                  <div style={{display:'grid',gap:5}}>
+                    <div style={{height:4,borderRadius:999,background:'rgba(255,255,255,0.08)',overflow:'hidden'}}>
+                      <div style={{height:'100%',width:`${qualityScore}%`,background:qualityScore>=80?'linear-gradient(90deg,#00E5C8,#0099FF)':'linear-gradient(90deg,#f59e0b,#00E5C8)',borderRadius:999}}/>
+                    </div>
+                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                      {qualityChecks.map(c=>(
+                        <button key={c.label} onClick={()=>c.fix==='text'?activateTool('text'):c.fix==='shirt'?activateTool('shirt'):c.fix==='preview'?setPreviewMode('premium'):applySmartFix(c.fix as 'fit'|'contrast')}
+                          style={{padding:'3px 6px',borderRadius:999,border:`1px solid ${c.ok?'rgba(0,229,200,0.22)':'rgba(245,158,11,0.18)'}`,background:c.ok?'rgba(0,229,200,0.055)':'rgba(245,158,11,0.055)',color:c.ok?'rgba(0,229,200,0.82)':'rgba(251,191,36,0.82)',fontSize:'0.52rem',fontWeight:850,cursor:'pointer'}}>
+                          {c.ok?'OK':'Fix'} {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:12}}>
+                {[
+                  ['1','Add','Pick text, image, or icon'],
+                  ['2','Move','Drag it or use arrows'],
+                  ['3','Finish','Pay, then download/share'],
+                ].map(([n,title,desc])=>(
+                  <button key={n} onClick={()=>title==='Add'?activateTool('text'):title==='Finish'?setCheckoutOpen(true):undefined}
+                    style={{minHeight:62,borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.68)',cursor:title==='Move'?'default':'pointer',padding:'8px 7px',textAlign:'left'}}>
+                    <span style={{display:'inline-flex',width:18,height:18,borderRadius:6,alignItems:'center',justifyContent:'center',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontSize:'0.58rem',fontWeight:950,marginBottom:5}}>{n}</span>
+                    <span style={{display:'block',fontSize:'0.7rem',fontWeight:950}}>{title}</span>
+                    <span style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'rgba(255,255,255,0.38)',marginTop:2,lineHeight:1.25}}>{desc}</span>
+                  </button>
+                ))}
+              </div>
 
               <div style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',borderRadius:12,overflow:'hidden',marginBottom:12}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'9px 11px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
@@ -1186,7 +1513,7 @@ function DesignStudio() {
                     <input type="range" min={6} max={140} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
                     <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Opacity</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none'}}>{Math.round((selLayer.opacity??1)*100)}%</span></div>
                     <input type="range" min={0.1} max={1} step={0.05} value={selLayer.opacity??1} onChange={e=>updateLayer(selLayer.id,{opacity:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
-                    <div style={{...LS,display:'flex',justifyContent:'space-between',marginTop:9}}><span>Rotation</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none'}}>{selLayer.rotation}°</span></div>
+                    <div style={{...LS,display:'flex',justifyContent:'space-between',marginTop:9}}><span>Rotation</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none'}}>{selLayer.rotation}deg</span></div>
                     <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8'}}/>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginTop:10}}>
                       {([['Center','c',0],['Left','x',15],['Right','x',85],['Top','y',15],['Bottom','y',85]] as [string,'c'|'x'|'y',number][]).map(([label,axis,val])=>(
@@ -1231,10 +1558,10 @@ function DesignStudio() {
                 </div>
               </div>
 
-            {/* ═══ TEMPLATES ══════════════════════════════════ */}
+            {/* Section */}
             {activeTool==='templates'&&(
               <div style={{padding:'14px 14px 0'}}>
-                {/* My Designs — saved slots */}
+                {/* Section */}
                 <div style={{marginBottom:16}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                     <span style={{fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.12em',textTransform:'uppercase'}}>My Designs</span>
@@ -1251,10 +1578,10 @@ function DesignStudio() {
                         <div key={s.id} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',borderRadius:10,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)'}}>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{fontSize:'0.7rem',fontWeight:700,color:'rgba(255,255,255,0.75)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</div>
-                            <div style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.62)'}}>{s.layers.length} layers · {new Date(s.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            <div style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.62)'}}>{s.layers.length} layers - {new Date(s.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                           </div>
                           <button onClick={()=>loadDesignSlot(s.id)} style={{padding:'4px 10px',borderRadius:7,border:'1px solid rgba(0,229,200,0.3)',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontSize:'0.58rem',fontWeight:700,cursor:'pointer'}}>Load</button>
-                          <button aria-label={`Delete ${s.name}`} onClick={()=>deleteDesignSlot(s.id)} style={{width:20,height:20,borderRadius:6,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'0.62rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:0}}>×</button>
+                          <button aria-label={`Delete ${s.name}`} onClick={()=>deleteDesignSlot(s.id)} style={{width:20,height:20,borderRadius:6,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'0.62rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:0}}>x</button>
                         </div>
                       ))}
                     </div>
@@ -1275,21 +1602,21 @@ function DesignStudio() {
                       </div>
                       <div>
                         <div style={{fontSize:'0.78rem',fontWeight:700,color:'rgba(255,255,255,0.85)',marginBottom:2}}>{tpl.name}</div>
-                        <div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)'}}>{tpl.cat} · {tpl.build('').length} layers</div>
+                        <div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)'}}>{tpl.cat} - {tpl.build('').length} layers</div>
                       </div>
-                      <span style={{marginLeft:'auto',fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>→</span>
+                      <span style={{marginLeft:'auto',fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>Use</span>
                     </button>
                   ))}
                 </div>
                 <button onClick={()=>{setLayersWithHistory([]);setSelected(null);}} style={{width:'100%',padding:'9px',borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'transparent',color:'rgba(255,255,255,0.62)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',letterSpacing:'0.04em',transition:'all 0.15s'}}
                   onMouseEnter={e=>(e.currentTarget.style.color='rgba(255,255,255,0.5)')} onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.22)')}>
-                  Start from scratch →
+                  Start from scratch
                 </button>
                 <div style={{height:16}}/>
               </div>
             )}
 
-            {/* ═══ TEXT ═══════════════════════════════════════ */}
+            {/* TEXT */}
             {activeTool==='text'&&(
               <div style={{padding:'14px'}}>
                 {/* Input */}
@@ -1308,6 +1635,16 @@ function DesignStudio() {
                         {t}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                <div style={{border:'1px solid rgba(0,229,200,0.13)',background:'rgba(0,229,200,0.035)',borderRadius:12,padding:'11px 12px',marginBottom:14}}>
+                  <div style={{fontSize:'0.72rem',fontWeight:950,color:'rgba(255,255,255,0.78)',marginBottom:8}}>Collar text</div>
+                  <input aria-label="Collar text" value={collarText} onChange={e=>setCollarText(e.target.value)} placeholder="Brand, name, team..." maxLength={34}
+                    style={{...INP,marginBottom:8,fontSize:'0.82rem'}}/>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+                    <button onClick={()=>addCollarText('front')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,229,200,0.24)',background:'rgba(0,229,200,0.07)',color:'#00E5C8',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Front collar</button>
+                    <button onClick={()=>addCollarText('full')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,153,255,0.24)',background:'rgba(0,153,255,0.07)',color:'#7dd3fc',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Around collar</button>
                   </div>
                 </div>
 
@@ -1348,7 +1685,7 @@ function DesignStudio() {
                   <input type="range" min={-2} max={20} value={letterSp} onChange={e=>{const v=+e.target.value;setLetterSp(v);if(selected)updateLayer(selected,{letterSpacing:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
                 </div>
 
-                {/* Style presets — one-click looks */}
+                {/* Section */}
                 <div style={{marginBottom:14}}>
                   <div style={LS}>Style Presets{!selLayer||selLayer.type!=='text'?' (select a text layer)':''}</div>
                   <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
@@ -1370,7 +1707,7 @@ function DesignStudio() {
                   <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
                     {TEXT_COLORS.map(c=>(
                       <button key={c} aria-pressed={textColor===c} onClick={()=>{setTextColor(c);if(selected)updateLayer(selected,{color:c});}}
-                        style={{width:28,height:28,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,transition:'all 0.12s',transform:textColor===c?'scale(1.2)':'scale(1)'}}/>
+                        style={{width:28,height:28,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,transition:'all 0.12s',boxShadow:textColor===c?`0 0 14px ${c}66`:'none'}}/>
                     ))}
                     <label style={{width:28,height:28,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.06)',border:'1.5px dashed rgba(255,255,255,0.2)',fontSize:'0.8rem',position:'relative',color:'rgba(255,255,255,0.5)'}}>
                       +<input type="color" aria-hidden tabIndex={-1} value={textColor} onChange={e=>{const v=e.target.value;setTextColor(v);setHexInput(v.replace('#',''));if(selected)updateLayer(selected,{color:v});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
@@ -1397,11 +1734,11 @@ function DesignStudio() {
                   <div style={LS}>Gradient</div>
                   <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
                     <button title="Solid color" aria-pressed={!selLayer?.gradient} onClick={()=>{if(selected)updateLayer(selected,{gradient:''});}}
-                      style={{width:28,height:28,borderRadius:'50%',border:'none',background:'rgba(255,255,255,0.06)',cursor:'pointer',outline:selLayer&&!selLayer.gradient?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,fontSize:'0.55rem',color:'rgba(255,255,255,0.45)'}}>○</button>
+                      style={{width:28,height:28,borderRadius:'50%',border:'none',background:'rgba(255,255,255,0.06)',cursor:'pointer',outline:selLayer&&!selLayer.gradient?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,fontSize:'0.55rem',color:'rgba(255,255,255,0.45)'}}>Solid</button>
                     {Object.entries(GRADIENT_PRESETS).map(([key,g])=>(
                       <button key={key} title={g.label} aria-pressed={selLayer?.gradient===key}
                         onClick={()=>{if(selected)updateLayer(selected,{gradient:key});}}
-                        style={{width:28,height:28,borderRadius:'50%',border:'none',background:`linear-gradient(135deg,${g.stops.join(',')})`,cursor:'pointer',outline:selLayer?.gradient===key?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,transition:'all 0.12s',transform:selLayer?.gradient===key?'scale(1.2)':'scale(1)'}}/>
+                        style={{width:28,height:28,borderRadius:'50%',border:'none',background:`linear-gradient(135deg,${g.stops.join(',')})`,cursor:'pointer',outline:selLayer?.gradient===key?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,transition:'all 0.12s',transform:selLayer?.gradient===key?'scale(1.12)':'scale(1)'}}/>
                     ))}
                   </div>
                 </div>
@@ -1414,7 +1751,7 @@ function DesignStudio() {
                       {['','#000000','#ffffff','#00E5C8','#FFD700','#FF4D1C'].map(c=>(
                         <button key={c||'none'} aria-pressed={strokeCol===c} onClick={()=>{setStrokeCol(c);if(selected)updateLayer(selected,{strokeColor:c,strokeWidth:c&&strokeW===0?1.5:strokeW});}}
                           style={{width:26,height:26,borderRadius:'50%',border:`2px solid ${strokeCol===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c||'transparent',cursor:'pointer',transition:'all 0.12s',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'rgba(255,255,255,0.66)'}}>
-                          {!c&&'○'}
+                          {!c&&'None'}
                         </button>
                       ))}
                     </div>
@@ -1451,15 +1788,15 @@ function DesignStudio() {
                   <div style={{...LS,display:'flex',justifyContent:'space-between'}}>
                     <span>Curve Text</span>
                     <span style={{color:arcAngle===0?'rgba(255,255,255,0.3)':'#00E5C8',fontWeight:700,letterSpacing:0,textTransform:'none'}}>
-                      {arcAngle===0?'Straight':arcAngle>0?`↑ ${arcAngle}°`:`↓ ${Math.abs(arcAngle)}°`}
+                      {arcAngle===0?'Straight':arcAngle>0?`Arch up ${arcAngle}deg`:`Arch down ${Math.abs(arcAngle)}deg`}
                     </span>
                   </div>
                   <input type="range" min={-80} max={80} value={arcAngle}
                     onChange={e=>{const v=+e.target.value;setArcAngle(v);if(selected)updateLayer(selected,{arcAngle:v});}}
                     style={{width:'100%',accentColor:'#00E5C8'}}/>
                   <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
-                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>↓ Arch down</span>
-                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>↑ Arch up</span>
+                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>Arch down</span>
+                    <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)'}}>Arch up</span>
                   </div>
                 </div>
 
@@ -1506,7 +1843,7 @@ function DesignStudio() {
               </div>
             )}
 
-            {/* ═══ UPLOAD ═════════════════════════════════════ */}
+            {/* UPLOAD */}
             {activeTool==='upload'&&(
               <div style={{padding:'14px'}}>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:4,marginBottom:12}}>
@@ -1532,8 +1869,8 @@ function DesignStudio() {
                 <div onDragEnter={e=>{e.preventDefault();setFileDragging(true);}} onDragLeave={()=>setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();setFileDragging(false);const f=e.dataTransfer.files[0];if(f)handleFile(f);}} onClick={()=>fileRef.current?.click()}
                   style={{border:`2px dashed ${fileDragging?'rgba(0,229,200,0.6)':uploads[uploadSlot]?'rgba(16,185,129,0.4)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:uploads[uploadSlot]?'1.2rem':'2.5rem 1rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(0,229,200,0.05)':uploads[uploadSlot]?'rgba(16,185,129,0.02)':'rgba(255,255,255,0.01)',transition:'all 0.2s',marginBottom:12}}>
                   <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);e.target.value='';}}/>
-                  {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>✓ Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',marginTop:3}}>Click to replace</div></div></div>
-                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>PNG · JPG · WEBP</div></>}
+                  {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',marginTop:3}}>Click to replace</div></div></div>
+                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>PNG - JPG - WEBP</div></>}
                 </div>
                 {(uploadSlot==='front'||uploadSlot==='back')&&(
                   <div style={{marginBottom:12}}>
@@ -1562,16 +1899,16 @@ function DesignStudio() {
                     ))}
                   </div>
                 </div>
-                {uploads[uploadSlot]&&<button onClick={()=>setUploads(p=>({...p,[uploadSlot]:null}))} style={{width:'100%',padding:'8px',borderRadius:9,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.07)',color:'#f87171',fontSize:'0.7rem',fontWeight:700,cursor:'pointer'}}>🗑 Remove image</button>}
+                {uploads[uploadSlot]&&<button onClick={()=>setUploads(p=>({...p,[uploadSlot]:null}))} style={{width:'100%',padding:'8px',borderRadius:9,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.07)',color:'#f87171',fontSize:'0.7rem',fontWeight:700,cursor:'pointer'}}>Remove image</button>}
               </div>
             )}
 
-            {/* ═══ AI ═════════════════════════════════════════ */}
+            {/* AI */}
             {activeTool==='ai'&&(
               <div style={{padding:'14px'}}>
                 <div style={{background:'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,153,255,0.05))',border:'1px solid rgba(0,229,200,0.12)',borderRadius:14,padding:'14px',marginBottom:14}}>
-                  <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>✦ AI DESIGN GENERATOR</div>
-                  <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe what you want — AI will generate a design for your shirt.</div>
+                  <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>AI DESIGN GENERATOR</div>
+                  <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe what you want. AI will generate a design for your shirt.</div>
                 </div>
                 <div style={{marginBottom:12}}>
                   <div style={LS}>Your idea</div>
@@ -1582,7 +1919,7 @@ function DesignStudio() {
                 </div>
                 <button onClick={generateAI} disabled={!aiPrompt.trim()||aiLoading}
                   style={{width:'100%',padding:'12px',borderRadius:11,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#050507':'rgba(255,255,255,0.18)',fontWeight:800,fontSize:'0.85rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s',marginBottom:10}}>
-                  {aiLoading?`Generating... ${Math.round(aiProgress)}%`:aiSvg?'↻ Regenerate':'✦ Generate Design'}
+                  {aiLoading?`Generating... ${Math.round(aiProgress)}%`:aiSvg?'Regenerate':'Generate Design'}
                 </button>
                 {aiLoading&&<div style={{height:2,background:'rgba(255,255,255,0.05)',borderRadius:999,overflow:'hidden',marginBottom:10}}><div style={{height:'100%',width:`${aiProgress}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999,transition:'width 0.2s'}}/></div>}
                 {aiSvg&&!aiLoading&&(
@@ -1590,8 +1927,8 @@ function DesignStudio() {
                     <div style={{width:44,height:44,background:'rgba(255,255,255,0.03)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                       <div style={{width:34,height:34}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="34" height="34" ')}}/>
                     </div>
-                    <div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>✓ Applied to shirt</div><div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.32)',marginTop:2}}>Showing on preview</div></div>
-                    <button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:18}}>×</button>
+                    <div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>Applied to shirt</div><div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.32)',marginTop:2}}>Showing on preview</div></div>
+                    <button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:18}}>x</button>
                   </div>
                 )}
                 <div>
@@ -1609,21 +1946,21 @@ function DesignStudio() {
               </div>
             )}
 
-            {/* ═══ SHAPES ═════════════════════════════════════ */}
+            {/* SHAPES */}
             {activeTool==='shapes'&&(
               <div style={{padding:'14px'}}>
                 {/* Sub-tabs */}
                 <div style={{display:'flex',background:'rgba(0,0,0,0.4)',borderRadius:10,padding:3,gap:2,marginBottom:14}}>
                   {(['vector','shapes','emoji'] as const).map(t=>(
                     <button key={t} onClick={()=>setShapesTab(t)} style={{flex:1,padding:'6px',borderRadius:7,border:'none',cursor:'pointer',background:shapesTab===t?'rgba(0,229,200,0.1)':'transparent',color:shapesTab===t?'#00E5C8':'rgba(255,255,255,0.3)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',transition:'all 0.13s'}}>
-                      {t==='vector'?'▢ Vector':t==='shapes'?'◆ Glyphs':'★ Emoji'}
+                      {t==='vector'?'Vector':t==='shapes'?'Glyphs':'Emoji'}
                     </button>
                   ))}
                 </div>
 
                 {shapesTab==='vector'&&(
                   <div>
-                    <div style={LS}>Vector Shapes — crisp at any size</div>
+                    <div style={LS}>Vector Shapes - crisp at any size</div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:16}}>
                       {VECTOR_SHAPES.map(v=>(
                         <button key={v.kind} title={v.label} onClick={()=>addShape(v.kind)}
@@ -1685,7 +2022,7 @@ function DesignStudio() {
                   <div style={{background:'rgba(0,229,200,0.04)',border:'1px solid rgba(0,229,200,0.12)',borderRadius:10,padding:'11px 12px'}}>
                     <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Scale</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{selLayer.fontSize}px</span></div>
                     <input type="range" min={12} max={80} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
-                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Rotate</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{selLayer.rotation}°</span></div>
+                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Rotate</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{selLayer.rotation}deg</span></div>
                     <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
                     <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Opacity</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{Math.round((selLayer.opacity??1)*100)}%</span></div>
                     <input type="range" min={0.1} max={1} step={0.05} value={selLayer.opacity??1} onChange={e=>updateLayer(selLayer.id,{opacity:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
@@ -1702,7 +2039,7 @@ function DesignStudio() {
                 <div style={{marginTop:14}}>
                   <div style={LS}>Print Area Background</div>
                   <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-                    <button onClick={()=>setPrintBg(null)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${!printBg?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.66)'}}>✕</button>
+                    <button onClick={()=>setPrintBg(null)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${!printBg?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.66)'}}>None</button>
                     {['#000000','#ffffff','#FF4D1C','#FFD700','#10B981','#0099FF','#6C63FF','#FF69B4'].map(c=>(
                       <button key={c} onClick={()=>setPrintBg(c)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${printBg===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c,cursor:'pointer',transition:'all 0.12s',transform:printBg===c?'scale(1.15)':'scale(1)'}}/>
                     ))}
@@ -1714,16 +2051,16 @@ function DesignStudio() {
               </div>
             )}
 
-            {/* ═══ SHIRT ══════════════════════════════════════ */}
+            {/* SHIRT */}
             {activeTool==='shirt'&&(
               <div style={{padding:'14px'}}>
                 <div style={{marginBottom:18}}>
-                  <div style={LS}>Color — <span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}>{color.name}</span></div>
+                  <div style={LS}>Color <span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}>{color.name}</span></div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:7,marginBottom:7}}>
                     {SHIRT_COLORS.map(c=>(
                       <button key={c.id} title={c.name} aria-pressed={color.id===c.id} onClick={()=>pickColor(c)}
                         style={{aspectRatio:'1',borderRadius:11,border:`2px solid ${color.id===c.id?'#00E5C8':'rgba(255,255,255,0.06)'}`,background:c.hex,cursor:'pointer',transition:'all 0.15s',transform:color.id===c.id?'scale(1.06)':'scale(1)',boxShadow:color.id===c.id?`0 0 20px ${c.hex}55,inset 0 1px 0 rgba(255,255,255,0.15)`:`inset 0 1px 0 rgba(255,255,255,0.12)`,display:'flex',alignItems:'flex-end',justifyContent:'center',paddingBottom:4,position:'relative'}}>
-                        {color.id===c.id&&<span style={{fontSize:'0.55rem',fontWeight:700,color:c.textColor,opacity:0.7}}>✓</span>}
+                        {color.id===c.id&&<span style={{fontSize:'0.55rem',fontWeight:700,color:c.textColor,opacity:0.7}}>OK</span>}
                       </button>
                     ))}
                   </div>
@@ -1734,14 +2071,14 @@ function DesignStudio() {
                   </div>
                 </div>
                 <div>
-                  <div style={LS}>Size {size&&<span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}>— {size}</span>}</div>
+                  <div style={LS}>Size {size&&<span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}> - {size}</span>}</div>
                   <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:8}}>
                     {SHIRT_SIZES.map(s=>(
                       <button key={s} aria-pressed={size===s} onClick={()=>setSize(s)}
                         style={{width:50,height:50,borderRadius:12,cursor:'pointer',border:`2px solid ${size===s?'#00E5C8':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.02)',color:size===s?'#00E5C8':'rgba(255,255,255,0.35)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.06)':'scale(1)',boxShadow:size===s?'0 0 16px rgba(0,229,200,0.18)':'none'}}>{s}</button>
                     ))}
                   </div>
-                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex · 100% ring-spun cotton · Pre-shrunk · Standard fit · True to size</p>
+                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex - 100% ring-spun cotton - Pre-shrunk - Standard fit - True to size</p>
                 </div>
               </div>
             )}
@@ -1757,6 +2094,7 @@ function DesignStudio() {
         @keyframes fsIn    { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
         @keyframes shirtIn { from{opacity:0;transform:scale(0.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fanOpen { from{opacity:0;transform:translate(-50%,42px) rotate(0deg) scale(0.45);filter:blur(6px)} to{opacity:1;filter:blur(0)} }
         input[type=range]{height:3px;border-radius:999px;cursor:pointer}
         input[type=range]::-webkit-slider-thumb{width:15px;height:15px}
         textarea:focus,input:focus,select:focus{outline:none}
@@ -1769,12 +2107,14 @@ function DesignStudio() {
         .studio-properties input,.studio-properties select,.studio-properties textarea{font-size:0.9rem!important;}
         .studio-bottom-tray button{font-size:0.76rem!important;}
         @media(max-width:1180px){
+          .share-fan{--fan-scale:0.9;}
           .studio-shell{grid-template-columns:220px minmax(360px,1fr) 340px!important;}
           .studio-bottom-tray{grid-template-columns:180px minmax(240px,280px) minmax(240px,1fr)!important;}
           .studio-ai-helper{grid-template-columns:160px 1fr auto!important;}
           .studio-ai-helper button:not(:last-child){display:none!important;}
         }
         @media(max-width:920px){
+          .share-fan{--fan-scale:0.76;}
           header{gap:7px!important;padding:0 9px!important;}
           header h1{font-size:1.05rem!important;letter-spacing:0.06em!important;}
           .studio-ai-helper{grid-template-columns:1fr auto!important;height:auto!important;padding:8px 10px!important;}
@@ -1789,8 +2129,11 @@ function DesignStudio() {
         }
         @media(min-width:1440px){
           .studio-shell{grid-template-columns:300px minmax(640px,1fr) 420px!important;}
+          .share-fan{--fan-scale:1.12;}
         }
         @media(max-width:760px){
+          .share-fan{--fan-scale:0.62;}
+          .share-fan-item{width:92px!important;height:92px!important;border-radius:24px!important;}
           .design-body{grid-template-columns:1fr!important;grid-template-rows:auto 1fr auto;overflow:auto!important;}
           .studio-ai-helper{display:none!important;}
           header > div:nth-of-type(2){display:none!important;}

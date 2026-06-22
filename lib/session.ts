@@ -1,3 +1,5 @@
+import { isOwnerEmail } from '@/lib/owner';
+
 // HMAC-signed session token, verifiable in both Node and Edge runtimes (Web Crypto).
 // Payload: { id, email, role, exp }. Stored in an httpOnly cookie — the client never
 // reads it; identity is always derived server-side from this cookie.
@@ -43,7 +45,7 @@ export async function createSessionToken(user: { id: string; email: string; role
   const payload: SessionPayload = {
     id: user.id,
     email: user.email,
-    role: user.role as SessionPayload['role'],
+    role: isOwnerEmail(user.email) ? 'OWNER' : user.role as SessionPayload['role'],
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SEC,
   };
   const body = b64url(enc.encode(JSON.stringify(payload)));
@@ -63,6 +65,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
     if (!ok) return null;
     const payload = JSON.parse(b64urlDecode(body)) as SessionPayload;
     if (!payload.id || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (isOwnerEmail(payload.email)) payload.role = 'OWNER';
     return payload;
   } catch {
     return null;

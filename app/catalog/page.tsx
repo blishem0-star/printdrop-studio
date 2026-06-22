@@ -373,7 +373,7 @@ export default function CatalogPage() {
               {search ? `NOTHING FOR "${search.toUpperCase()}"` : 'NO DESIGNS HERE'}
             </div>
             <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', maxWidth: 320, lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              {search ? 'Try a different search term or explore all categories.' : 'This category is currently empty — more designs coming soon.'}
+              {search ? 'Try a different search term or explore all categories.' : 'Start a custom design or choose another category with ready-to-order styles.'}
             </p>
             {(search || catFilter !== 'All') && (
               <button onClick={() => { setSearch(''); setCatFilter('All'); }} style={{ padding: '0.6rem 1.5rem', borderRadius: 10, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.06)', color: '#00E5C8', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>

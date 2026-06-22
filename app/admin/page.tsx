@@ -1,6 +1,7 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { STATUS_COLOR, STATUS_BG, STATUS_LABEL, type OrderStatus } from '@/lib/types';
+import { getIntegrations, integrationScore } from '@/lib/integrations';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,9 @@ export default async function AdminOverview() {
   ]);
 
   const revenue = revenueAgg._sum.total ?? 0;
+  const integrations = getIntegrations();
+  const readiness = integrationScore(integrations);
+  const missingIntegrations = integrations.filter(i => i.status === 'missing');
   type ORow = (typeof recent)[number];
 
   // SVG icons for stat cards — inline, no emoji
@@ -31,6 +35,7 @@ export default async function AdminOverview() {
     progress: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>,
     delivered: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M2 8l4 4 8-8"/></svg>,
     designs: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg>,
+    integrations: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><path d="M5.5 5.5h5v5h-5z" /><path d="M8 1.5v4M8 10.5v4M1.5 8h4M10.5 8h4" /></svg>,
   };
 
   const statCards = [
@@ -83,6 +88,47 @@ export default async function AdminOverview() {
           </Link>
         ))}
       </div>
+
+      <section className="rsp-1col" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px,0.9fr) minmax(360px,1.4fr)', gap: 12, marginBottom: '2.5rem' }}>
+        <Link href="/admin/integrations" className="scan-card holo-card" style={{ borderRadius: 16, border: '1px solid rgba(0,229,200,0.16)', background: 'linear-gradient(145deg,rgba(0,229,200,0.08),rgba(255,255,255,0.025))', padding: '1.35rem 1.5rem', textDecoration: 'none', color: 'inherit', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: -40, top: -50, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle,rgba(0,153,255,0.16),transparent 64%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Production readiness</div>
+              <span style={{ color: 'rgba(255,255,255,0.36)' }}>{statIcons.integrations}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'end', gap: 8, marginTop: 10 }}>
+              <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '3.4rem', color: '#00E5C8', lineHeight: 0.95 }}>{readiness}</div>
+              <div style={{ color: 'rgba(255,255,255,0.36)', fontWeight: 900, marginBottom: 7 }}>/100</div>
+            </div>
+            <div style={{ height: 7, borderRadius: 999, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginTop: 10 }}>
+              <div style={{ width: `${readiness}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#00E5C8,#0099FF)' }} />
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.76rem', lineHeight: 1.55, marginTop: 12 }}>
+              {missingIntegrations.length ? `${missingIntegrations.map(i => i.name).join(', ')} still need setup.` : 'Core integrations are configured. Run a live launch test.'}
+            </p>
+          </div>
+        </Link>
+
+        <div style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)', padding: '1.35rem 1.5rem' }}>
+          <div style={{ fontSize: '0.58rem', fontWeight: 900, color: 'rgba(255,255,255,0.36)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Premium launch checklist</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {[
+              { label: 'Real payment before paid status', done: integrations.find(i => i.key === 'stripe')?.status === 'live' },
+              { label: 'AI helper key stored server-side', done: integrations.find(i => i.key === 'openai')?.status !== 'missing' },
+              { label: 'Fulfillment provider configured', done: integrations.find(i => i.key === 'printify')?.status !== 'missing' },
+              { label: 'Orders, customers, designs, artists dashboard live', done: true },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 9, color: item.done ? 'rgba(255,255,255,0.68)' : 'rgba(255,255,255,0.5)', fontSize: '0.76rem', fontWeight: 700 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 999, border: `1px solid ${item.done ? 'rgba(16,185,129,0.45)' : 'rgba(245,158,11,0.4)'}`, background: item.done ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.08)', color: item.done ? '#10B981' : '#F59E0B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {item.done ? <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.4 6.4l2.1 2.1 5-5" /></svg> : <span style={{ width: 5, height: 5, borderRadius: 999, background: 'currentColor' }} />}
+                </span>
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Recent orders */}
       <div>

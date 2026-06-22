@@ -48,6 +48,17 @@ export default function HomePage() {
   useEffect(() => {
     if (session === undefined) return; // not hydrated yet
     if (!session) { router.replace('/'); return; }
+    if (session.type === 'user') {
+      fetch('/api/auth/me')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          const user = d?.user;
+          if (user && user.role !== session.role) {
+            setLocalSession({ ...session, customerId: user.id, email: user.email, role: user.role });
+          }
+        })
+        .catch(() => {});
+    }
     if (session.customerId) {
       fetch('/api/subscription')
         .then(r => {
@@ -164,10 +175,10 @@ export default function HomePage() {
             {session.name}
           </button>
         )}
-        {session.role === 'OWNER' && (
-          <Link href="/admin" style={{ fontSize: '0.7rem', fontWeight: 700, padding: '5px 12px', borderRadius: 8, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', color: 'rgba(0,229,200,0.85)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} aria-hidden="true"><circle cx="6" cy="6" r="2"/><path d="M6 1v1.5M6 9.5V11M1 6h1.5M9.5 6H11M2.3 2.3l1 1M8.7 8.7l1 1M2.3 9.7l1-1M8.7 3.3l1-1"/></svg>
-            Admin
+        {session.type === 'user' && session.role === 'OWNER' && (
+          <Link href="/admin" aria-label="Open admin panel" style={{ fontSize: '0.74rem', fontWeight: 900, padding: '7px 13px', borderRadius: 10, background: 'linear-gradient(135deg,rgba(0,229,200,0.16),rgba(0,153,255,0.1))', border: '1px solid rgba(0,229,200,0.38)', color: '#00E5C8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 8px 24px rgba(0,229,200,0.12)' }}>
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" width={13} height={13} aria-hidden="true"><circle cx="7" cy="7" r="2.2"/><path d="M7 1.5v2M7 10.5v2M1.5 7h2M10.5 7h2M3.2 3.2l1.4 1.4M9.4 9.4l1.4 1.4M3.2 10.8l1.4-1.4M9.4 4.6l1.4-1.4"/></svg>
+            Admin Panel
           </Link>
         )}
         <button onClick={signOut} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>Sign out</button>

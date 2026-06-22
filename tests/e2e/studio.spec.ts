@@ -7,7 +7,7 @@ async function openStudioWithText(page: import('@playwright/test').Page) {
   await page.locator('.studio-rail button', { hasText: 'Text' }).first().click();
   await page.locator('input[placeholder="Type your text..."]').fill('STYLX');
   await page.keyboard.press('Enter');
-  await expect(page.getByText('Layers (1)')).toBeVisible();
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'STYLX' }).first()).toBeVisible();
 }
 
 test('add a text layer to the canvas', async ({ page }) => {
@@ -31,30 +31,27 @@ test('vector shapes render as real SVG geometry', async ({ page }) => {
 
 test('undo removes and redo restores a layer', async ({ page }) => {
   await openStudioWithText(page);
-  await page.locator('button[title="Undo (Ctrl+Z)"]').click();
-  await expect(page.getByText('Layers (1)')).toHaveCount(0);
-  await page.locator('button[title="Redo (Ctrl+Y)"]').click();
-  await expect(page.getByText('Layers (1)')).toBeVisible();
+  await page.locator('.canvas-action-bar button', { hasText: 'Undo' }).click();
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'STYLX' })).toHaveCount(0);
+  await page.locator('.canvas-action-bar button', { hasText: 'Redo' }).click();
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'STYLX' }).first()).toBeVisible();
 });
 
 test('My Designs save then load round-trips after reload', async ({ page }) => {
   await openStudioWithText(page);
-  await page.locator('.studio-rail button', { hasText: 'Templates' }).first().click();
+  await page.locator('.studio-rail button', { hasText: 'Ready design' }).first().click();
   await page.locator('button', { hasText: 'Save current' }).click();
   await expect(page.locator('button', { hasText: 'Load' }).first()).toBeVisible();
 
   await page.reload();
-  await page.locator('.studio-rail button', { hasText: 'Templates' }).first().click();
+  await page.locator('.studio-rail button', { hasText: 'Ready design' }).first().click();
   await page.locator('button', { hasText: 'Load' }).first().click();
   // The Layers list only shows under the Text tool — assert on the canvas itself instead
   await expect(page.locator('div[role="img"] svg g[transform] text').first()).toBeVisible();
 });
 
-test('PNG export triggers a download', async ({ page }) => {
+test('PNG download is not available during editing', async ({ page }) => {
   await openStudioWithText(page);
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.locator('button[title="Download PNG preview"]').click(),
-  ]);
-  expect(download.suggestedFilename()).toBe('stylx-design.png');
+  await expect(page.locator('.canvas-action-bar button', { hasText: 'Share' })).toBeVisible();
+  await expect(page.locator('button[title="Download PNG preview"]')).toHaveCount(0);
 });
