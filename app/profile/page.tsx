@@ -298,7 +298,7 @@ export default function ProfilePage() {
                 <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', fontWeight: 700, flexShrink: 0 }}>{orderCount}/3 orders</span>
               </div>
               <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
-                After your 3rd order, our AI analyzes your style preferences and creates a personalized profile with shirt recommendations tailored just for you.
+                After your third order we put together a personal style profile - picks chosen for you based on what you have ordered.
               </p>
             </div>
           ) : profile?.aiProfile ? (

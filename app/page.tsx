@@ -508,7 +508,7 @@ export default function LandingPage() {
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', marginTop: '3.5rem', animation: 'up 0.5s ease 0.5s both', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
-          {[['3 min','To design'],['300dpi','Print quality'],['$4.99','Flat shipping'],['$0','Until approved']].map(([n,l], i) => (
+          {[['3 min','To design'],['Vector','Artwork'],['$4.99','Flat shipping'],['$0','Until approved']].map(([n,l], i) => (
             <div key={l} style={{ textAlign: 'center', padding: '1rem 1.25rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,3vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
               <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.5)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>

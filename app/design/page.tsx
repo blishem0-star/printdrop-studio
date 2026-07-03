@@ -881,7 +881,7 @@ function DesignStudio() {
           {[
             'No payment now - request first, pay after approval',
             'Printed on demand',
-            '100% ring-spun cotton',
+            'Soft premium cotton tees',
           ].map(t=>(
             <span key={t} style={{padding:'5px 10px',borderRadius:999,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.5)',fontSize:'0.6rem',fontWeight:800,whiteSpace:'nowrap'}}>{t}</span>
           ))}
@@ -1586,7 +1586,7 @@ function DesignStudio() {
                         style={{width:50,height:50,borderRadius:12,cursor:'pointer',border:`2px solid ${size===s?'#00E5C8':'rgba(255,255,255,0.08)'}`,background:size===s?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.02)',color:size===s?'#00E5C8':'rgba(255,255,255,0.35)',fontWeight:800,fontSize:'0.82rem',transition:'all 0.15s',transform:size===s?'scale(1.06)':'scale(1)',boxShadow:size===s?'0 0 16px rgba(0,229,200,0.18)':'none'}}>{s}</button>
                     ))}
                   </div>
-                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex - 100% ring-spun cotton - Pre-shrunk - Standard fit - True to size</p>
+                  <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex - Soft premium cotton - Standard fit - True to size</p>
                   <div style={{marginTop:12,border:'1px solid rgba(255,255,255,0.07)',borderRadius:11,padding:'10px 11px',background:'rgba(255,255,255,0.02)'}}>
                     <div style={{fontSize:'0.66rem',fontWeight:900,color:'rgba(255,255,255,0.68)',marginBottom:7}}>Not sure about the size?</div>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,marginBottom:8}}>

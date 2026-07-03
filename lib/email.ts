@@ -93,7 +93,7 @@ const STATUS_EMAIL_COPY: Partial<Record<OrderStatus, { subject: string; title: s
   IN_PRODUCTION: {
     subject: 'Your shirt is being printed',
     title: 'In production',
-    body: 'Your design is on the press right now. Printing and quality check usually take 2-4 business days.',
+    body: 'Your design is on the press right now. Printing and quality checks typically take a few business days.',
   },
   SHIPPED: {
     subject: 'Your shirt is on the way',

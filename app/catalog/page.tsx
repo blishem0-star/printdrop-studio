@@ -376,7 +376,7 @@ export default function CatalogPage() {
           </p>
           {/* Stat strip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)', marginTop: '2rem', flexWrap: 'wrap' }}>
-            {[[`${allDesigns.length}`, 'Designs'], ['300dpi', 'Artwork'], ['Made to', 'Order'], ['50%', 'To Artists']].map(([n, l], i) => (
+            {[[`${allDesigns.length}`, 'Designs'], ['Vector', 'Artwork'], ['Made to', 'Order'], ['50%', 'To Artists']].map(([n, l], i) => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)' }}>
                 {i > 0 && <span aria-hidden="true" style={{ width: 1, height: 28, background: 'rgba(0,229,200,0.18)' }} />}
                 <div>

@@ -3,11 +3,11 @@ import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 
 export const metadata: Metadata = {
   title: 'Browse Designs',
-  description: 'Explore 50+ hand-picked shirt designs - urban, minimal, nature, vintage and more. Filter by category, customize any design, and order in minutes.',
+  description: 'Hand-picked shirt designs across urban, minimal, nature and vintage styles. Filter by category, customize any design, and order in minutes.',
   keywords: ['custom shirt designs', 'shirt catalog', 'browse t-shirts', 'premium shirt designs', 'custom tees'],
   openGraph: {
     title: 'Browse Designs - STYLX',
-    description: 'Explore 50+ hand-picked shirt designs. Filter, customize, and order in minutes.',
+    description: 'Hand-picked shirt designs. Filter, customize, and order in minutes.',
     type: 'website',
   },
   alternates: {

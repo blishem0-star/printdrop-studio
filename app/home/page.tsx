@@ -281,12 +281,12 @@ export default function HomePage() {
                   3 pieces, curated for your style
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', lineHeight: 1.6, maxWidth: 440 }}>
-                  Build a monthly style box from products that match your vibe. Fulfillment settings can be connected when the flow is final.
+                  A monthly style box built around your taste. Reserve your spot now - nothing is charged until your first box is confirmed.
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '3rem', fontWeight: 400, letterSpacing: '0.02em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>${MONTHLY}</div>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month - cancel anytime</div>
+                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month once boxes ship - cancel anytime</div>
               </div>
             </div>
 
@@ -356,7 +356,7 @@ export default function HomePage() {
 
             {!hasActiveSub && !subSuccess && session.type === 'user' && !showForm && (
               <button onClick={() => setShowForm(true)} style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(0,229,200,0.25)', transition: 'all 0.15s' }}>
-                Subscribe - ${MONTHLY}/month
+                Reserve my box - ${MONTHLY}/month
               </button>
             )}
 

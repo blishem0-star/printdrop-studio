@@ -104,7 +104,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
             ${design.price.toFixed(2)}
           </div>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: 24 }}>
-            Premium print concept on heavyweight cotton. Pick your color and size in the catalog, then submit an order request for review.
+            A premium print on a soft cotton tee. Pick your color and size, then send your order for review - you only pay once it is approved.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link href={`/catalog?design=${encodeURIComponent(design.id)}`} style={{ display: 'inline-block', padding: '0.8rem 2rem', borderRadius: 10, background: '#00E5C8', color: '#03241F', fontWeight: 800, fontSize: '0.85rem', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
