@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE, BASE_PRICE } from '@/lib/mockData';
 import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
-import { quoteOrder } from '@/lib/pricing';
+import { quoteOrder, type PrintSide } from '@/lib/pricing';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { buildDesignDocumentSvgDataUrl, submitOrder } from '@/lib/exportDesign';
@@ -634,7 +634,13 @@ function DesignStudio() {
   const phoneValid=  shipPhone.replace(/\D/g,'').length>=7;
   const deliveryDone=shipName.trim().length>1&&emailValid&&phoneValid&&shipStreet.trim().length>3&&shipCity.trim().length>1&&/^\d{5}$/.test(shipZip)&&shipState!=='';
   const canOrder=    color&&size&&deliveryDone;
-  const quote=       quoteOrder(BASE_PRICE,qty);
+  // Extra print locations (back/sleeves) carry a per-shirt surcharge.
+  const printSides: PrintSide[] = [
+    ...(uploads.back?['back' as const]:[]),
+    ...(uploads.leftSleeve?['leftSleeve' as const]:[]),
+    ...(uploads.rightSleeve?['rightSleeve' as const]:[]),
+  ];
+  const quote=       quoteOrder(BASE_PRICE,qty,printSides);
   const shirtPrice=  quote.subtotal;
   const total=       quote.total;
 
@@ -651,7 +657,7 @@ function DesignStudio() {
       }
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
-        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,
+        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,printSides,
         design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
       });
       if(result.ok){

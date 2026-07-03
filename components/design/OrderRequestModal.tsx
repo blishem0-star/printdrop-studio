@@ -4,7 +4,7 @@ import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { SHIPPING_PRICE } from '@/lib/mockData';
 import { US_STATES } from '@/lib/studio/constants';
 import { INP } from './studioStyles';
-import { qtyDiscountPct, nextTierHint, type OrderQuote } from '@/lib/pricing';
+import { qtyDiscountPct, nextTierHint, SIDE_SURCHARGES, type OrderQuote } from '@/lib/pricing';
 
 export type ShippingFields = {
   name: string; email: string; phone: string; street: string;
@@ -54,6 +54,9 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirt</span><strong>{p.color.name}{p.size?` / ${p.size}`:''}</strong></div>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Design</span><strong>{p.layersCount} layers, {p.uploadCount} uploads</strong></div>
             {p.quote&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirts x {p.quote.qty}</span><strong>${p.quote.subtotal.toFixed(2)}</strong></div>}
+            {p.quote&&p.quote.sides.map(s=>(
+              <div key={s} style={{display:'flex',justifyContent:'space-between',fontSize:'0.78rem',marginBottom:6,paddingLeft:10}}><span style={{color:'rgba(255,255,255,0.4)'}}>incl. {SIDE_SURCHARGES[s].label}</span><span style={{color:'rgba(255,255,255,0.4)'}}>+${SIDE_SURCHARGES[s].price.toFixed(2)}/shirt</span></div>
+            ))}
             {p.quote&&p.quote.discount>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'#34d399'}}>Volume discount ({p.quote.discountPct}%)</span><strong style={{color:'#34d399'}}>-${p.quote.discount.toFixed(2)}</strong></div>}
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:12}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shipping</span><strong>${SHIPPING_PRICE.toFixed(2)}</strong></div>
             <div style={{height:1,background:'rgba(255,255,255,0.08)',marginBottom:12}}/>

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { getSession } from '@/lib/session';
 import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
-import { quoteOrder, MAX_ORDER_QTY } from '@/lib/pricing';
+import { quoteOrder, sanitizeSides, MAX_ORDER_QTY } from '@/lib/pricing';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,7 +71,8 @@ export async function POST(req: NextRequest) {
     authorizedPrice = CUSTOM_DESIGN_PRICE;
   }
   const qty = Number((body as { qty?: unknown }).qty) || 1;
-  const quote = quoteOrder(authorizedPrice, qty);
+  const sides = sanitizeSides((body as { printSides?: unknown }).printSides);
+  const quote = quoteOrder(authorizedPrice, qty, sides);
   const total = quote.total;
 
   // Reject unsafe data URLs (only raster/svg images may be stored) and cap size
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
       shippingZip,
       shippingState,
       status: 'DRAFT',
-      items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice } },
+      items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge } },
     },
     include: { customer: true, items: { include: { designAsset: true } } },
   });

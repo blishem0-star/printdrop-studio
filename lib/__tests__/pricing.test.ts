@@ -30,3 +30,13 @@ test('discount helpers are consistent', () => {
   assert.deepEqual(nextTierHint(4), { addQty: 1, pct: 15 });
   assert.equal(nextTierHint(5), null);
 });
+
+test('side surcharges price extra print locations per shirt', async () => {
+  const { quoteOrder: q, sanitizeSides, sidesSurcharge } = await import('../pricing');
+  const withBack = q(24.99, 2, ['back']);
+  assert.equal(withBack.sideSurcharge, 4.99);
+  assert.equal(withBack.subtotal, +((24.99 + 4.99) * 2).toFixed(2));
+  assert.equal(sidesSurcharge(['back', 'leftSleeve', 'rightSleeve']), +(4.99 + 2.49 + 2.49).toFixed(2));
+  assert.deepEqual(sanitizeSides(['back', 'back', 'bogus', 42, 'leftSleeve']), ['back', 'leftSleeve']);
+  assert.deepEqual(sanitizeSides('not-array'), []);
+});

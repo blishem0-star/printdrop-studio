@@ -464,7 +464,7 @@ export default function LandingPage() {
         <div style={{ animation: 'up 0.5s ease 0.1s both' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 999, background: 'rgba(0,229,200,0.07)', border: '1px solid rgba(0,229,200,0.2)', marginBottom: '1.75rem' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00E5C8', boxShadow: '0 0 8px #00E5C8', animation: 'pulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>AI-Powered Fashion Tech</span>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#00E5C8' }}>Custom shirts - made to order</span>
           </div>
         </div>
 
@@ -474,7 +474,7 @@ export default function LandingPage() {
         </h1>
 
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.9rem,2vw,1.05rem)', lineHeight: 1.7, maxWidth: 440, marginBottom: '2.5rem', animation: 'up 0.5s ease 0.3s both' }}>
-          Type any idea, choose a direction, and turn it into a clean apparel order request in minutes.
+          Design a shirt you will actually wear - start from a ready design, add your text or photo, and order in minutes. No payment until your design is approved.
         </p>
 
         {/* ── Prompt input ── */}

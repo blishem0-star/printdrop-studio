@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContinueDesignBanner } from '@/components/ContinueDesignBanner';
+import { useFavorites } from '@/lib/useFavorites';
 import Link from 'next/link';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
 import { PRODUCT_TYPE_LABELS, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
@@ -127,7 +128,7 @@ function DrawerShirt({ design, color, frontText, backText, frontPos, backPos, fr
   );
 }
 
-function ShirtCard({ design, selected, onClick, featured = false }: { design: CatalogDesign; selected: boolean; onClick: () => void; featured?: boolean }) {
+function ShirtCard({ design, selected, onClick, featured = false, fav = false, onToggleFav }: { design: CatalogDesign; selected: boolean; onClick: () => void; featured?: boolean; fav?: boolean; onToggleFav?: () => void }) {
   const [hover, setHover] = useState(false);
   const mock = featured ? 200 : 120;
   const art = featured ? 80 : 48;
@@ -137,6 +138,13 @@ function ShirtCard({ design, selected, onClick, featured = false }: { design: Ca
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
       {selected && <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(0,229,200,0.5)' }}><svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="#050507" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4" /></svg></div>}
+      {onToggleFav && (
+        <button aria-label={fav ? `Remove ${design.title} from saved` : `Save ${design.title}`} aria-pressed={fav}
+          onClick={e => { e.stopPropagation(); onToggleFav(); }}
+          style={{ position: 'absolute', top: selected ? 38 : 10, right: 10, zIndex: 3, width: 26, height: 26, borderRadius: '50%', border: `1px solid ${fav ? 'rgba(255,77,109,0.55)' : 'rgba(255,255,255,0.14)'}`, background: fav ? 'rgba(255,77,109,0.16)' : 'rgba(5,5,8,0.72)', color: fav ? '#ff4d6d' : 'rgba(255,255,255,0.55)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', transition: 'all 0.15s' }}>
+          <svg viewBox="0 0 16 16" width={13} height={13} fill={fav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 13.5C5 11 2 8.8 2 5.9 2 4 3.5 2.5 5.3 2.5c1.1 0 2.1.5 2.7 1.4.6-.9 1.6-1.4 2.7-1.4C12.5 2.5 14 4 14 5.9c0 2.9-3 5.1-6 7.6z"/></svg>
+        </button>
+      )}
       <div style={{ background: 'rgba(0,0,0,0.3)', padding: featured ? '1.5rem' : '1.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: featured ? '0 0 auto' : undefined }}>
         <div style={{ position: 'relative', width: mock, height: mock }}>
           <ShirtMockup colorHex="#2a2a2a" size={mock} />
@@ -160,6 +168,8 @@ export default function CatalogPage() {
   const router = useRouter();
   const session = useLocalSession();
   const [catFilter, setCatFilter] = useState('All');
+  const { favorites, toggle: toggleFav, isFav } = useFavorites();
+  const [favOnly, setFavOnly] = useState(false);
   const [productFilter, setProductFilter] = useState<ProductType | 'ALL'>('ALL');
   const [drawerProductType, setDrawerProductType] = useState<ProductType>('TSHIRT');
   const [search, setSearch] = useState('');
@@ -240,6 +250,7 @@ export default function CatalogPage() {
 
   const allDesigns = [...CATALOG_DESIGNS, ...artistDesigns];
   const filtered = allDesigns
+    .filter(d => !favOnly || favorites.includes(d.id))
     .filter(d => catFilter === 'All' || d.category === catFilter)
     .filter(d => productFilter === 'ALL' || d.productType === productFilter)
     .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
@@ -323,6 +334,12 @@ export default function CatalogPage() {
           {CATALOG_CATEGORIES.map(c => (
             <button key={c} aria-pressed={catFilter === c} onClick={() => setCatFilter(c)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: catFilter === c ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)', background: catFilter === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: catFilter === c ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>{c}</button>
           ))}
+          {favorites.length > 0 && (
+            <button aria-pressed={favOnly} onClick={() => setFavOnly(v => !v)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: favOnly ? 'rgba(255,77,109,0.55)' : 'rgba(255,77,109,0.22)', background: favOnly ? 'rgba(255,77,109,0.12)' : 'transparent', color: favOnly ? '#ff4d6d' : 'rgba(255,77,109,0.65)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <svg viewBox="0 0 16 16" width={11} height={11} fill="currentColor" aria-hidden="true"><path d="M8 13.5C5 11 2 8.8 2 5.9 2 4 3.5 2.5 5.3 2.5c1.1 0 2.1.5 2.7 1.4.6-.9 1.6-1.4 2.7-1.4C12.5 2.5 14 4 14 5.9c0 2.9-3 5.1-6 7.6z"/></svg>
+              Saved ({favorites.length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -362,7 +379,7 @@ export default function CatalogPage() {
           const isFeatured = d.id === featuredId;
           return (
             <div key={d.id} className={isFeatured ? 'cat-featured' : undefined} style={{ animation: `up 0.45s ease ${Math.min(i * 0.05, 0.5)}s both` }}>
-              <ShirtCard design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} featured={isFeatured} />
+              <ShirtCard design={d} selected={selected?.id === d.id} onClick={() => openDesign(d)} featured={isFeatured} fav={isFav(d.id)} onToggleFav={() => toggleFav(d.id)} />
             </div>
           );
         })}
