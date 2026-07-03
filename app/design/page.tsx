@@ -48,6 +48,8 @@ function DesignStudio() {
   const [fullscreen,setFullscreen]=useState(false);
   const [compareOpen,setCompareOpen]=useState(false);
   const [everSaved,setEverSaved]=useState(false);
+  const [recentColors,setRecentColors]=useState<string[]>([]);
+  function trackRecentColor(v:string){ setRecentColors(p=>[v,...p.filter(c=>c!==v)].slice(0,6)); }
   const [fitHeight,setFitHeight]=useState('');
   const [fitWeight,setFitWeight]=useState('');
   const recommendedSize=recommendShirtSize(Number(fitHeight),Number(fitWeight));
@@ -1012,6 +1014,7 @@ function DesignStudio() {
           <div className="canvas-action-bar" onClick={e=>e.stopPropagation()} style={{width:'min(760px,calc(100% - 28px))',display:'flex',alignItems:'center',justifyContent:'center',gap:8,flexWrap:'wrap',padding:'9px 10px',borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(5,5,8,0.82)',backdropFilter:'blur(14px)',borderRadius:'12px 12px 0 0',zIndex:9}}>
             <button onClick={undo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Undo</button>
             <button onClick={redo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Redo</button>
+            <span title={'Shortcuts: Ctrl+Z undo | Ctrl+Y redo | Ctrl+D duplicate | Del delete | Arrows nudge (Shift = x5) | Double-click text to edit | Esc close'} style={{width:26,height:26,borderRadius:8,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.4)',fontSize:'0.72rem',fontWeight:900,display:'inline-flex',alignItems:'center',justifyContent:'center',cursor:'help'}}>?</span>
             <button onClick={addChestSymbol} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(0,229,200,0.18)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Add chest symbol</button>
             {layers.some(l=>!l.collarMode)&&<button onClick={smartFitDesign} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.045)',color:'rgba(255,255,255,0.78)',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Smart fit</button>}
             <div style={{position:'relative',display:'inline-flex'}}>
@@ -1411,17 +1414,26 @@ function DesignStudio() {
                         style={{width:28,height:28,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2.5px solid #00E5C8':'2px solid rgba(255,255,255,0.1)',outlineOffset:2,transition:'all 0.12s',boxShadow:textColor===c?`0 0 14px ${c}66`:'none'}}/>
                     ))}
                     <label style={{width:28,height:28,borderRadius:'50%',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.06)',border:'1.5px dashed rgba(255,255,255,0.2)',fontSize:'0.8rem',position:'relative',color:'rgba(255,255,255,0.5)'}}>
-                      +<input type="color" aria-hidden tabIndex={-1} value={textColor} onChange={e=>{const v=e.target.value;setTextColor(v);setHexInput(v.replace('#',''));if(selected)updateLayer(selected,{color:v});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
+                      +<input type="color" aria-hidden tabIndex={-1} value={textColor} onChange={e=>{const v=e.target.value;setTextColor(v);setHexInput(v.replace('#',''));trackRecentColor(v);if(selected)updateLayer(selected,{color:v});}} style={{opacity:0,position:'absolute',inset:0,width:'100%',height:'100%',borderRadius:'50%',cursor:'pointer'}}/>
                     </label>
                   </div>
                   {/* Hex input */}
                   <div style={{display:'flex',alignItems:'center',gap:5,marginTop:7,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'4px 8px'}}>
                     <span style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)',fontFamily:'monospace',fontWeight:700}}>#</span>
-                    <input value={hexInput} onChange={e=>{const v=e.target.value.replace(/[^0-9a-fA-F]/g,'').slice(0,6);setHexInput(v);if(v.length===6){const col='#'+v;setTextColor(col);if(selected)updateLayer(selected,{color:col});}}}
+                    <input value={hexInput} onChange={e=>{const v=e.target.value.replace(/[^0-9a-fA-F]/g,'').slice(0,6);setHexInput(v);if(v.length===6){const col='#'+v;setTextColor(col);trackRecentColor(col);if(selected)updateLayer(selected,{color:col});}}}
                       placeholder="ffffff" maxLength={6}
                       style={{flex:1,background:'none',border:'none',color:'rgba(255,255,255,0.75)',fontSize:'0.72rem',fontFamily:'monospace',outline:'none',textTransform:'uppercase'}}/>
                     <div style={{width:16,height:16,borderRadius:4,background:textColor,border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
                   </div>
+                  {recentColors.length>0&&(
+                    <div style={{display:'flex',alignItems:'center',gap:5,marginTop:7}}>
+                      <span style={{fontSize:'0.52rem',fontWeight:800,color:'rgba(255,255,255,0.35)',letterSpacing:'0.08em',textTransform:'uppercase'}}>Recent</span>
+                      {recentColors.map(c=>(
+                        <button key={c} title={c} onClick={()=>{setTextColor(c);setHexInput(c.replace('#',''));if(selected)updateLayer(selected,{color:c});}}
+                          style={{width:20,height:20,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:textColor===c?'2px solid #00E5C8':'1.5px solid rgba(255,255,255,0.12)',outlineOffset:1}}/>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <button onClick={()=>setShowAdvancedText(v=>!v)} style={{width:'100%',padding:'10px 12px',borderRadius:10,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.72)',fontSize:'0.82rem',fontWeight:900,cursor:'pointer',marginBottom:14,textAlign:'left'}}>
