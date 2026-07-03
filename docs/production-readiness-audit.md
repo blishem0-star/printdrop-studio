@@ -36,14 +36,15 @@ local revenue/retention features.
 
 ## Next (in priority order)
 
-1. Extract the TEXT tool panel (last big block in page.tsx, ~230 lines).
-   Careful: ~25 mirrored state values; wire via grouped props.
-2. Complexity pricing v2: charge for high layer counts? (evaluate)
-3. Structured data: Product JSON-LD exists on catalog/[id]; consider
-   ItemList on /catalog.
-4. When owner says "production ready": RESEND_API_KEY + EMAIL_FROM, payment
+1. When owner says "production ready": RESEND_API_KEY + EMAIL_FROM, payment
    (Paddle/LemonSqueezy/PayPal - Stripe unavailable for IL bank), domain,
-   Printify. See admin /admin/integrations for env checklist.
+   Printify, Redis rate-limit if multi-instance.
+2. Ongoing: keep e2e suite green (34 tests), grow catalog past 20 designs,
+   monitor studio bundle size.
+
+Completed since last update: TextPanel extracted (decomposition done),
+truth audit (all claims verified), de-AI rebrand to STYLX, catalog at 20
+designs, mockups compressed 3.2MB -> 451KB, dead code removed, e2e 34/34.
 
 ## Verification loop (every batch)
 
