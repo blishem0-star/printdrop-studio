@@ -8,7 +8,7 @@ test('landing renders with fonts and no console errors', async ({ page }) => {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 
   await page.goto('/');
-  await expect(page.getByText('AI-POWERED FASHION TECH')).toBeVisible();
+  await expect(page.getByText('CUSTOM SHIRTS - MADE TO ORDER')).toBeVisible();
   const bebasLoaded = await page.evaluate(async () => { await document.fonts.ready; return document.fonts.check('20px "Bebas Neue"'); });
   expect(bebasLoaded).toBe(true);
   expect(errors).toEqual([]);
