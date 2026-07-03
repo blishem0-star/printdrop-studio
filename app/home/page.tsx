@@ -7,6 +7,7 @@ import { useToast } from '@/components/Toast';
 import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 
 type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 type Subscription = { id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string };
@@ -244,6 +245,23 @@ export default function HomePage() {
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="#0099FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
           </button>
+        </section>
+
+        {/* Hot right now - direct path from home to a purchase */}
+        <section aria-label="Hot right now" style={{ marginBottom: '3.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.6rem', fontWeight: 400, letterSpacing: '0.04em', margin: 0 }}>Hot right now</h2>
+            <Link href="/catalog" style={{ fontSize: '0.68rem', fontWeight: 800, color: '#00E5C8', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>View all</Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10 }}>
+            {CATALOG_DESIGNS.filter(d => d.badge === 'bestseller' || d.badge === 'new').slice(0, 4).map(d => (
+              <Link key={d.id} href={`/catalog/${d.id}`} style={{ display: 'block', padding: '1rem', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', color: 'inherit', textAlign: 'center', transition: 'border-color 0.15s' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.75)').replace('<svg ', '<svg width="52" height="52" ') }} />
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00E5C8', marginTop: 3 }}>${d.price}</div>
+              </Link>
+            ))}
+          </div>
         </section>
 
         {/* ── Premium subscription section ── */}
