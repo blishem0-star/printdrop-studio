@@ -47,8 +47,8 @@ export const ORDER_STATUSES: OrderStatus[] = [
 ];
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
-  DRAFT:         'Draft',
-  PAID:          'Paid',
+  DRAFT:         'Request Received',
+  PAID:          'Payment Confirmed',
   IN_PRODUCTION: 'In Production',
   SHIPPED:       'Shipped',
   DELIVERED:     'Delivered',

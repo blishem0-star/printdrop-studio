@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { STATUS_COLOR, STATUS_BG, STATUS_LABEL, type OrderStatus } from '@/lib/types';
+import { CONFIRMED_ORDER_STATUSES, OPEN_ORDER_STATUSES } from '@/lib/orderStatus';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -8,30 +9,43 @@ const PAGE_SIZE = 25;
 
 const VALID_STATUSES = ['DRAFT','PAID','IN_PRODUCTION','SHIPPED','DELIVERED','CANCELLED'];
 
-export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string; status?: string }> }) {
-  const { page = '1', status = '' } = await searchParams;
+export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string; status?: string; customer?: string }> }) {
+  const { page = '1', status = '', customer = '' } = await searchParams;
   const pageNum = Math.max(1, parseInt(page) || 1);
   const statusFilter = VALID_STATUSES.includes(status) ? (status as OrderStatus) : null;
-  const where = statusFilter ? { status: statusFilter } : undefined;
+  const customerFilter = customer.trim();
+  const where = {
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(customerFilter ? { customerId: customerFilter } : {}),
+  };
+  const ordersHref = (next: { page?: number; status?: string }) => {
+    const params = new URLSearchParams();
+    if (next.page && next.page > 1) params.set('page', String(next.page));
+    const nextStatus = next.status ?? status;
+    if (nextStatus) params.set('status', nextStatus);
+    if (customerFilter) params.set('customer', customerFilter);
+    const qs = params.toString();
+    return qs ? `/admin/orders?${qs}` : '/admin/orders';
+  };
 
   const [orders, totalCount, allStats] = await Promise.all([
     prisma.order.findMany({
-      where,
+      where: Object.keys(where).length ? where : undefined,
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { createdAt: 'desc' },
       include: { customer: true, items: { include: { designAsset: true } } },
     }),
-    prisma.order.count({ where }),
+    prisma.order.count({ where: Object.keys(where).length ? where : undefined }),
     prisma.order.aggregate({
       _sum: { total: true },
       _count: { id: true },
-      where: { status: { not: 'CANCELLED' } },
+      where: { status: { in: CONFIRMED_ORDER_STATUSES } },
     }),
   ]);
 
   const [pendingCount, deliveredCount] = await Promise.all([
-    prisma.order.count({ where: { status: { in: ['PAID', 'IN_PRODUCTION'] } } }),
+    prisma.order.count({ where: { status: { in: OPEN_ORDER_STATUSES } } }),
     prisma.order.count({ where: { status: 'DELIVERED' } }),
   ]);
 
@@ -44,7 +58,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Orders</h1>
         <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>
-          {totalCount} total orders · page {pageNum} of {totalPages || 1}
+          {totalCount} total orders{customerFilter ? ' for selected customer' : ''} - page {pageNum} of {totalPages || 1}
         </p>
       </div>
 
@@ -52,8 +66,8 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
         {[
           { label: 'Total orders', value: totalCount,                                           color: '#3B82F6' },
-          { label: 'Revenue',      value: `$${(allStats._sum.total ?? 0).toFixed(2)}`,          color: '#10B981' },
-          { label: 'In progress',  value: pendingCount,                                          color: '#F59E0B' },
+          { label: 'Confirmed value', value: `$${(allStats._sum.total ?? 0).toFixed(2)}`,          color: '#10B981' },
+          { label: 'Open requests', value: pendingCount,                                          color: '#F59E0B' },
           { label: 'Delivered',    value: deliveredCount,                                        color: '#00E5C8' },
         ].map(s => (
           <div key={s.label} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', padding: '1.25rem 1.5rem', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
@@ -67,8 +81,9 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       {/* Status filter */}
       <div style={{ display: 'flex', gap: 6, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         {[{ label: `All`, value: '' }, ...VALID_STATUSES.map(s => ({ label: s.replace('_',' '), value: s }))].map(f => (
-          <Link key={f.value} href={`/admin/orders?status=${f.value}`} aria-current={statusFilter === f.value ? 'page' : undefined} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: statusFilter === f.value ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: statusFilter === f.value ? 'rgba(0,229,200,0.08)' : 'transparent', color: statusFilter === f.value ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>{f.label}</Link>
+          <Link key={f.value} href={ordersHref({ status: f.value })} aria-current={statusFilter === f.value ? 'page' : undefined} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: statusFilter === f.value ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.07)', background: statusFilter === f.value ? 'rgba(0,229,200,0.08)' : 'transparent', color: statusFilter === f.value ? '#00E5C8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>{f.label}</Link>
         ))}
+        {customerFilter && <Link href="/admin/orders" style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none' }}>Clear customer</Link>}
       </div>
 
       {totalCount === 0 ? (
@@ -106,10 +121,10 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                             <div style={{ width: 30, height: 30, borderRadius: 8, background: design.colorHex, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>{design.emoji}</div>
                             <div>
                               <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{design.title}</div>
-                              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{design.colorName} · {design.size}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{design.colorName} - {design.size}</div>
                             </div>
                           </div>
-                        ) : <span style={{ color: 'rgba(255,255,255,0.18)' }}>—</span>}
+                        ) : <span style={{ color: 'rgba(255,255,255,0.18)' }}>-</span>}
                       </td>
                       <td style={{ padding: '1rem', fontWeight: 700, fontSize: '0.88rem' }}>${order.total.toFixed(2)}</td>
                       <td style={{ padding: '1rem' }}>
@@ -131,7 +146,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                           fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)',
                           textDecoration: 'none', padding: '3px 9px', borderRadius: 6,
                           border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)',
-                        }}>View →</Link>
+                        }}>View</Link>
                       </td>
                     </tr>
                   );
@@ -144,21 +159,21 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
           {totalPages > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.25rem' }}>
               <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)' }}>
-                Showing {(pageNum - 1) * PAGE_SIZE + 1}–{Math.min(pageNum * PAGE_SIZE, totalCount)} of {totalCount}
+                Showing {(pageNum - 1) * PAGE_SIZE + 1}-{Math.min(pageNum * PAGE_SIZE, totalCount)} of {totalCount}
               </span>
               <div style={{ display: 'flex', gap: 6 }}>
                 {pageNum > 1 && (
-                  <Link href={`/admin/orders?page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>
+                  <Link href={ordersHref({ page: pageNum - 1 })} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Prev</Link>
                 )}
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const pg = pageNum <= 3 ? i + 1 : pageNum - 2 + i;
                   if (pg < 1 || pg > totalPages) return null;
                   return (
-                    <Link key={pg} href={`/admin/orders?page=${pg}`} aria-current={pg === pageNum ? 'page' : undefined} style={{ padding: '5px 11px', borderRadius: 8, border: `1px solid ${pg === pageNum ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: pg === pageNum ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.03)', color: pg === pageNum ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>{pg}</Link>
+                    <Link key={pg} href={ordersHref({ page: pg })} aria-current={pg === pageNum ? 'page' : undefined} style={{ padding: '5px 11px', borderRadius: 8, border: `1px solid ${pg === pageNum ? 'rgba(0,229,200,0.4)' : 'rgba(255,255,255,0.08)'}`, background: pg === pageNum ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.03)', color: pg === pageNum ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>{pg}</Link>
                   );
                 })}
                 {pageNum < totalPages && (
-                  <Link href={`/admin/orders?page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>
+                  <Link href={ordersHref({ page: pageNum + 1 })} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next</Link>
                 )}
               </div>
             </div>

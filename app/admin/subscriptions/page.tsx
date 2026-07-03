@@ -48,8 +48,8 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Premium Subscriptions</h1>
-        <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>Manage monthly box subscribers</p>
+        <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Style Plans</h1>
+        <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '0.78rem', marginTop: 3 }}>Manage monthly style plan members</p>
       </div>
 
       <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: '2rem' }}>
@@ -85,7 +85,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
           <table aria-label="Subscriptions list" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-                {['Customer', 'Style Prefs', 'Status', 'Next Shipment', 'Boxes Sent', 'Since'].map(h => (
+                {['Customer', 'Style Prefs', 'Status', 'Next Review', 'Cycles', 'Since'].map(h => (
                   <th key={h} scope="col" style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</th>
                 ))}
               </tr>
@@ -101,7 +101,7 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
                       <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)' }}>{s.customer.email}</div>
                     </td>
                     <td style={{ padding: '0.875rem 1rem' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600, textTransform: 'capitalize', marginBottom: 3 }}>{prefs.style ?? '—'}</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 600, textTransform: 'capitalize', marginBottom: 3 }}>{prefs.style ?? '-'}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                         {(prefs.productTypes ?? []).map((t: ProductType) => (
                           <span key={t} style={{ fontSize: '0.5rem', fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)' }}>{PRODUCT_TYPE_LABELS[t]}</span>
@@ -128,9 +128,9 @@ export default async function AdminSubscriptionsPage({ searchParams }: { searchP
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', gap: 6, marginTop: '1.25rem', justifyContent: 'center' }}>
-          {pageNum > 1 && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
+          {pageNum > 1 && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Prev</Link>}
           <span style={{ padding: '5px 14px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{pageNum} / {totalPages}</span>
-          {pageNum < totalPages && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
+          {pageNum < totalPages && <Link href={`/admin/subscriptions?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next</Link>}
         </div>
       )}
     </div>

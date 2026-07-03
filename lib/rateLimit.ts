@@ -1,8 +1,8 @@
-// Simple in-memory rate limiter. Not persistent across restarts — sufficient for demo/dev.
-// For production, replace with Redis-backed solution (e.g. Upstash).
+// Simple in-memory rate limiter. Not persistent across restarts.
+// For multi-instance production, replace with a Redis-backed solution.
 const store = new Map<string, number[]>();
 
-// Periodically prune expired entries to prevent memory growth
+// Periodically prune expired entries to prevent memory growth.
 let lastPrune = Date.now();
 function maybePrune(windowMs: number) {
   const now = Date.now();

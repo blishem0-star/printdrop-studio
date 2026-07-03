@@ -8,11 +8,14 @@ import Link from 'next/link';
 import { useToast } from '@/components/Toast';
 import { useLocalSession } from '@/lib/useLocalSession';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
+import { ShareFan } from '@/components/design/ShareFan';
+import { useDesignHistory } from '@/hooks/useDesignHistory';
 
 import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot, GarmentView, DesignDocument } from "@/lib/studio/types";
 import {
   SVG_W, SVG_H, PRINT, SHIRT_PATH, IMG_ZONE, POS_LABELS, FONTS, SHAPES_LIB,
   EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS, US_STATES,
+  WORKFLOW_GROUPS, SIDE_TOOLS,
 } from "@/lib/studio/constants";
 import { uid, mkLayer, calcArcPath, starPoints, TEMPLATES } from "@/lib/studio/helpers";
 
@@ -44,24 +47,9 @@ function DesignStudio() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const panelRef  = useRef<HTMLDivElement>(null);
 
-  // History
-  const historyRef = useRef<Layer[][]>([[]]);
-  const histIdxRef = useRef(0);
-  function pushHistory(newLayers: Layer[]) {
-    historyRef.current = historyRef.current.slice(0, histIdxRef.current+1);
-    historyRef.current.push(JSON.parse(JSON.stringify(newLayers)));
-    histIdxRef.current = historyRef.current.length-1;
-  }
-  function undo() {
-    if(histIdxRef.current>0){ histIdxRef.current--; setLayers(JSON.parse(JSON.stringify(historyRef.current[histIdxRef.current]))); setSelected(null); }
-  }
-  function redo() {
-    if(histIdxRef.current<historyRef.current.length-1){ histIdxRef.current++; setLayers(JSON.parse(JSON.stringify(historyRef.current[histIdxRef.current]))); }
-  }
-  function setLayersWithHistory(newLayers: Layer[]) {
-    pushHistory(newLayers);
-    setLayers(newLayers);
-  }
+  const { undo, redo, setWithHistory: setLayersWithHistory } = useDesignHistory<Layer[]>([], setLayers, {
+    onUndo: () => setSelected(null),
+  });
 
   // Uploads
   const [uploads,    setUploads]    = useState<Record<UploadSlot,string|null>>({front:null,back:null,chest:null,leftSleeve:null,rightSleeve:null});
@@ -101,14 +89,7 @@ function DesignStudio() {
   // Active tool + shapes tab
   const [activeTool, setActiveTool] = useState<ActiveTool|null>(null);
   const [shapesTab,  setShapesTab]  = useState<'vector'|'shapes'|'emoji'>('vector');
-  const workflowGroups: {label:string; tools:ActiveTool[]; primary:ActiveTool; detail:string}[] = [
-    {label:'Template', tools:['templates'], primary:'templates', detail:'Start from a ready design'},
-    {label:'Design', tools:['text','shapes'], primary:'text', detail:'Add words, icons, and shapes'},
-    {label:'Image', tools:['upload','ai'], primary:'upload', detail:'Upload a picture or ask for AI help'},
-    {label:'Shirt', tools:['shirt'], primary:'shirt', detail:'Choose color and size'},
-    {label:'Order', tools:['order'], primary:'order', detail:'Finish quantity and delivery'},
-  ];
-  const activeWorkflow = activeTool ? (workflowGroups.find(g=>g.tools.includes(activeTool)) ?? workflowGroups[0]) : null;
+  const activeWorkflow = activeTool ? (WORKFLOW_GROUPS.find(g=>g.tools.includes(activeTool)) ?? WORKFLOW_GROUPS[0]) : null;
   function activateTool(tool: ActiveTool) {
     setActiveTool(tool);
     requestAnimationFrame(()=>panelRef.current?.scrollTo({top:0,behavior:'smooth'}));
@@ -258,7 +239,7 @@ function DesignStudio() {
         if(d.version===1) {
           restoreDesignDocument(d);
         } else {
-          if(d.layers?.length){setLayers(d.layers);pushHistory(d.layers);}
+          if(d.layers?.length){setLayersWithHistory(d.layers);}
           if(d.colorId){const c=SHIRT_COLORS.find((x:typeof SHIRT_COLORS[0])=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
           if(d.sizeVal)setSize(d.sizeVal);
           if(d.printBg)setPrintBg(d.printBg);
@@ -650,36 +631,11 @@ function DesignStudio() {
         shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,
         design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
       });
-      if(result){
+      if(result.ok){
         if(saveShipping){try{localStorage.setItem('pd_shipping',JSON.stringify({phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}));}catch{}}
-        setOrderId(result.id); setOrdered(true); showToast('Order placed!','success');
-      } else { setOrderError('Order failed.'); showToast('Order failed.','error'); }
+        setOrderId(result.id); setOrdered(true); showToast('Order request sent!','success');
+      } else { setOrderError(result.error); showToast(result.error,'error'); }
     }catch{setOrderError('Network error.');showToast('Network error.','error');}finally{setSubmitting(false);}
-  }
-
-  //
-  function downloadPng(){
-    if(!ordered){
-      return;
-    }
-    const svgEl=canvasRef.current?.querySelector('svg');
-    if(!svgEl) return;
-    const xml=new XMLSerializer().serializeToString(svgEl);
-    const img=new Image();
-    img.onload=()=>{
-      const c=document.createElement('canvas');
-      c.width=1000; c.height=1150;
-      const ctx2d=c.getContext('2d');
-      if(!ctx2d) return;
-      ctx2d.drawImage(img,0,0,c.width,c.height);
-      const a=document.createElement('a');
-      a.href=c.toDataURL('image/png');
-      a.download='stylx-design.png';
-      a.click();
-      showToast('Design downloaded!','success');
-    };
-    img.onerror=()=>showToast('Export failed. Try again.','error');
-    img.src='data:image/svg+xml;utf8,'+encodeURIComponent(xml);
   }
 
   async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'){
@@ -973,53 +929,6 @@ function DesignStudio() {
     );
   }
 
-  //
-  function renderSocialIcon(channel:'instagram'|'facebook'|'x'|'whatsapp') {
-    if(channel==='instagram') return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><rect x="7" y="7" width="18" height="18" rx="6" stroke="currentColor" strokeWidth="2.2"/><circle cx="16" cy="16" r="4.2" stroke="currentColor" strokeWidth="2.2"/><circle cx="21.4" cy="10.8" r="1.3" fill="currentColor"/></svg>;
-    if(channel==='facebook') return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><path d="M18 27V17.5h3.2l.6-4H18v-2.1c0-1.1.4-1.9 2-1.9h2V6.1c-.9-.1-1.8-.2-2.7-.2-3.2 0-5.4 2-5.4 5.3v2.3h-3.5v4H14V27h4z" fill="currentColor"/></svg>;
-    if(channel==='x') return <svg viewBox="0 0 32 32" width={24} height={24} fill="none" aria-hidden="true"><path d="M8 7h5.2l4.2 5.8L22.7 7H25l-6.5 7.2L25.6 25h-5.2l-4.8-6.8L9.5 25H7.2l7.3-8.2L8 7zm3.1 1.8 10.2 14.4h1.2L12.3 8.8h-1.2z" fill="currentColor"/></svg>;
-    return <svg viewBox="0 0 32 32" width={26} height={26} fill="none" aria-hidden="true"><path d="M8.7 25.1 10 20.8a9.3 9.3 0 1 1 3.8 3.3l-5.1 1z" stroke="currentColor" strokeWidth="2.1" strokeLinejoin="round"/><path d="M13.3 11.8c.3-.4.7-.4 1-.1l1.1 1.5c.3.4.2.8-.1 1.2l-.5.6c.9 1.6 2.1 2.7 3.7 3.5l.7-.6c.3-.3.8-.3 1.1 0l1.4 1.1c.4.3.4.8.1 1.1-.6.8-1.4 1.2-2.3 1-3.4-.7-6.8-4-7.6-7.5-.2-.8.3-1.5 1.4-1.8z" fill="currentColor"/></svg>;
-  }
-
-  function renderShareFan() {
-    if(!shareFanOpen) return null;
-    const options: {label:string;channel:'instagram'|'facebook'|'x'|'whatsapp';accent:string;angle:number;distance:number}[] = [
-      {label:'Instagram',channel:'instagram',accent:'#f472b6',angle:-154,distance:234},
-      {label:'Facebook',channel:'facebook',accent:'#60a5fa',angle:-113,distance:250},
-      {label:'X',channel:'x',accent:'#e5e7eb',angle:-67,distance:250},
-      {label:'WhatsApp',channel:'whatsapp',accent:'#34d399',angle:-26,distance:234},
-    ];
-    return (
-      <>
-        <div onClick={()=>setShareFanOpen(false)} style={{position:'fixed',inset:0,zIndex:8,background:'radial-gradient(circle at 50% 78%,rgba(0,229,200,0.15),rgba(96,165,250,0.08) 28%,rgba(2,2,5,0.52) 52%,rgba(2,2,5,0.72)),linear-gradient(180deg,rgba(244,114,182,0.05),rgba(0,229,200,0.04))',backdropFilter:'blur(14px) saturate(1.24)',pointerEvents:'auto'}}/>
-        <div role="menu" aria-label="Share your design" className="share-fan" style={{position:'absolute',left:'50%',bottom:'calc(100% + 10px)',width:560,height:330,transform:'translateX(-50%) scale(var(--fan-scale,1))',transformOrigin:'50% 100%',zIndex:35,pointerEvents:'none'}}>
-          <div className="share-fan-shell" style={{position:'absolute',left:'50%',bottom:0,width:500,height:246,transform:'translateX(-50%)',borderRadius:'500px 500px 0 0',background:'radial-gradient(circle at 50% 104%,rgba(0,229,200,0.34),rgba(8,8,14,0.98) 34%,rgba(19,19,34,0.84) 62%,rgba(255,255,255,0.04) 100%),conic-gradient(from 236deg at 50% 100%,rgba(244,114,182,0.34),rgba(96,165,250,0.22),rgba(0,229,200,0.23),rgba(52,211,153,0.3))',border:'1px solid rgba(255,255,255,0.18)',borderBottom:'none',boxShadow:'0 -34px 100px rgba(0,0,0,0.72),0 0 92px rgba(0,229,200,0.22),inset 0 1px 0 rgba(255,255,255,0.14)',pointerEvents:'none',overflow:'hidden'}}>
-            <div style={{position:'absolute',inset:0,background:'repeating-conic-gradient(from 236deg at 50% 100%,rgba(255,255,255,0.24) 0deg,rgba(255,255,255,0.24) 0.55deg,transparent 0.9deg,transparent 13.5deg)',opacity:0.36}}/>
-            <div style={{position:'absolute',inset:12,borderRadius:'480px 480px 0 0',border:'1px solid rgba(255,255,255,0.08)',borderBottom:'none'}}/>
-            <div style={{position:'absolute',left:'50%',bottom:-92,width:250,height:250,transform:'translateX(-50%)',borderRadius:'50%',background:'radial-gradient(circle,rgba(0,229,200,0.42),rgba(0,229,200,0.08) 48%,transparent 70%)'}}/>
-            <div style={{position:'absolute',left:'14%',top:'28%',width:7,height:7,borderRadius:'50%',background:'rgba(244,114,182,0.62)',boxShadow:'0 0 18px rgba(244,114,182,0.72)'}}/>
-            <div style={{position:'absolute',right:'17%',top:'24%',width:6,height:6,borderRadius:'50%',background:'rgba(52,211,153,0.62)',boxShadow:'0 0 18px rgba(52,211,153,0.72)'}}/>
-          </div>
-          <div style={{position:'absolute',left:'50%',bottom:-4,width:72,height:72,transform:'translateX(-50%)',borderRadius:'50%',background:'linear-gradient(145deg,rgba(0,229,200,0.26),rgba(5,5,8,0.96))',border:'1px solid rgba(0,229,200,0.32)',boxShadow:'0 14px 42px rgba(0,0,0,0.55),0 0 34px rgba(0,229,200,0.28)',pointerEvents:'none'}}/>
-          <div style={{position:'absolute',left:'50%',bottom:28,transform:'translateX(-50%)',padding:'8px 16px',borderRadius:999,background:'rgba(5,5,8,0.78)',border:'1px solid rgba(255,255,255,0.14)',fontSize:'0.72rem',fontWeight:950,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.82)',whiteSpace:'nowrap',boxShadow:'0 12px 34px rgba(0,0,0,0.38)'}}>Share your design</div>
-          {options.map((opt,i)=>{
-            const rad=(opt.angle*Math.PI)/180;
-            const x=Math.cos(rad)*opt.distance;
-            const y=Math.sin(rad)*opt.distance;
-            return (
-              <button key={opt.channel} role="menuitem" onClick={()=>shareTo(opt.channel)}
-                className="share-fan-item"
-                style={{position:'absolute',left:`calc(50% + ${x}px)`,bottom:`${24 - y}px`,width:108,height:108,borderRadius:28,border:`1px solid ${opt.accent}70`,background:`linear-gradient(145deg,rgba(10,10,16,0.98),${opt.accent}26)`,boxShadow:`0 26px 62px rgba(0,0,0,0.6),0 0 46px ${opt.accent}30,inset 0 1px 0 rgba(255,255,255,0.14)`,color:opt.accent,cursor:'pointer',pointerEvents:'auto',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,transform:`translate(-50%,0) rotate(${(i-1.5)*-6}deg)`,animation:`fanOpen 340ms cubic-bezier(.16,1.34,.38,1) ${i*52}ms both`}}>
-                <span style={{width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center'}}>{renderSocialIcon(opt.channel)}</span>
-                <span style={{fontSize:'0.72rem',fontWeight:950,color:'rgba(255,255,255,0.88)'}}>{opt.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </>
-    );
-  }
-
   if(ordered) return (
     <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',position:'relative',overflow:'hidden'}}>
       {toastEl}
@@ -1028,7 +937,7 @@ function DesignStudio() {
         <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(0,229,200,0.1)',border:'1px solid rgba(0,229,200,0.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px',boxShadow:'0 0 40px rgba(0,229,200,0.15)'}}>
           <svg viewBox="0 0 32 32" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} aria-hidden="true"><path d="M6 16l8 8 12-14"/></svg>
         </div>
-        <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Placed!</h1>
+        <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Request Sent</h1>
         <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} - Size {size} - Qty {qty}</p>
         {orderId&&<p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:10}}>#{orderId.slice(0,8).toUpperCase()}</p>}
         <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.62)',marginBottom:18,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
@@ -1036,10 +945,9 @@ function DesignStudio() {
           {renderShirtCanvas(180,207,false,garmentView)}
         </div>
         <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap',marginBottom:18}}>
-          <button title="Download PNG preview" onClick={downloadPng} style={{padding:'0.72rem 1rem',borderRadius:11,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontWeight:800,cursor:'pointer'}}>Download PNG</button>
           <div style={{position:'relative',display:'inline-flex'}}>
-            <button onClick={()=>setShareFanOpen(true)} style={{padding:'0.72rem 1rem',borderRadius:11,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.78)',fontWeight:800,cursor:'pointer'}}>Share</button>
-            {renderShareFan()}
+            <button onClick={()=>setShareFanOpen(true)} style={{padding:'0.82rem 1.35rem',borderRadius:12,border:'1px solid rgba(0,229,200,0.28)',background:'linear-gradient(135deg,rgba(0,229,200,0.14),rgba(0,153,255,0.1))',color:'#00E5C8',fontWeight:900,cursor:'pointer',boxShadow:'0 10px 30px rgba(0,229,200,0.12)'}}>Share your design</button>
+            <ShareFan open={shareFanOpen} onClose={()=>setShareFanOpen(false)} onShare={shareTo}/>
           </div>
         </div>
         <div style={{display:'flex',gap:10,justifyContent:'center'}}>
@@ -1048,15 +956,6 @@ function DesignStudio() {
       </div>
     </div>
   );
-
-  const sideTools: {id:ActiveTool;icon:string;label:string;hint:string}[] = [
-    {id:'templates',icon:'T', label:'Ready design', hint:'Start from a template'},
-    {id:'text',     icon:'Aa', label:'Add text', hint:'Names, slogans, numbers'},
-    {id:'upload',   icon:'Up', label:'Add image', hint:'Logo, photo, sleeve art'},
-    {id:'ai',       icon:'AI', label:'AI helper', hint:'Ideas, layout, smart fixes'},
-    {id:'shapes',   icon:'S', label:'Icons', hint:'Symbols and shapes'},
-    {id:'order',    icon:'OK', label:'Finish', hint:'Review, share, and checkout'},
-  ];
 
   //
   return (
@@ -1082,7 +981,7 @@ function DesignStudio() {
       )}
 
       {checkoutOpen&&(
-        <div role="dialog" aria-modal="true" aria-label="Review and checkout" style={{position:'fixed',inset:0,zIndex:9000,background:'rgba(0,0,0,0.68)',backdropFilter:'blur(18px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}} onClick={()=>setCheckoutOpen(false)}>
+        <div role="dialog" aria-modal="true" aria-label="Review and submit order request" style={{position:'fixed',inset:0,zIndex:9000,background:'rgba(0,0,0,0.68)',backdropFilter:'blur(18px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}} onClick={()=>setCheckoutOpen(false)}>
           <div className="checkout-modal" onClick={e=>e.stopPropagation()} style={{width:'min(1080px,96vw)',maxHeight:'92vh',overflow:'hidden',border:'1px solid rgba(255,255,255,0.1)',background:'linear-gradient(180deg,rgba(13,13,18,0.98),rgba(6,6,9,0.98))',borderRadius:16,boxShadow:'0 30px 90px rgba(0,0,0,0.62)',display:'grid',gridTemplateColumns:'minmax(320px,0.85fr) minmax(360px,1fr)'}}>
             <div style={{padding:'24px',borderRight:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.018)',display:'flex',flexDirection:'column',gap:16,overflowY:'auto'}}>
               <div>
@@ -1105,7 +1004,7 @@ function DesignStudio() {
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:16,marginBottom:18}}>
                 <div>
                   <div style={{fontSize:'1.15rem',fontWeight:950,color:'rgba(255,255,255,0.92)',marginBottom:5}}>Delivery details</div>
-                  <div style={{fontSize:'0.86rem',color:'rgba(255,255,255,0.48)',lineHeight:1.5}}>A few details and you are ready to continue to payment.</div>
+                  <div style={{fontSize:'0.86rem',color:'rgba(255,255,255,0.48)',lineHeight:1.5}}>A few details and your order request is ready for review.</div>
                 </div>
                 <button onClick={()=>setCheckoutOpen(false)} style={{width:34,height:34,borderRadius:10,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:'1rem'}}>x</button>
               </div>
@@ -1116,7 +1015,7 @@ function DesignStudio() {
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
                   <div>
                     <div style={{fontSize:'0.72rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.12em',textTransform:'uppercase'}}>Production review</div>
-                    <div style={{fontSize:'0.66rem',fontWeight:750,color:'rgba(255,255,255,0.48)',marginTop:3}}>Final check before payment.</div>
+                    <div style={{fontSize:'0.66rem',fontWeight:750,color:'rgba(255,255,255,0.48)',marginTop:3}}>Final check before submitting the request.</div>
                   </div>
                   <div style={{width:44,height:44,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',background:qualityScore>=80?'rgba(0,229,200,0.12)':'rgba(245,158,11,0.1)',border:`1px solid ${qualityScore>=80?'rgba(0,229,200,0.32)':'rgba(245,158,11,0.24)'}`,color:qualityScore>=80?'#00E5C8':'#fbbf24',fontWeight:950}}>{qualityScore}</div>
                 </div>
@@ -1161,7 +1060,7 @@ function DesignStudio() {
               {orderError&&<div role="alert" style={{padding:'11px 12px',borderRadius:10,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.08)',color:'#f87171',fontSize:'0.82rem',fontWeight:800,marginTop:14}}>{orderError}</div>}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1.3fr',gap:10,marginTop:18}}>
                 <button onClick={()=>setCheckoutOpen(false)} style={{padding:'14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.72)',fontSize:'0.9rem',fontWeight:900,cursor:'pointer'}}>Back to editing</button>
-                <button onClick={handleOrder} disabled={!canOrder||submitting} style={{padding:'14px',borderRadius:12,border:'none',background:canOrder?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.07)',color:canOrder?'#050507':'rgba(255,255,255,0.34)',fontSize:'0.92rem',fontWeight:950,cursor:canOrder&&!submitting?'pointer':'default',boxShadow:canOrder?'0 10px 34px rgba(0,229,200,0.28)':'none'}}>{submitting?'Placing order...':canOrder?`Confirm order - $${total.toFixed(2)}`:'Complete required details'}</button>
+                <button onClick={handleOrder} disabled={!canOrder||submitting} style={{padding:'14px',borderRadius:12,border:'none',background:canOrder?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.07)',color:canOrder?'#050507':'rgba(255,255,255,0.34)',fontSize:'0.92rem',fontWeight:950,cursor:canOrder&&!submitting?'pointer':'default',boxShadow:canOrder?'0 10px 34px rgba(0,229,200,0.28)':'none'}}>{submitting?'Sending request...':canOrder?`Submit order request - $${total.toFixed(2)}`:'Complete required details'}</button>
               </div>
             </div>
           </div>
@@ -1211,7 +1110,7 @@ function DesignStudio() {
 
         {/* Section */}
         <div className="studio-rail" style={{background:'rgba(5,5,8,1)',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',alignItems:'stretch',padding:'12px',gap:7,zIndex:10,overflowY:'auto'}}>
-          {sideTools.map(t=>(
+          {SIDE_TOOLS.map(t=>(
             <button key={t.id} title={t.label} onClick={()=>activateTool(t.id)}
               style={{width:'100%',minHeight:68,borderRadius:12,border:'none',cursor:'pointer',background:activeTool===t.id?'rgba(0,229,200,0.12)':'transparent',color:activeTool===t.id?'#00E5C8':'rgba(255,255,255,0.72)',display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:14,padding:'10px 12px',transition:'all 0.15s',position:'relative'}}
               onMouseEnter={e=>{if(activeTool!==t.id){(e.currentTarget.style.background='rgba(255,255,255,0.06)');(e.currentTarget.style.color='rgba(255,255,255,0.82)');}}}
@@ -1322,7 +1221,7 @@ function DesignStudio() {
             {layers.some(l=>!l.collarMode)&&<button onClick={smartFitDesign} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.045)',color:'rgba(255,255,255,0.78)',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Smart fit</button>}
             <div style={{position:'relative',display:'inline-flex'}}>
               <button aria-haspopup="menu" onClick={()=>setShareFanOpen(true)} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(0,229,200,0.2)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Share</button>
-              {renderShareFan()}
+              <ShareFan open={shareFanOpen} onClose={()=>setShareFanOpen(false)} onShare={shareTo}/>
             </div>
             <button onClick={()=>setCheckoutOpen(true)} style={{padding:'10px 16px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.82rem',fontWeight:950,cursor:'pointer',boxShadow:'0 8px 28px rgba(0,229,200,0.24)'}}>Finish design</button>
           </div>
@@ -1423,7 +1322,7 @@ function DesignStudio() {
                 </div>
 
                 <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:10}}>
-                  {workflowGroups.map(g=>(
+                  {WORKFLOW_GROUPS.map(g=>(
                     <button key={g.label} onClick={()=>activateTool(g.primary)}
                       style={{minHeight:44,borderRadius:9,border:`1px solid ${activeWorkflow?.label===g.label?'rgba(0,229,200,0.38)':'rgba(255,255,255,0.08)'}`,background:activeWorkflow?.label===g.label?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.025)',color:activeWorkflow?.label===g.label?'#00E5C8':'rgba(255,255,255,0.62)',fontSize:'0.58rem',fontWeight:950,cursor:'pointer',padding:'6px 4px'}}>
                       {g.label}
@@ -1475,7 +1374,7 @@ function DesignStudio() {
                 {[
                   ['1','Add','Pick text, image, or icon'],
                   ['2','Move','Drag it or use arrows'],
-                  ['3','Finish','Pay, then download/share'],
+                  ['3','Finish','Submit request, then share'],
                 ].map(([n,title,desc])=>(
                   <button key={n} onClick={()=>title==='Add'?activateTool('text'):title==='Finish'?setCheckoutOpen(true):undefined}
                     style={{minHeight:62,borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.68)',cursor:title==='Move'?'default':'pointer',padding:'8px 7px',textAlign:'left'}}>

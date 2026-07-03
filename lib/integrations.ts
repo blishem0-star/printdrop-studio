@@ -36,7 +36,7 @@ export function getIntegrations(): IntegrationConfig[] {
       capabilities: [
         'Generate design ideas from a short prompt',
         'Suggest colors, placement, typography, and print fixes',
-        'Review uploaded artwork before checkout',
+        'Review uploaded artwork before order submission',
       ],
       nextSteps: [
         'Add OPENAI_API_KEY to production env',
@@ -47,7 +47,7 @@ export function getIntegrations(): IntegrationConfig[] {
     {
       key: 'stripe',
       name: 'Stripe',
-      tagline: 'Checkout, payment confirmation, receipts, refunds, and payment webhooks.',
+      tagline: 'Purchase flow, payment confirmation, receipts, refunds, and payment webhooks.',
       status: stripeSecret && stripeWebhook && stripePrice ? 'live' : stripeSecret ? 'configured' : 'missing',
       accent: '#7C3AED',
       env: [
@@ -56,13 +56,13 @@ export function getIntegrations(): IntegrationConfig[] {
         { key: 'STRIPE_PRICE_ID', present: stripePrice },
       ],
       capabilities: [
-        'Create a real checkout before marking orders as paid',
-        'Unlock customer download only after payment confirmation',
+        'Create a real purchase flow before marking order requests as confirmed',
+        'Unlock customer export only after payment confirmation',
         'Handle refunds and failed payments from webhooks',
       ],
       nextSteps: [
         'Add Stripe env vars',
-        'Create checkout session route',
+        'Create purchase session route',
         'Move order status to PAID only from webhook success',
       ],
     },
@@ -77,9 +77,9 @@ export function getIntegrations(): IntegrationConfig[] {
         { key: 'PRINTIFY_SHOP_ID', present: printifyShop },
       ],
       capabilities: [
-        'Send paid orders to print production',
+        'Send confirmed orders to print production',
         'Map shirt size/color to provider variants',
-        'Sync shipment tracking back into admin',
+        'Sync fulfillment status back into admin',
       ],
       nextSteps: [
         'Add Printify token and shop id',
@@ -91,7 +91,6 @@ export function getIntegrations(): IntegrationConfig[] {
 }
 
 export function integrationScore(integrations = getIntegrations()) {
-  const total = integrations.length;
-  const ready = integrations.filter(i => i.status !== 'missing').length;
-  return Math.round((ready / total) * 100);
+  const documented = integrations.filter(i => i.env.length > 0 && i.capabilities.length > 0 && i.nextSteps.length > 0).length;
+  return Math.round((documented / integrations.length) * 100);
 }

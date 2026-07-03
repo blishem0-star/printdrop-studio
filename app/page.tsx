@@ -22,12 +22,12 @@ const SHIRTS = [
 ];
 
 const CARD_MSGS = [
-  ['Initializing…', 'Neural synthesis…', 'Style transfer…', 'Color grading…', 'Rendering…'],
-  ['Loading weights…', 'Prompt encoding…', 'Visual pass 1/3…', 'Detail pass 2/3…', 'Finalizing…'],
-  ['Analyzing mood…', 'Texture mapping…', 'Compositing…', 'Sharpening…', 'Rendering…'],
+  ['Initializing...', 'Neural synthesis...', 'Style transfer...', 'Color grading...', 'Rendering...'],
+  ['Loading weights...', 'Prompt encoding...', 'Visual pass 1/3...', 'Detail pass 2/3...', 'Finalizing...'],
+  ['Analyzing mood...', 'Texture mapping...', 'Compositing...', 'Sharpening...', 'Rendering...'],
 ];
 
-const MAIN_MSGS = ['Analyzing prompt…','Loading model…','Rendering layers…','Applying textures…','Finalizing…'];
+const MAIN_MSGS = ['Analyzing prompt...','Loading model...','Rendering layers...','Applying textures...','Finalizing...'];
 
 function eased(elapsed: number, total: number) {
   const t = Math.min(elapsed / total, 1);
@@ -76,7 +76,7 @@ function ShirtSVG({ shirt, prompt }: { shirt: typeof SHIRTS[0]; prompt: string }
   const shirtPath = 'M 122,14 C 107,30 88,60 80,82 L 8,56 L 0,86 L 0,168 L 80,152 L 80,432 L 280,432 L 280,152 L 360,168 L 360,86 L 352,56 L 280,82 C 272,60 253,30 238,14 Q 222,54 200,68 Q 178,54 162,34 Q 145,18 122,14 Z';
 
   return (
-    <svg viewBox="0 0 360 445" width="100%" role="img" aria-label={`${shirt.label} custom shirt design${prompt ? ` — ${prompt}` : ''}`} style={{ display: 'block', filter: 'drop-shadow(0 18px 32px rgba(0,0,0,0.55))' }}>
+    <svg viewBox="0 0 360 445" width="100%" role="img" aria-label={`${shirt.label} custom shirt design${prompt ? ` - ${prompt}` : ''}`} style={{ display: 'block', filter: 'drop-shadow(0 18px 32px rgba(0,0,0,0.55))' }}>
       <defs>
         {/* Side-to-side gradient for 3D depth */}
         <linearGradient id={`sf${shirt.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -474,7 +474,7 @@ export default function LandingPage() {
         </h1>
 
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 'clamp(0.9rem,2vw,1.05rem)', lineHeight: 1.7, maxWidth: 440, marginBottom: '2.5rem', animation: 'up 0.5s ease 0.3s both' }}>
-          Type any idea &mdash; AI generates your shirt in seconds.<br />Premium print, ships in 72 hours.
+          Type any idea, choose a direction, and turn it into a clean apparel order request in minutes.
         </p>
 
         {/* ── Prompt input ── */}
@@ -493,7 +493,7 @@ export default function LandingPage() {
             {prompt.length > 160 && <span aria-live="polite" style={{ fontSize: '0.6rem', color: prompt.length > 190 ? '#f87171' : 'rgba(255,255,255,0.3)', alignSelf: 'center', paddingRight: 8, flexShrink: 0 }}>{200 - prompt.length}</span>}
             <button
               onClick={generate}
-              aria-label={phase === 'generating' ? `Generating — ${Math.round(mainPct)}%` : 'Generate shirt designs'}
+              aria-label={phase === 'generating' ? `Generating - ${Math.round(mainPct)}%` : 'Generate shirt designs'}
               disabled={phase !== 'hero' || !prompt.trim()}
               className={phase === 'hero' && prompt.trim() ? 'btn-holo' : ''}
               style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
@@ -503,12 +503,12 @@ export default function LandingPage() {
                 : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Generate<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
             </button>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; 50K+ shirts created</p>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; built for fast product decisions</p>
         </div>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', marginTop: '3.5rem', animation: 'up 0.5s ease 0.5s both', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
-          {[['72h','Delivery'],['300dpi','Print'],['50K+','Shirts'],['Free','Returns']].map(([n,l], i) => (
+          {[['3 min','Start'],['300dpi','Artwork'],['50K+','Ideas'],['Ready','Review']].map(([n,l], i) => (
             <div key={l} style={{ textAlign: 'center', padding: '1rem 1.25rem', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,3vw,2.2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{n}</div>
               <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.5)', marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{l}</div>
@@ -591,7 +591,7 @@ export default function LandingPage() {
             </div>
             <div style={{ padding: '1.75rem' }}>
               <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-                {authMode === 'signup' ? 'Free account to order. Ships in 72 hours.' : 'Welcome back — continue your order.'}
+                {authMode === 'signup' ? 'Create a free account to save and submit your order request.' : 'Welcome back - continue your order.'}
               </p>
               {error && <div role="alert" aria-live="assertive" style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.65rem 0.9rem', fontSize: '0.75rem', color: '#F87171', marginBottom: '1rem' }}>{error}</div>}
               <form onSubmit={submitAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
@@ -633,7 +633,7 @@ export default function LandingPage() {
                   </div>
                 )}
                 <button type="submit" disabled={loading} style={{ height:46, borderRadius:11, border:'none', background: loading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg,#00E5C8,#0099FF)', color: loading ? 'rgba(255,255,255,0.3)' : '#050507', fontWeight:800, fontSize:'0.9rem', cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 4px 20px rgba(0,229,200,0.25)', transition:'all 0.15s', marginTop:4 }}>
-                  {loading ? 'Loading…' : authMode === 'signup' ? 'Create Account & Order →' : 'Sign In →'}
+                  {loading ? 'Loading...' : authMode === 'signup' ? 'Create Account & Order' : 'Sign In'}
                 </button>
               </form>
               <div style={{ textAlign: 'center', marginTop: '1rem' }}>
@@ -650,7 +650,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', animation: 'marquee 28s linear infinite', willChange: 'transform' }}>
             {[0, 1].map(copy => (
               <div key={copy} style={{ display: 'flex', flexShrink: 0, alignItems: 'center', padding: '0.75rem 0' }}>
-                {['AI-POWERED DESIGN', '300 DPI PRINT', '72H DELIVERY', 'FREE RETURNS', 'UNLIMITED STYLES', 'SHIPS WORLDWIDE', 'CUSTOM SIZING', 'PREMIUM COTTON', 'DTG PRINTING'].map((item, j) => (
+                {['GUIDED DESIGN', '300 DPI ARTWORK', 'ORDER REQUESTS', 'DESIGN REVIEW', 'UNLIMITED STYLES', 'CUSTOM SIZING', 'PREMIUM MOCKUPS', 'CREATOR READY'].map((item, j) => (
                   <span key={j} style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.82rem', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.22)', paddingLeft: '1.75rem', paddingRight: '0.875rem', whiteSpace: 'nowrap' }}>{item}</span>
                     <span style={{ display: 'inline-block', width: 3, height: 3, borderRadius: '50%', background: '#00E5C8', opacity: 0.5 }} />
@@ -678,7 +678,7 @@ export default function LandingPage() {
               { n: '01', t: 'Describe', b: 'Type a vibe, a concept, a feeling. AI understands context and nuance.', accent: '#00E5C8' },
               { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.', accent: '#0099FF' },
               { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.', accent: '#7B61FF' },
-              { n: '04', t: 'Delivered', b: 'Premium 300 DPI print at your door in 72 hours. Free returns guaranteed.', accent: '#00E5C8' },
+              { n: '04', t: 'Request', b: 'Submit a clean order request with your artwork, size, color, and delivery details.', accent: '#00E5C8' },
             ].map((s, i) => (
               <div key={s.n} className="scan-card rsp-1col" style={{
                 display: 'grid', gridTemplateColumns: '5rem 1fr auto',

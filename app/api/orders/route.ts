@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price?: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
   };
 
-  // Server-side price calculation — never trust client total
+  // Server-side price calculation - never trust client total.
   let authorizedPrice: number;
   if (design.artistDesignId) {
     const artistDesign = await prisma.artistDesign.findUnique({
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     const email = customerEmail.toLowerCase().trim();
     const existing = await prisma.customer.findUnique({ where: { email } });
     if (existing?.password) {
-      return NextResponse.json({ error: 'An account exists for this email — please log in to order' }, { status: 409 });
+      return NextResponse.json({ error: 'An account exists for this email - please log in to order' }, { status: 409 });
     }
     customer = existing ?? await prisma.customer.create({ data: { name: customerName.trim(), email } });
   }
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
       shippingCity,
       shippingZip,
       shippingState,
-      status: 'PAID',
+      status: 'DRAFT',
       items: { create: { designAssetId: designAsset.id, qty: 1, unitPrice: authorizedPrice } },
     },
     include: { customer: true, items: { include: { designAsset: true } } },

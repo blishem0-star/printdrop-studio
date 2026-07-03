@@ -1,4 +1,4 @@
-import type { ImagePos, Layer } from './types';
+import type { ActiveTool, ImagePos, Layer } from './types';
 
 // Static design-studio data: canvas geometry, libraries, palettes, presets.
 
@@ -76,3 +76,20 @@ export const TEXT_PRESETS: {name:string;patch:Partial<Layer>}[] = [
 ];
 
 export const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+
+export const WORKFLOW_GROUPS: { label: string; tools: ActiveTool[]; primary: ActiveTool; detail: string }[] = [
+  { label: 'Template', tools: ['templates'], primary: 'templates', detail: 'Start from a ready design' },
+  { label: 'Design', tools: ['text', 'shapes'], primary: 'text', detail: 'Add words, icons, and shapes' },
+  { label: 'Image', tools: ['upload', 'ai'], primary: 'upload', detail: 'Upload a picture or ask for AI help' },
+  { label: 'Shirt', tools: ['shirt'], primary: 'shirt', detail: 'Choose color and size' },
+  { label: 'Order', tools: ['order'], primary: 'order', detail: 'Review quantity and delivery details' },
+];
+
+export const SIDE_TOOLS: { id: ActiveTool; icon: string; label: string; hint: string }[] = [
+  { id: 'templates', icon: 'T', label: 'Ready design', hint: 'Start from a template' },
+  { id: 'text', icon: 'Aa', label: 'Add text', hint: 'Names, slogans, numbers' },
+  { id: 'upload', icon: 'Up', label: 'Add image', hint: 'Logo, photo, sleeve art' },
+  { id: 'ai', icon: 'AI', label: 'AI helper', hint: 'Ideas, layout, smart fixes' },
+  { id: 'shapes', icon: 'S', label: 'Icons', hint: 'Symbols and shapes' },
+  { id: 'order', icon: 'OK', label: 'Finish', hint: 'Review, share, and submit request' },
+];

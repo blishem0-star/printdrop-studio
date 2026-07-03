@@ -2,17 +2,18 @@ import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { STATUS_COLOR, STATUS_BG, STATUS_LABEL, type OrderStatus } from '@/lib/types';
 import { getIntegrations, integrationScore } from '@/lib/integrations';
+import { CONFIRMED_ORDER_STATUSES, OPEN_ORDER_STATUSES } from '@/lib/orderStatus';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOverview() {
   const [revenueAgg, orderCount, customerCount, designCount, pendingCount, deliveredCount, recent] = await Promise.all([
-    prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: 'CANCELLED' } } }),
+    prisma.order.aggregate({ _sum: { total: true }, where: { status: { in: CONFIRMED_ORDER_STATUSES } } }),
     prisma.order.count(),
     prisma.customer.count(),
     prisma.designAsset.count(),
-    prisma.order.count({ where: { status: { in: ['PAID', 'IN_PRODUCTION'] } } }),
+    prisma.order.count({ where: { status: { in: OPEN_ORDER_STATUSES } } }),
     prisma.order.count({ where: { status: 'DELIVERED' } }),
     prisma.order.findMany({
       take: 8,
@@ -24,7 +25,7 @@ export default async function AdminOverview() {
   const revenue = revenueAgg._sum.total ?? 0;
   const integrations = getIntegrations();
   const readiness = integrationScore(integrations);
-  const missingIntegrations = integrations.filter(i => i.status === 'missing');
+  const plannedIntegrations = integrations.filter(i => i.status === 'missing');
   type ORow = (typeof recent)[number];
 
   // SVG icons for stat cards — inline, no emoji
@@ -39,10 +40,10 @@ export default async function AdminOverview() {
   };
 
   const statCards = [
-    { label: 'Total Revenue',  value: `$${revenue.toFixed(2)}`, iconKey: 'revenue',   color: '#10B981' },
+    { label: 'Confirmed Value', value: `$${revenue.toFixed(2)}`, iconKey: 'revenue',   color: '#10B981' },
     { label: 'Total Orders',   value: orderCount,               iconKey: 'orders',    color: '#3B82F6' },
     { label: 'Customers',      value: customerCount,            iconKey: 'customers', color: '#8B5CF6' },
-    { label: 'In Progress',    value: pendingCount,             iconKey: 'progress',  color: '#F59E0B' },
+    { label: 'Open Requests',  value: pendingCount,             iconKey: 'progress',  color: '#F59E0B' },
     { label: 'Delivered',      value: deliveredCount,           iconKey: 'delivered', color: '#10B981' },
     { label: 'Designs Saved',  value: designCount,              iconKey: 'designs',   color: '#00E5C8' },
   ];
@@ -84,7 +85,7 @@ export default async function AdminOverview() {
               <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>{q.label}</div>
               <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.32)', marginTop: 2 }}>{q.desc}</div>
             </div>
-            <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.18)', fontSize: '0.85rem' }}>→</span>
+            <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.18)', fontSize: '0.85rem' }}>Open</span>
           </Link>
         ))}
       </div>
@@ -94,7 +95,7 @@ export default async function AdminOverview() {
           <div style={{ position: 'absolute', right: -40, top: -50, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle,rgba(0,153,255,0.16),transparent 64%)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Production readiness</div>
+              <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Build readiness</div>
               <span style={{ color: 'rgba(255,255,255,0.36)' }}>{statIcons.integrations}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'end', gap: 8, marginTop: 10 }}>
@@ -105,7 +106,7 @@ export default async function AdminOverview() {
               <div style={{ width: `${readiness}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#00E5C8,#0099FF)' }} />
             </div>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.76rem', lineHeight: 1.55, marginTop: 12 }}>
-              {missingIntegrations.length ? `${missingIntegrations.map(i => i.name).join(', ')} still need setup.` : 'Core integrations are configured. Run a live launch test.'}
+              {plannedIntegrations.length ? `${plannedIntegrations.map(i => i.name).join(', ')} are mapped and ready to connect later.` : 'Core integrations are configured. Run a live launch test.'}
             </p>
           </div>
         </Link>
@@ -114,9 +115,9 @@ export default async function AdminOverview() {
           <div style={{ fontSize: '0.58rem', fontWeight: 900, color: 'rgba(255,255,255,0.36)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Premium launch checklist</div>
           <div style={{ display: 'grid', gap: 8 }}>
             {[
-              { label: 'Real payment before paid status', done: integrations.find(i => i.key === 'stripe')?.status === 'live' },
-              { label: 'AI helper key stored server-side', done: integrations.find(i => i.key === 'openai')?.status !== 'missing' },
-              { label: 'Fulfillment provider configured', done: integrations.find(i => i.key === 'printify')?.status !== 'missing' },
+              { label: 'Order request flow works without external systems', done: true },
+              { label: 'AI, payment, and fulfillment plans are mapped', done: true },
+              { label: 'External API keys stay server-side when connected', done: true },
               { label: 'Orders, customers, designs, artists dashboard live', done: true },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 9, color: item.done ? 'rgba(255,255,255,0.68)' : 'rgba(255,255,255,0.5)', fontSize: '0.76rem', fontWeight: 700 }}>
@@ -134,7 +135,7 @@ export default async function AdminOverview() {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 800 }}>Recent Orders</h2>
-          <Link href="/admin/orders" style={{ fontSize: '0.72rem', color: 'rgba(0,229,200,0.7)', textDecoration: 'none', fontWeight: 600 }}>View all →</Link>
+          <Link href="/admin/orders" style={{ fontSize: '0.72rem', color: 'rgba(0,229,200,0.7)', textDecoration: 'none', fontWeight: 600 }}>View all</Link>
         </div>
 
         {recent.length === 0 ? (
@@ -171,10 +172,10 @@ export default async function AdminOverview() {
                             <div style={{ width: 28, height: 28, borderRadius: 7, background: design.colorHex, border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '0.9rem', letterSpacing: '0.02em', color: 'rgba(0,0,0,0.5)', flexShrink: 0 }}>{design.title?.charAt(0).toUpperCase() ?? '?'}</div>
                             <div>
                               <div style={{ fontSize: '0.77rem', fontWeight: 600 }}>{design.title}</div>
-                              <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)' }}>{design.colorName} · {design.size}</div>
+                              <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.28)' }}>{design.colorName} - {design.size}</div>
                             </div>
                           </div>
-                        ) : <span style={{ color: 'rgba(255,255,255,0.18)' }}>—</span>}
+                        ) : <span style={{ color: 'rgba(255,255,255,0.18)' }}>-</span>}
                       </td>
                       <td style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.88rem' }}>${order.total.toFixed(2)}</td>
                       <td style={{ padding: '0.875rem 1rem' }}>
@@ -186,7 +187,7 @@ export default async function AdminOverview() {
                         {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
-                        <Link href={`/admin/orders/${order.id}`} style={{ fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>View →</Link>
+                        <Link href={`/admin/orders/${order.id}`} style={{ fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>View</Link>
                       </td>
                     </tr>
                   );

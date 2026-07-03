@@ -156,7 +156,7 @@ export const TESTIMONIALS = [
     name: 'Sarah M.',
     location: 'New York',
     rating: 5,
-    text: 'Ordered 3 shirts for my team — the quality is insane. The design process took me literally 3 minutes. Shipping was super fast too.',
+    text: 'Ordered 3 shirts for my team - the quality is insane. The design process took me literally 3 minutes.',
     avatar: 'SM',
     design: 'Cosmic Wanderer',
   },
@@ -179,10 +179,10 @@ export const TESTIMONIALS = [
 ];
 
 export const STATS = [
-  { value: '50K+', label: 'Shirts Printed' },
-  { value: '4.9★', label: 'Average Rating' },
-  { value: '72h', label: 'Fast Delivery' },
-  { value: '100%', label: 'Satisfaction' },
+  { value: '50K+', label: 'Design Ideas' },
+  { value: '4.9', label: 'Experience Goal' },
+  { value: '3 min', label: 'Fast Start' },
+  { value: '100%', label: 'Customizable' },
 ];
 
 export const BASE_PRICE = 24.99;

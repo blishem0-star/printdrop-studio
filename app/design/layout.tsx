@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Design Studio',
-  description: 'Create a custom shirt with AI. Add text, upload images, or describe your idea and let AI generate a unique design. 300 DPI printing, ships in 72 hours.',
+  description: 'Create a custom apparel concept, add text or images, refine the layout, and submit a clean order request.',
   keywords: ['design custom shirt', 'ai shirt designer', 'custom t-shirt studio', 'shirt design tool', 'print on demand designer'],
   openGraph: {
-    title: 'Design Studio — STYLX.AI',
-    description: 'Create a custom shirt with AI. Describe it, design it, wear it.',
+    title: 'Design Studio - STYLX.AI',
+    description: 'Create a custom apparel concept, refine it, and prepare it for review.',
     type: 'website',
   },
   alternates: {

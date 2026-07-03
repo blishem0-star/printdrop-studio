@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'STYLX.AI — Describe it. Wear it.';
+export const alt = 'STYLX.AI - Describe it. Wear it.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -53,7 +53,7 @@ export default function OgImage() {
 
           {/* Sub */}
           <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.35)', fontWeight: 400, textAlign: 'center', maxWidth: 700 }}>
-            AI-generated custom shirts · 300 DPI DTG print · Ships in 72 hours
+            Guided custom apparel - 300 DPI artwork - Ready for review
           </div>
         </div>
       </div>

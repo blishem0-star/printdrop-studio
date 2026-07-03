@@ -5,14 +5,14 @@ import { getSession } from '@/lib/session';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Track your order',
-  description: 'Follow your STYLX.AI order from production to delivery.',
+  title: 'Track your order request',
+  description: 'Follow your STYLX.AI order request from review to fulfillment.',
   robots: { index: false }, // order pages are private, keep them out of search
 };
 
-const STATUS_FLOW = ['PAID', 'IN_PRODUCTION', 'SHIPPED', 'DELIVERED'] as const;
+const STATUS_FLOW = ['DRAFT', 'PAID', 'IN_PRODUCTION', 'SHIPPED', 'DELIVERED'] as const;
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'Draft', PAID: 'Order received', IN_PRODUCTION: 'In production',
+  DRAFT: 'Request received', PAID: 'Payment confirmed', IN_PRODUCTION: 'In production',
   SHIPPED: 'Shipped', DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
 };
 
@@ -43,16 +43,16 @@ export default async function OrderTrackingPage(
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507,#060610)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
-          <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '2rem', letterSpacing: '0.05em', marginBottom: 8 }}>Track your order</h1>
+          <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '2rem', letterSpacing: '0.05em', marginBottom: 8 }}>Track your order request</h1>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', marginBottom: 20 }}>
-            {order ? 'Enter the email used for this order to view its status.' : 'Order not found — check the link, or verify with your email below.'}
+            {order ? 'Enter the email used for this order request to view its status.' : 'Order not found - check the link, or verify with your email below.'}
           </p>
           <form method="GET" style={{ display: 'flex', gap: 8 }}>
             <input name="email" type="email" required placeholder="you@example.com" defaultValue={email ?? ''}
               style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '0.6rem 0.8rem', color: '#fff', fontSize: '0.85rem', outline: 'none' }} />
             <button type="submit" style={{ padding: '0.6rem 1.2rem', borderRadius: 10, background: '#00E5C8', color: '#03241F', fontWeight: 800, fontSize: '0.8rem', border: 'none', cursor: 'pointer' }}>View</button>
           </form>
-          <Link href="/home" style={{ display: 'inline-block', marginTop: 18, color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', textDecoration: 'none' }}>← Back home</Link>
+          <Link href="/home" style={{ display: 'inline-block', marginTop: 18, color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', textDecoration: 'none' }}>Back home</Link>
         </div>
       </div>
     );
@@ -64,12 +64,12 @@ export default async function OrderTrackingPage(
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507,#060610)', padding: '3rem 1.5rem' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(0,229,200,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Order tracking</div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(0,229,200,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Order request tracking</div>
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '2.4rem', letterSpacing: '0.04em', margin: '0 0 4px' }}>
           {STATUS_LABEL[order.status] ?? order.status}
         </h1>
         <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', marginBottom: 28 }}>
-          Order <span style={{ fontFamily: 'monospace' }}>{order.id.slice(-8).toUpperCase()}</span> · placed {order.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          Request <span style={{ fontFamily: 'monospace' }}>{order.id.slice(-8).toUpperCase()}</span> - submitted {order.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </div>
 
         {/* Progress */}
@@ -105,7 +105,7 @@ export default async function OrderTrackingPage(
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: i < order.items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{it.designAsset?.title ?? 'Custom design'}</div>
-                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)' }}>{it.designAsset?.colorName} · {it.designAsset?.size}</div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)' }}>{it.designAsset?.colorName} - {it.designAsset?.size}</div>
               </div>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.1rem' }}>${it.unitPrice.toFixed(2)}</div>
             </div>
@@ -117,9 +117,9 @@ export default async function OrderTrackingPage(
         </div>
 
         <div style={{ marginTop: 16, fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>
-          Shipping to {order.shippingCity}, {order.shippingState} · Last update {order.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          Delivery details: {order.shippingCity}, {order.shippingState} - Last update {order.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </div>
-        <Link href="/home" style={{ display: 'inline-block', marginTop: 20, color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', textDecoration: 'none' }}>← Back home</Link>
+        <Link href="/home" style={{ display: 'inline-block', marginTop: 20, color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', textDecoration: 'none' }}>Back home</Link>
       </div>
     </div>
   );

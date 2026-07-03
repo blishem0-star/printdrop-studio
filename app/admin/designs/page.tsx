@@ -27,7 +27,7 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', fontWeight: 400, letterSpacing: '0.05em' }}>Design Assets</h1>
         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', marginTop: 4 }}>
-          {totalCount} total · page {pageNum} of {totalPages || 1}
+          {totalCount} total - page {pageNum} of {totalPages || 1}
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
                         {order.customer.name}
                       </div>
                       <Link href={`/admin/orders/${order.id}`} style={{ fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
-                        View order →
+                        View order
                       </Link>
                     </div>
                   ) : (
@@ -97,11 +97,11 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
         {totalPages > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem' }}>
             <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)' }}>
-              {(pageNum - 1) * PAGE_SIZE + 1}–{Math.min(pageNum * PAGE_SIZE, totalCount)} of {totalCount}
+              {(pageNum - 1) * PAGE_SIZE + 1}-{Math.min(pageNum * PAGE_SIZE, totalCount)} of {totalCount}
             </span>
             <div style={{ display: 'flex', gap: 6 }}>
-              {pageNum > 1 && <Link href={`/admin/designs?page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
-              {pageNum < totalPages && <Link href={`/admin/designs?page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
+              {pageNum > 1 && <Link href={`/admin/designs?page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Prev</Link>}
+              {pageNum < totalPages && <Link href={`/admin/designs?page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next</Link>}
             </div>
           </div>
         )}

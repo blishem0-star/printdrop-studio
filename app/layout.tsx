@@ -10,15 +10,15 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: { default: "STYLX.AI — Describe it. Wear it.", template: "%s | STYLX.AI" },
-  description: "Describe your perfect shirt and AI generates it instantly. Fashion-tech custom printing shipped in 72 hours.",
+  title: { default: "STYLX.AI - Describe it. Wear it.", template: "%s | STYLX.AI" },
+  description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
   keywords: ["ai shirt design", "custom t-shirts", "ai fashion", "print on demand", "personalized shirts", "ai generated clothing"],
   metadataBase: new URL("https://stylx.ai"),
   alternates: { canonical: "https://stylx.ai" },
   icons: { icon: '/favicon.ico', shortcut: '/favicon.ico' },
   openGraph: {
-    title: "STYLX.AI — Describe it. Wear it.",
-    description: "Describe your perfect shirt and AI generates it instantly. Fashion-tech printing, shipped in 72 hours.",
+    title: "STYLX.AI - Describe it. Wear it.",
+    description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
     type: "website",
     siteName: "STYLX.AI",
     url: "https://stylx.ai",
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "STYLX.AI — AI-Powered Custom Shirt Design",
+        alt: "STYLX.AI - AI-Powered Custom Shirt Design",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "STYLX.AI — Describe it. Wear it.",
-    description: "Type a shirt idea. AI generates it in seconds. Order it printed in 72 hours.",
+    title: "STYLX.AI - Describe it. Wear it.",
+    description: "Type a shirt idea, personalize it, and turn it into a custom apparel order.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -72,13 +72,12 @@ const jsonLd = {
       "@type": "Service",
       name: "AI Custom Shirt Printing",
       provider: { "@id": "https://stylx.ai/#org" },
-      description: "Describe any shirt idea and AI generates a unique design. Premium 300 DPI DTG printing shipped in 72 hours.",
+      description: "Describe any apparel idea, personalize the design, and submit it as a custom order request.",
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
         price: "24.99",
         availability: "https://schema.org/InStock",
-        deliveryLeadTime: { "@type": "QuantitativeValue", value: 3, unitCode: "DAY" },
       },
     },
   ],

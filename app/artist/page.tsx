@@ -57,7 +57,7 @@ export default function ArtistPage() {
       fetch('/api/artist/designs'),
       fetch('/api/artist/earnings'),
     ]).then(async ([dr, er]) => {
-      // Stale localStorage hint without a valid session cookie → 401: treat as logged out
+      // Stale localStorage hint without a valid session cookie means 401: treat as logged out
       if (dr.status === 401 || er.status === 401) { setLocalSession(null); router.replace('/'); return; }
       const d = dr.ok ? await dr.json() : [];
       const e = er.ok ? await er.json() : null;
@@ -74,7 +74,7 @@ export default function ArtistPage() {
         setSvgContent(content);
         setPreviewUrl(svgToDataUrl(content));
       } else {
-        // raster image — store as data URL, wrap in SVG image element
+        // Raster images are stored as data URLs and wrapped in an SVG image element.
         setSvgContent(content); // store data URL directly
         setPreviewUrl(content);
       }
@@ -156,7 +156,7 @@ export default function ArtistPage() {
             {/* Hook line */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: '1.1rem', flexWrap: 'wrap' }}>
               <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.4rem,4vw,2rem)', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>You keep 50% on every sale</span>
-              <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>— we handle print, shipping &amp; support.</span>
+              <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>- we coordinate review, production, and support.</span>
             </div>
             <div className="rsp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
               {[
@@ -176,7 +176,7 @@ export default function ArtistPage() {
       )}
 
       <div className="rsp-pad" style={{ maxWidth: 860, margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 1 }}>
-        <h1 className="sr-only">Artist Studio — Manage and upload your designs</h1>
+        <h1 className="sr-only">Artist Studio - Manage and upload your designs</h1>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem' }}>
@@ -191,7 +191,7 @@ export default function ArtistPage() {
         {submitSuccess && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.875rem 1.25rem', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, marginBottom: '1.25rem', fontSize: '0.82rem', color: '#10B981', fontWeight: 600 }}>
             <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M3 7.5l2.5 2.5L11 4" /></svg>
-            Design submitted! Our team will review it within 24–48 hours.
+            Design submitted. Our team will review it shortly.
           </div>
         )}
 
@@ -207,7 +207,7 @@ export default function ArtistPage() {
                 </div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.5rem,3.5vw,2rem)', fontWeight: 400, letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 6, lineHeight: 1 }}>50% ON EVERY SALE</div>
                 <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 8, color: 'rgba(255,255,255,0.8)' }}>No designs yet</div>
-                <div style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', marginBottom: '1.5rem', maxWidth: 300, lineHeight: 1.6 }}>Upload your first design. You earn half on every shirt sold — we handle print, shipping, and support.</div>
+                <div style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', marginBottom: '1.5rem', maxWidth: 300, lineHeight: 1.6 }}>Upload your first design. You earn half on every approved sale while Stylx coordinates review, production, and support.</div>
                 <button onClick={() => setTab('upload')} style={{ padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.88rem', cursor: 'pointer' }}>Upload First Design</button>
               </div>
             ) : (
@@ -266,7 +266,7 @@ export default function ArtistPage() {
 
                 {uploadMode === 'file' ? (
                   <div
-                    role="button" tabIndex={0} aria-label="Upload design file — drag and drop or click to browse"
+                    role="button" tabIndex={0} aria-label="Upload design file - drag and drop or click to browse"
                     onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && fileRef.current?.click()}
                     onDragEnter={e => { e.preventDefault(); setDragging(true); }}
                     onDragLeave={() => setDragging(false)}
@@ -290,7 +290,7 @@ export default function ArtistPage() {
                           <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={26} height={26} aria-hidden="true"><path d="M12 15V3M8 7L12 3l4 4"/><path d="M20 15v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4"/></svg>
                         </div>
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Drop SVG or image here</div>
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>SVG, PNG, JPG — max 10MB · or click to browse</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>SVG, PNG, JPG - max 10MB - or click to browse</div>
                       </>
                     )}
                   </div>
@@ -314,7 +314,7 @@ export default function ArtistPage() {
                 disabled={submitting || !title.trim() || !category || !svgContent.trim()}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: !submitting && title.trim() && category && svgContent.trim() ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: !submitting && title.trim() && category && svgContent.trim() ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: !submitting && title.trim() && category && svgContent.trim() ? 'pointer' : 'default', transition: 'all 0.2s', boxShadow: !submitting && title.trim() ? '0 6px 20px rgba(0,229,200,0.25)' : 'none' }}
               >
-                {submitting ? 'Submitting...' : 'Submit for Review →'}
+                {submitting ? 'Submitting...' : 'Submit for Review'}
               </button>
             </div>
 
@@ -373,7 +373,7 @@ function DesignCard({ design }: { design: ArtistDesign }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.1rem', letterSpacing: '0.03em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price.toFixed(2)}</span>
           {design.status === 'APPROVED' && (
-            <span style={{ fontSize: '0.58rem', color: '#10B981', fontWeight: 700 }}>{design.salesCount} sold · ${design.totalEarned.toFixed(2)}</span>
+            <span style={{ fontSize: '0.58rem', color: '#10B981', fontWeight: 700 }}>{design.salesCount} sold - ${design.totalEarned.toFixed(2)}</span>
           )}
         </div>
         {design.status === 'REJECTED' && (

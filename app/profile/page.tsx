@@ -11,7 +11,7 @@ type OrderStatus = 'DRAFT' | 'PAID' | 'IN_PRODUCTION' | 'SHIPPED' | 'DELIVERED' 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  DRAFT: 'Draft', PAID: 'Paid', IN_PRODUCTION: 'In Production',
+  DRAFT: 'Request Received', PAID: 'Payment Confirmed', IN_PRODUCTION: 'In Production',
   SHIPPED: 'Shipped', DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
 };
 const STATUS_COLOR: Record<OrderStatus, string> = {
@@ -67,7 +67,7 @@ export default function ProfilePage() {
     fetch('/api/user/profile')
       .then(async r => {
         // A stale localStorage hint without a valid session cookie (e.g. logged in
-        // before the cookie migration) returns 401 — treat that as logged out.
+        // before the cookie migration) returns 401 - treat that as logged out.
         if (r.status === 401) { setLocalSession(null); router.replace('/'); return null; }
         if (!r.ok) return null;
         return r.json() as Promise<Profile>;
@@ -161,7 +161,7 @@ export default function ProfilePage() {
 
   if (!session || loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading profile…</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', fontFamily: "'Outfit', system-ui, sans-serif" }}>Loading profile...</div>
     </div>
   );
 
@@ -197,7 +197,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="rsp-pad" style={{ maxWidth: 820, margin: '0 auto', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
-        <h1 className="sr-only">Your Profile — {profile?.name ?? session.name}</h1>
+        <h1 className="sr-only">Your Profile - {profile?.name ?? session.name}</h1>
 
         {/* Identity card */}
         <div className="scan-card holo-card" style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
@@ -218,7 +218,7 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
               {[
                 [String(orderCount), orderCount === 1 ? 'Order' : 'Orders'],
-                [profile ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—', 'Member since'],
+                [profile ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '-', 'Member since'],
                 [badge.label, 'Tier'],
               ].map(([n, l], i) => (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -243,7 +243,7 @@ export default function ProfilePage() {
             <div><label htmlFor="prof-name" style={lbl}>Full Name</label><input id="prof-name" aria-invalid={!!profileError && editName.trim().length < 2} style={inp} autoComplete="name" maxLength={80} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Jane Smith" /></div>
             <div><label htmlFor="prof-email" style={lbl}>Email</label><input id="prof-email" aria-invalid={!!profileError && !!editEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail)} style={inp} type="email" autoComplete="email" maxLength={120} value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="you@example.com" /></div>
             {editEmail.trim().toLowerCase() !== (session?.email ?? '').toLowerCase() && editEmail.trim() !== '' && (
-              <div><label htmlFor="prof-pw" style={lbl}>Current password (required to change email)</label><input id="prof-pw" style={inp} type="password" autoComplete="current-password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" /></div>
+              <div><label htmlFor="prof-pw" style={lbl}>Current password (required to change email)</label><input id="prof-pw" style={inp} type="password" autoComplete="current-password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="********" /></div>
             )}
           </div>
           {profileError && <div role="alert" aria-live="assertive" style={{ fontSize: '0.72rem', color: '#F87171', marginBottom: 10 }}>{profileError}</div>}
@@ -295,7 +295,7 @@ export default function ProfilePage() {
                 <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', fontWeight: 700, flexShrink: 0 }}>{orderCount}/3 orders</span>
               </div>
               <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
-                After your 3rd order, our AI analyzes your style preferences and creates a personalized profile — with shirt recommendations tailored just for you.
+                After your 3rd order, our AI analyzes your style preferences and creates a personalized profile with shirt recommendations tailored just for you.
               </p>
             </div>
           ) : profile?.aiProfile ? (
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{order.items[0]?.designAsset?.title ?? 'Custom Design'}</div>
                     <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
-                      #{order.id.slice(0,8).toUpperCase()} · {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      #{order.id.slice(0,8).toUpperCase()} - {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
                   <span style={{ fontSize: '0.58rem', fontWeight: 800, padding: '2px 8px', borderRadius: 999, color: STATUS_COLOR[order.status], background: `${STATUS_COLOR[order.status]}18`, border: `1px solid ${STATUS_COLOR[order.status]}33` }}>

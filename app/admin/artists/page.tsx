@@ -54,7 +54,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
           { label: 'Pending Review', value: pending,          color: '#F59E0B' },
           { label: 'Approved',       value: approved,         color: '#10B981' },
           { label: 'Total Designs',  value: total,            color: '#8B5CF6' },
-          { label: 'Total Paid Out', value: `$${(totalEarned._sum.totalEarned ?? 0).toFixed(2)}`, color: '#3B82F6' },
+          { label: 'Creator Earnings', value: `$${(totalEarned._sum.totalEarned ?? 0).toFixed(2)}`, color: '#3B82F6' },
         ].map(s => (
           <div key={s.label} style={{ padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${s.color},transparent)` }} />
@@ -115,7 +115,7 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>${d.price.toFixed(2)}</div>
                       <div style={{ fontSize: '0.62rem', color: '#00E5C8' }}>Artist: ${(d.price * 0.5).toFixed(2)}</div>
-                      {d.salesCount > 0 && <div style={{ fontSize: '0.6rem', color: '#10B981', marginTop: 1 }}>{d.salesCount} sold · ${d.totalEarned.toFixed(2)} paid</div>}
+                      {d.salesCount > 0 && <div style={{ fontSize: '0.6rem', color: '#10B981', marginTop: 1 }}>{d.salesCount} sold - ${d.totalEarned.toFixed(2)} earned</div>}
                     </td>
                     <td style={{ padding: '0.875rem 1rem' }}>
                       <span style={{ display: 'inline-block', padding: '3px 9px', borderRadius: 999, fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: s.color, background: s.bg, border: `1px solid ${s.color}33` }}>{s.label}</span>
@@ -136,9 +136,9 @@ export default async function AdminArtistsPage({ searchParams }: { searchParams:
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', gap: 6, marginTop: '1.25rem', justifyContent: 'center' }}>
-          {pageNum > 1 && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>← Prev</Link>}
+          {pageNum > 1 && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum - 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Prev</Link>}
           <span style={{ padding: '5px 14px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{pageNum} / {totalPages}</span>
-          {pageNum < totalPages && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next →</Link>}
+          {pageNum < totalPages && <Link href={`/admin/artists?filter=${activeFilter}&page=${pageNum + 1}`} style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Next</Link>}
         </div>
       )}
     </div>

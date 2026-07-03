@@ -49,10 +49,14 @@ export function buildDesignDocumentSvgDataUrl(document: DesignDocument): string 
   <metadata id="stylx-design-document" data-version="1">${encodedJson}</metadata>
   <rect width="200" height="230" rx="10" fill="${escapeXml(document.colorHex)}"/>
   <text x="100" y="108" text-anchor="middle" font-size="10" fill="${escapeXml(document.colorHex === '#000000' ? '#ffffff' : '#111111')}" font-family="system-ui, sans-serif" font-weight="700">STYLX DESIGN</text>
-  <text x="100" y="124" text-anchor="middle" font-size="7" fill="${escapeXml(document.colorHex === '#000000' ? '#ffffff' : '#111111')}" font-family="system-ui, sans-serif" opacity="0.6">${document.layers.length} layers · ${Object.values(document.uploads).filter(Boolean).length} uploads</text>
+  <text x="100" y="124" text-anchor="middle" font-size="7" fill="${escapeXml(document.colorHex === '#000000' ? '#ffffff' : '#111111')}" font-family="system-ui, sans-serif" opacity="0.6">${document.layers.length} layers - ${Object.values(document.uploads).filter(Boolean).length} uploads</text>
 </svg>`;
   return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
 }
+
+export type SubmitOrderResult =
+  | { ok: true; id: string }
+  | { ok: false; error: string };
 
 export async function submitOrder(payload: {
   customerName: string;
@@ -75,16 +79,19 @@ export async function submitOrder(payload: {
     filePath?: string;
     artistDesignId?: string;
   };
-}): Promise<{ id: string } | null> {
+}): Promise<SubmitOrderResult> {
   try {
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) return null;
-    return res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return { ok: false, error: typeof data?.error === 'string' ? data.error : 'Order request failed.' };
+    }
+    return { ok: true, id: data.id };
   } catch {
-    return null;
+    return { ok: false, error: 'Network error. Check your connection.' };
   }
 }

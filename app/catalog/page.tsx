@@ -131,7 +131,7 @@ function ShirtCard({ design, selected, onClick, featured = false }: { design: Ca
   const mock = featured ? 200 : 120;
   const art = featured ? 80 : 48;
   return (
-    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} — $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`scan-card holo-card${featured ? ' cat-featured-card' : ''}`} style={{ height: '100%', display: 'flex', flexDirection: featured ? 'row' : 'column', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
+    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} - $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`scan-card holo-card${featured ? ' cat-featured-card' : ''}`} style={{ height: '100%', display: 'flex', flexDirection: featured ? 'row' : 'column', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {featured && <div aria-hidden="true" style={{ position: 'absolute', bottom: -10, right: 8, zIndex: 0, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', lineHeight: 1, color: 'rgba(0,229,200,0.05)', letterSpacing: '0.04em', pointerEvents: 'none' }}>FEATURED</div>}
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
@@ -269,14 +269,14 @@ export default function CatalogPage() {
           artistDesignId: selected.originalId ?? undefined,
         },
       });
-      if (result) {
+      if (result.ok) {
         if (saveAddress) {
           try { localStorage.setItem('pd_shipping', JSON.stringify({ street: shipStreet, city: shipCity, zip: shipZip, state: shipState })); } catch { /* ignore */ }
         }
         setOrderId(result.id); setOrdered(true);
-        showToast('Order placed!', 'success');
+        showToast('Order request sent!', 'success');
       } else {
-        showToast('Failed to place order. Try again.', 'error');
+        showToast(result.error, 'error');
       }
     } catch { showToast('Network error. Check your connection.', 'error'); }
     finally { setSubmitting(false); }
@@ -338,11 +338,11 @@ export default function CatalogPage() {
             <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 50%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Worn by you.</span>
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: 420, marginTop: '1.1rem' }}>
-            Every piece is generated, curated, and printed on demand. Pick one — make it yours in seconds.
+            Every piece starts as a curated design concept. Pick one, make it yours, and submit a clean order request in seconds.
           </p>
           {/* Stat strip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)', marginTop: '2rem', flexWrap: 'wrap' }}>
-            {[[`${allDesigns.length}`, 'Designs'], ['300dpi', 'Print'], ['72h', 'Delivery'], ['50%', 'To Artists']].map(([n, l], i) => (
+            {[[`${allDesigns.length}`, 'Designs'], ['300dpi', 'Artwork'], ['Review', 'Ready'], ['50%', 'To Artists']].map(([n, l], i) => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)' }}>
                 {i > 0 && <span aria-hidden="true" style={{ width: 1, height: 28, background: 'rgba(0,229,200,0.18)' }} />}
                 <div>
@@ -392,7 +392,7 @@ export default function CatalogPage() {
               {drawerStep === 'delivery' && !ordered && <button aria-label="Back to customize" onClick={() => setDrawerStep('customize')} style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 2 }}><svg viewBox="0 0 14 14" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 7H3M7 3L3 7l4 4" /></svg></button>}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{selected.title}</div>
-                <div aria-live="polite" style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Confirmed' : drawerStep === 'customize' ? 'Step 1 — Customize' : 'Step 2 — Delivery'}</div>
+                <div aria-live="polite" style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>{ordered ? 'Request sent' : drawerStep === 'customize' ? 'Step 1 - Customize' : 'Step 2 - Delivery'}</div>
               </div>
               <button aria-label="Close panel" onClick={closeDrawer} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg viewBox="0 0 14 14" width={12} height={12} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" /></svg></button>
             </div>
@@ -402,8 +402,8 @@ export default function CatalogPage() {
                 <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(0,229,200,0.15),rgba(0,153,255,0.1))', border: '1px solid rgba(0,229,200,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M5 12l5 5 9-9"/></svg>
                 </div>
-                <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order confirmed!</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} · {color?.name} · Size {size}</div>
+                <div style={{ fontWeight: 900, fontSize: '1.35rem' }}>Order request sent</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>{selected.title} - {color?.name} - Size {size}</div>
                 {orderId && <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontFamily: 'monospace' }}>#{orderId.slice(0,8).toUpperCase()}</div>}
                 <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', maxWidth: 280, lineHeight: 1.5 }}>Check your order status in your <Link href="/profile" style={{ color: '#00E5C8', textDecoration: 'none' }}>profile page</Link>.</p>
                 <button onClick={() => { setOrdered(false); setSelected(null); }} style={{ marginTop: 4, padding: '0.75rem 2rem', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', boxShadow: '0 6px 20px rgba(0,229,200,0.3)' }}>Back to catalog</button>
@@ -443,21 +443,21 @@ export default function CatalogPage() {
                   </div>
                   {/* Color */}
                   <div style={{ marginBottom: '1.15rem' }}>
-                    <div style={lbl}>Shirt Color {color && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {color.name}</span>}</div>
+                    <div style={lbl}>Shirt Color {color && <span style={{ fontWeight: 500, textTransform: 'none' }}>- {color.name}</span>}</div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingBottom: 4 }}>
                       {SHIRT_COLORS.map(c => <ColorSwatch key={c.id} c={c} selected={color?.id === c.id} onClick={() => setColor(c)} />)}
                     </div>
                   </div>
                   {/* Size */}
                   <div style={{ marginBottom: '1.15rem' }}>
-                    <div style={lbl}>Size {size && <span style={{ fontWeight: 500, textTransform: 'none' }}>— {size}</span>}</div>
+                    <div style={lbl}>Size {size && <span style={{ fontWeight: 500, textTransform: 'none' }}>- {size}</span>}</div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       {SHIRT_SIZES.map(s => <button key={s} aria-pressed={size === s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
                     </div>
                   </div>
                   {/* Text */}
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
-                    <div style={lbl}>Text — {showBack ? 'Back' : 'Front'} <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(255,255,255,0.2)' }}>(optional)</span></div>
+                    <div style={lbl}>Text - {showBack ? 'Back' : 'Front'} <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(255,255,255,0.2)' }}>(optional)</span></div>
                     <input
                       aria-label={`Custom text on ${showBack ? 'back' : 'front'} of shirt`}
                       value={showBack ? backText : frontText}
@@ -494,7 +494,7 @@ export default function CatalogPage() {
                     <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.3rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${total.toFixed(2)}</span>
                   </div>
                   <button aria-describedby={!customizeDone ? 'customize-hint' : undefined} disabled={!customizeDone} onClick={() => setDrawerStep('delivery')} style={{ width: '100%', height: 46, borderRadius: 12, border: 'none', background: customizeDone ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: customizeDone ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: customizeDone ? 'pointer' : 'default', boxShadow: customizeDone ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
-                    {!color || !size ? <span id="customize-hint">Pick color & size</span> : 'Continue to delivery →'}
+                    {!color || !size ? <span id="customize-hint">Pick color & size</span> : 'Continue to delivery'}
                   </button>
                 </div>
               </>
@@ -509,8 +509,8 @@ export default function CatalogPage() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: '0.82rem' }}>{selected.title}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{color?.name} · Size {size}</div>
-                      {(frontText || backText) && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{[frontText && `Front: "${frontText}"`, backText && `Back: "${backText}"`].filter(Boolean).join(' · ')}</div>}
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{color?.name} - Size {size}</div>
+                      {(frontText || backText) && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{[frontText && `Front: "${frontText}"`, backText && `Back: "${backText}"`].filter(Boolean).join(' - ')}</div>}
                     </div>
                     <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', flexShrink: 0 }}>${total.toFixed(2)}</div>
                   </div>
@@ -530,7 +530,7 @@ export default function CatalogPage() {
                       <div><label htmlFor="cat-zip" style={lbl}>ZIP</label><input id="cat-zip" style={{ ...inp, fontFamily: 'monospace' }} name="postal-code" autoComplete="postal-code" inputMode="numeric" value={shipZip} onChange={e => setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001" /></div>
                     </div>
 
-                    {/* Save checkbox — only for registered users */}
+                    {/* Save checkbox - only for registered users */}
                     {session.type === 'user' && (
                       <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginTop: 4 }}>
                         <input type="checkbox" checked={saveAddress} onChange={e => setSaveAddress(e.target.checked)} className="sr-only" />
@@ -545,12 +545,12 @@ export default function CatalogPage() {
 
                 <div style={{ flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
                   <button disabled={!deliveryDone || submitting} onClick={handleOrder} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: deliveryDone && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: deliveryDone && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: deliveryDone && !submitting ? 'pointer' : 'default', boxShadow: deliveryDone && !submitting ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
-                    {submitting ? 'Placing order...' : !deliveryDone ? 'Fill in delivery details' : `Send to Print — $${total.toFixed(2)}`}
+                    {submitting ? 'Sending request...' : !deliveryDone ? 'Fill in delivery details' : `Submit order request - $${total.toFixed(2)}`}
                   </button>
                   {deliveryDone && <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>{[
                     {label: 'Secure', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M5 1L2 2.5v3c0 1.5 1 3 3 3.5 2-.5 3-2 3-3.5v-3z"/></svg>},
-                    {label: '72h Delivery', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1.5 1.5"/></svg>},
-                    {label: 'Free Returns', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M2 6L5 3l3 3M5 3v6"/></svg>},
+                    {label: 'Manual review', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1.5 1.5"/></svg>},
+                    {label: 'Design review', icon: <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M2 6L5 3l3 3M5 3v6"/></svg>},
                   ].map(t => <span key={t.label} style={{ fontSize: '0.57rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><span style={{color:'rgba(0,229,200,0.6)',display:'flex'}}>{t.icon}</span>{t.label}</span>)}</div>}
                 </div>
               </>

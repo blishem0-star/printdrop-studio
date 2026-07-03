@@ -5,7 +5,7 @@ import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
 
-export const revalidate = 300; // ISR — artist designs refresh every 5 minutes
+export const revalidate = 300; // ISR: artist designs refresh every 5 minutes
 
 type ResolvedDesign = {
   id: string;
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const design = await resolveDesign(id);
   if (!design) return { title: 'Design not found' };
-  const desc = `${design.title} — ${design.category} design${design.artistName ? ` by ${design.artistName}` : ''}. Premium custom print from $${design.price.toFixed(2)}, shipped in 72 hours.`;
+  const desc = `${design.title} - ${design.category} design${design.artistName ? ` by ${design.artistName}` : ''}. Premium custom print from $${design.price.toFixed(2)}, ready to customize.`;
   return {
     title: design.title,
     description: desc,
@@ -78,7 +78,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <header style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <Link href="/catalog" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', textDecoration: 'none', fontWeight: 600 }}>← Catalog</Link>
+        <Link href="/catalog" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', textDecoration: 'none', fontWeight: 600 }}>Catalog</Link>
       </header>
 
       <main className="rsp-stack" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4rem', padding: '3rem 2rem', maxWidth: 1000, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
@@ -95,7 +95,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
 
         <div style={{ maxWidth: 360 }}>
           <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(0,229,200,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
-            {design.category}{design.artistName ? ` · by ${design.artistName}` : ''}
+            {design.category}{design.artistName ? ` - by ${design.artistName}` : ''}
           </div>
           <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: 'clamp(2.2rem, 5vw, 3.4rem)', letterSpacing: '0.03em', lineHeight: 1, margin: '0 0 14px', background: 'linear-gradient(135deg,#fff 40%,rgba(0,229,200,0.85))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             {design.title}
@@ -104,7 +104,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
             ${design.price.toFixed(2)}
           </div>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: 24 }}>
-            Premium 300 DPI DTG print on heavyweight cotton. Pick your color and size in the catalog — shipped in 72 hours.
+            Premium print concept on heavyweight cotton. Pick your color and size in the catalog, then submit an order request for review.
           </p>
           <Link href={`/catalog?design=${encodeURIComponent(design.id)}`} style={{ display: 'inline-block', padding: '0.8rem 2rem', borderRadius: 10, background: '#00E5C8', color: '#03241F', fontWeight: 800, fontSize: '0.85rem', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
             Customize & Order

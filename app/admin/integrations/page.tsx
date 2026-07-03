@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 const STATUS_META: Record<IntegrationStatus, { label: string; color: string; bg: string }> = {
   live: { label: 'Live ready', color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
   configured: { label: 'Configured', color: '#00E5C8', bg: 'rgba(0,229,200,0.1)' },
-  missing: { label: 'Missing setup', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+  missing: { label: 'Ready to connect', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
 };
 
 const iconStyle = {
@@ -35,7 +35,7 @@ export default function AdminIntegrationsPage() {
   const score = integrationScore(integrations);
   const liveCount = integrations.filter(i => i.status === 'live').length;
   const configuredCount = integrations.filter(i => i.status === 'configured').length;
-  const missingCount = integrations.filter(i => i.status === 'missing').length;
+  const laterCount = integrations.filter(i => i.status === 'missing').length;
 
   return (
     <div>
@@ -44,7 +44,7 @@ export default function AdminIntegrationsPage() {
           <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#00E5C8', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 6 }}>Operations center</div>
           <h1 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2.25rem', fontWeight: 400, letterSpacing: '0.05em', lineHeight: 1 }}>Integrations</h1>
           <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: '0.82rem', marginTop: 5, maxWidth: 720 }}>
-            Connect the services that turn the studio into a production business: AI assistance, verified payments, and print fulfillment.
+            External services are mapped for the next phase. The site can stay clean and production-ready now, then connect AI, payments, and fulfillment when you decide.
           </p>
         </div>
         <Link href="/admin" style={{ padding: '9px 13px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.58)', textDecoration: 'none', fontSize: '0.76rem', fontWeight: 800, background: 'rgba(255,255,255,0.03)' }}>Back to overview</Link>
@@ -54,7 +54,7 @@ export default function AdminIntegrationsPage() {
         <div style={{ borderRadius: 18, border: '1px solid rgba(0,229,200,0.16)', background: 'linear-gradient(145deg,rgba(0,229,200,0.09),rgba(255,255,255,0.025))', padding: 18, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 82% 0%,rgba(0,153,255,0.18),transparent 45%)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative' }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'rgba(255,255,255,0.42)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Production readiness</div>
+            <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'rgba(255,255,255,0.42)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Build readiness</div>
             <div style={{ display: 'flex', alignItems: 'end', gap: 8, marginTop: 8 }}>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '4.2rem', lineHeight: 0.9, color: '#00E5C8' }}>{score}</div>
               <div style={{ color: 'rgba(255,255,255,0.42)', fontSize: '0.9rem', fontWeight: 900, marginBottom: 8 }}>/100</div>
@@ -63,7 +63,7 @@ export default function AdminIntegrationsPage() {
               <div style={{ width: `${score}%`, height: '100%', background: 'linear-gradient(90deg,#00E5C8,#0099FF)', borderRadius: 999 }} />
             </div>
             <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem', lineHeight: 1.55, marginTop: 14 }}>
-              {missingCount === 0 ? 'All core services have configuration present. Run live test orders before launch.' : `${missingCount} integration${missingCount > 1 ? 's' : ''} still need setup before a true premium launch.`}
+              Integration plans are documented and isolated from the customer experience. Connect keys later without redesigning the site.
             </p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export default function AdminIntegrationsPage() {
           {[
             { label: 'Live', value: liveCount, color: '#10B981' },
             { label: 'Configured', value: configuredCount, color: '#00E5C8' },
-            { label: 'Needs setup', value: missingCount, color: '#F59E0B' },
+            { label: 'Connect later', value: laterCount, color: '#F59E0B' },
           ].map(s => (
             <div key={s.label} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)', padding: 16 }}>
               <div style={{ fontSize: '0.58rem', fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.label}</div>
@@ -106,7 +106,7 @@ export default function AdminIntegrationsPage() {
                     {integration.env.map(env => (
                       <div key={env.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 10px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.16)' }}>
                         <code style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.68)' }}>{env.key}</code>
-                        <span style={{ color: env.present ? '#10B981' : '#F59E0B', fontSize: '0.6rem', fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{env.present ? 'Present' : 'Missing'}</span>
+                        <span style={{ color: env.present ? '#10B981' : '#F59E0B', fontSize: '0.6rem', fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{env.present ? 'Present' : 'Later'}</span>
                       </div>
                     ))}
                   </div>
@@ -146,9 +146,9 @@ export default function AdminIntegrationsPage() {
       </div>
 
       <section style={{ marginTop: 18, borderRadius: 18, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)', padding: 18 }}>
-        <div style={{ fontSize: '0.62rem', fontWeight: 950, color: '#00E5C8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Launch rule</div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 950, color: '#00E5C8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Build rule</div>
         <p style={{ color: 'rgba(255,255,255,0.56)', fontSize: '0.82rem', lineHeight: 1.65, maxWidth: 920 }}>
-          Orders should only become paid after Stripe confirms payment. After that, the design can unlock download/share and a fulfillment job can send the asset to Printify. OpenAI should stay server-side only so API keys never reach the browser.
+          Keep the product experience complete without external dependencies. When the site flow is final, connect Stripe for payment confirmation, Printify for fulfillment, and OpenAI through protected server routes only.
         </p>
       </section>
     </div>

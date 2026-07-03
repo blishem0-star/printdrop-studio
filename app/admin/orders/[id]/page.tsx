@@ -21,7 +21,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   return (
     <div style={{ maxWidth: 860 }} aria-label={`Order #${order.id.slice(0, 8).toUpperCase()} details`}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
-        <Link href="/admin/orders" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>← Orders</Link>
+        <Link href="/admin/orders" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.8rem' }}>Orders</Link>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>/</span>
         <h1 style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>#{order.id.slice(0, 8).toUpperCase()}</h1>
       </div>

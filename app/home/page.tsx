@@ -62,7 +62,7 @@ export default function HomePage() {
     if (session.customerId) {
       fetch('/api/subscription')
         .then(r => {
-          // 401 = stale localStorage hint with no valid cookie → session expired
+          // 401 = stale localStorage hint with no valid cookie, so session expired.
           if (r.status === 401) { setLocalSession(null); router.replace('/'); return null; }
           return r.ok ? r.json() : null;
         })
@@ -90,7 +90,7 @@ export default function HomePage() {
 
   async function cancelSub() {
     if (!sub || subActionLoading) return;
-    if (!window.confirm('Cancel your subscription? You will still receive boxes already shipped.')) return;
+    if (!window.confirm('Cancel your subscription plan? Existing order requests will stay in your account.')) return;
     setSubActionLoading(true);
     try {
       const res = await fetch('/api/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId: sub.id, status: 'CANCELLED' }) });
@@ -117,7 +117,7 @@ export default function HomePage() {
 
   if (!session) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#050507,#060610)' }}>
-      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>Loading…</div>
+      <div aria-live="polite" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>Loading...</div>
     </div>
   );
 
@@ -213,7 +213,7 @@ export default function HomePage() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Design Studio</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch — add text, upload images, or generate with AI</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch - add text, upload images, or generate with AI</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
@@ -234,7 +234,7 @@ export default function HomePage() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Browse Catalog</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Pick from ready-made designs — tees, hoodies, socks and more</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Pick from ready-made designs - tees, hoodies, socks and more</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 700, color: '#0099FF', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
@@ -261,12 +261,12 @@ export default function HomePage() {
                   3 pieces, curated for your style
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.82rem', lineHeight: 1.6, maxWidth: 440 }}>
-                  Every month we select 3 freshly-printed items that match your vibe — shipped free to your door.
+                  Build a monthly style box from products that match your vibe. Fulfillment settings can be connected when the flow is final.
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '3rem', fontWeight: 400, letterSpacing: '0.02em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>${MONTHLY}</div>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month · cancel anytime</div>
+                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>per month - cancel anytime</div>
               </div>
             </div>
 
@@ -284,7 +284,7 @@ export default function HomePage() {
             <div style={{ display: 'flex', gap: 8, marginBottom: '1.75rem', flexWrap: 'wrap' }}>
               {[
                 { label: 'Surprise every month', icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="1" y="5" width="12" height="8" rx="1.5"/><path d="M7 5v8M7 5c0-1.5 1.5-3 3-2.5M7 5c0-1.5-1.5-3-3-2.5M1 8h12"/></svg> },
-                { label: 'Free shipping',         icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M1 3h9v7H1zM10 5l3 2v3h-3V5z"/><circle cx="3.5" cy="11" r="1"/><circle cx="11" cy="11" r="1"/></svg> },
+                { label: 'Curated styles',       icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><path d="M1 3h9v7H1zM10 5l3 2v3h-3V5z"/><circle cx="3.5" cy="11" r="1"/><circle cx="11" cy="11" r="1"/></svg> },
                 { label: 'Pause anytime',         icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="3" y="2" width="3" height="10" rx="1"/><rect x="8" y="2" width="3" height="10" rx="1"/></svg> },
                 { label: 'Billed monthly',        icon: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} aria-hidden="true"><rect x="1" y="3" width="12" height="8" rx="1.5"/><path d="M1 6h12"/></svg> },
               ].map(f => (
@@ -301,7 +301,7 @@ export default function HomePage() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', color: '#10B981', fontWeight: 800, marginBottom: 3 }}><svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>You&apos;re subscribed{sub!.status === 'PAUSED' ? ' (paused)' : ''}</div>
                   <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>
-                    Next shipment: {new Date(sub!.nextShipmentAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    Next style review: {new Date(sub!.nextShipmentAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -323,7 +323,7 @@ export default function HomePage() {
                   <svg viewBox="0 0 20 20" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={18} height={18} aria-hidden="true"><path d="M4 10l5 5 7-7"/></svg>
                 </div>
                 <div style={{ fontWeight: 800, marginBottom: 4 }}>You&apos;re in!</div>
-                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Your first box ships on the 1st. We&apos;ll email you a tracking number.</div>
+                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Your style plan is saved. You can review or pause it anytime.</div>
               </div>
             )}
 
@@ -336,11 +336,11 @@ export default function HomePage() {
 
             {!hasActiveSub && !subSuccess && session.type === 'user' && !showForm && (
               <button onClick={() => setShowForm(true)} style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', color: '#050507', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(0,229,200,0.25)', transition: 'all 0.15s' }}>
-                Subscribe — ${MONTHLY}/month
+                Subscribe - ${MONTHLY}/month
               </button>
             )}
 
-            {/* ── Subscribe form ── */}
+            {/* Subscribe form */}
             {showForm && (
               <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
@@ -380,13 +380,13 @@ export default function HomePage() {
 
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <button onClick={subscribe} disabled={!selStyle || submitting} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: selStyle && !submitting ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.06)', color: selStyle && !submitting ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: selStyle && !submitting ? 'pointer' : 'default', transition: 'all 0.15s' }}>
-                    {submitting ? 'Subscribing...' : `Confirm — $${MONTHLY}/month`}
+                    {submitting ? 'Subscribing...' : `Confirm - $${MONTHLY}/month`}
                   </button>
                   <button onClick={() => setShowForm(false)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', cursor: 'pointer' }}>Cancel</button>
                 </div>
 
                 <p style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-                  <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={9} height={9} style={{display:'inline',verticalAlign:'middle',marginRight:3}} aria-hidden="true"><rect x="2.5" y="4.5" width="5" height="4.5" rx="0.8"/><path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/></svg>Billed on the 1st each month · Pause or cancel anytime · No hidden fees
+                  <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" width={9} height={9} style={{display:'inline',verticalAlign:'middle',marginRight:3}} aria-hidden="true"><rect x="2.5" y="4.5" width="5" height="4.5" rx="0.8"/><path d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"/></svg>Style plan renews monthly - Pause or cancel anytime - No hidden fees
                 </p>
               </div>
             )}
