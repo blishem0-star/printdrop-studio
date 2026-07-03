@@ -28,6 +28,7 @@ export type StudioCanvasProps = {
   snapGuide: { x:boolean; y:boolean };
   onSelect?: (id:string|null)=>void;
   onLayerDown?: (e:React.PointerEvent, id:string)=>void;
+  onLayerDoubleClick?: (id:string)=>void;
   onHandleDown?: (e:React.PointerEvent, id:string, mode:'resize'|'rotate')=>void;
   onPrintAreaDown?: (e:React.PointerEvent, mode:'move'|'resize')=>void;
 };
@@ -52,7 +53,7 @@ export function StudioCanvas(props: StudioCanvasProps){
   const {
     w, h, view, interactive=true, layers, selected, printArea:area, printBg,
     uploads, imgPos, imgOpacity, imgFx, aiSvg, color, isLight, isTouch, snapGuide,
-    onSelect, onLayerDown, onHandleDown, onPrintAreaDown,
+    onSelect, onLayerDown, onLayerDoubleClick, onHandleDown, onPrintAreaDown,
   } = props;
 
   const idScope=props.idScope??(interactive?'live':'preview');
@@ -117,7 +118,8 @@ export function StudioCanvas(props: StudioCanvasProps){
       <g key={layer.id} transform={`translate(${lx},${ly}) rotate(${layer.rotation}) scale(${layer.flipH?-1:1},${layer.flipV?-1:1})`}
         opacity={layer.opacity??1}
         style={interactive&&!layer.locked?{cursor:'move'}:{}}
-        onPointerDown={interactive&&!layer.locked?e=>onLayerDown?.(e,layer.id):undefined}>
+        onPointerDown={interactive&&!layer.locked?e=>onLayerDown?.(e,layer.id):undefined}
+        onDoubleClick={interactive&&!layer.locked?()=>onLayerDoubleClick?.(layer.id):undefined}>
         {/* Hit box */}
         <rect x={-aw/2-6} y={-ah/2-3} width={aw+12} height={ah+6} fill="transparent"/>
         {layer.type==='shape'?(

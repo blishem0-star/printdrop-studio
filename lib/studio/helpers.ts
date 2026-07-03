@@ -155,4 +155,49 @@ export const TEMPLATES = [
       mkLayer({ type: 'text', content: 'OF EVERYTHING', x: 50, y: 76, fontSize: 9, color: c, fontWeight: 'normal', letterSpacing: 4, opacity: 0.45 }),
     ],
   },
+  {
+    id: 'est-arc',
+    name: 'Established',
+    cat: 'Classic',
+    preview: ['EST', '1998'],
+    build: (c: string) => [
+      mkLayer({ type: 'text', content: 'ESTABLISHED', x: 50, y: 30, fontSize: 12, color: c, fontWeight: 'bold', letterSpacing: 6, arcAngle: 32, opacity: 0.8 }),
+      mkLayer({ type: 'text', content: '1998', x: 50, y: 50, fontSize: 42, fontFamily: '"Playfair Display",Georgia,serif', color: c, fontWeight: 'bold', letterSpacing: 3 }),
+      mkLayer({ type: 'text', content: 'THE ORIGINAL', x: 50, y: 72, fontSize: 9, color: '#FFD700', fontWeight: 'bold', letterSpacing: 5, arcAngle: -26, opacity: 0.75 }),
+    ],
+  },
+  {
+    id: 'gym-club',
+    name: 'Gym Club',
+    cat: 'Sport',
+    preview: ['NO', 'DAYS', 'OFF'],
+    build: (c: string) => [
+      mkLayer({ type: 'shape', content: 'ring', x: 50, y: 44, fontSize: 58, color: c, opacity: 0.35 }),
+      mkLayer({ type: 'text', content: 'NO DAYS', x: 50, y: 38, fontSize: 20, fontFamily: '"Arial Narrow","Helvetica Neue",sans-serif', color: c, fontWeight: 'bold', letterSpacing: 3 }),
+      mkLayer({ type: 'text', content: 'OFF', x: 50, y: 54, fontSize: 30, fontFamily: '"Impact","Arial Black",sans-serif', color: '#FF4D1C', fontWeight: 'bold', letterSpacing: 6 }),
+      mkLayer({ type: 'text', content: 'TRAIN - EAT - REPEAT', x: 50, y: 78, fontSize: 8, color: c, letterSpacing: 4, opacity: 0.5 }),
+    ],
+  },
+  {
+    id: 'wave-badge',
+    name: 'Coast Badge',
+    cat: 'Nature',
+    preview: ['COAST'],
+    build: (c: string) => [
+      mkLayer({ type: 'shape', content: 'capsule', x: 50, y: 46, fontSize: 62, color: '#0099FF', opacity: 0.22 }),
+      mkLayer({ type: 'text', content: 'PACIFIC COAST', x: 50, y: 42, fontSize: 15, color: c, fontWeight: 'bold', letterSpacing: 3 }),
+      mkLayer({ type: 'text', content: 'SALT IN THE AIR', x: 50, y: 58, fontSize: 9, color: '#00E5C8', letterSpacing: 4, opacity: 0.8 }),
+    ],
+  },
+  {
+    id: 'birthday-crew',
+    name: 'Birthday Crew',
+    cat: 'Party',
+    preview: ['CREW', '2026'],
+    build: (c: string) => [
+      mkLayer({ type: 'text', content: 'BIRTHDAY', x: 50, y: 32, fontSize: 16, color: '#FFD700', fontWeight: 'bold', letterSpacing: 5, arcAngle: 28 }),
+      mkLayer({ type: 'text', content: 'CREW', x: 50, y: 52, fontSize: 40, fontFamily: '"Impact","Arial Black",sans-serif', color: c, fontWeight: 'bold', letterSpacing: 4 }),
+      mkLayer({ type: 'text', content: '2026', x: 50, y: 74, fontSize: 14, fontFamily: '"Courier New",monospace', color: c, letterSpacing: 8, opacity: 0.6 }),
+    ],
+  },
 ];

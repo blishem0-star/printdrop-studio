@@ -47,6 +47,7 @@ function DesignStudio() {
   const showBack = garmentView === 'back';
   const [fullscreen,setFullscreen]=useState(false);
   const [compareOpen,setCompareOpen]=useState(false);
+  const [everSaved,setEverSaved]=useState(false);
   const [fitHeight,setFitHeight]=useState('');
   const [fitWeight,setFitWeight]=useState('');
   const recommendedSize=recommendShirtSize(Number(fitHeight),Number(fitWeight));
@@ -249,6 +250,7 @@ function DesignStudio() {
     restoreDocument: restoreDesignDocument,
     onSlotsLoad: setDesignSlots,
     skipDesignLoad: Boolean(sharedCode||remixId),
+    onSaved: ()=>setEverSaved(true),
     onLegacyLoad: (d)=>{
       if(Array.isArray(d.layers)&&d.layers.length){setLayersWithHistory(d.layers as Layer[]);}
       if(d.colorId){const c=SHIRT_COLORS.find(x=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
@@ -760,7 +762,8 @@ function DesignStudio() {
       layers={layers} selected={selected} printArea={printArea} printBg={printBg}
       uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
       aiSvg={aiSvg} color={color} isLight={isLight} isTouch={isTouch} snapGuide={snapGuide}
-      onSelect={setSelected} onLayerDown={onLayerDown} onHandleDown={onHandleDown} onPrintAreaDown={onPrintAreaDown}/>
+      onSelect={setSelected} onLayerDown={onLayerDown} onHandleDown={onHandleDown} onPrintAreaDown={onPrintAreaDown}
+      onLayerDoubleClick={id=>{setSelected(id);const l=layers.find(x=>x.id===id);if(l?.type==='text')activateTool('text');}}/>
   );
 
 
@@ -867,6 +870,7 @@ function DesignStudio() {
           {size?<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.07)',fontSize:'0.62rem',fontWeight:700,color:'#00E5C8',cursor:'pointer'}} onClick={()=>activateTool('shirt')}>{size}</div>
             :<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(255,255,255,0.06)',background:'rgba(255,255,255,0.02)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.62)',cursor:'pointer'}} onClick={()=>activateTool('shirt')}>+ Size</div>}
           {layers.length>0&&<div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(0,229,200,0.16)',background:'rgba(0,229,200,0.05)',fontSize:'0.6rem',fontWeight:700,color:'rgba(0,229,200,0.7)'}}>{layers.length}L</div>}
+          {everSaved&&<div title='Your design is saved on this device' style={{display:'flex',alignItems:'center',gap:4,padding:'3px 9px',borderRadius:20,border:'1px solid rgba(16,185,129,0.2)',background:'rgba(16,185,129,0.06)',fontSize:'0.6rem',fontWeight:700,color:'rgba(52,211,153,0.85)'}}><svg viewBox='0 0 12 12' width='9' height='9' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M2 6.5l2.5 2.5L10 3'/></svg>Saved</div>}
         </div>
 
       </header>
