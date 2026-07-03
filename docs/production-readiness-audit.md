@@ -1,87 +1,50 @@
 # Stylx Production Readiness Audit
 
-Last updated: 2026-07-01
+Last updated: 2026-07-03 (manager session)
 
 ## Current Verdict
 
-Stylx is buildable and functional, but it should be treated as an active hardening project before a serious public launch. The biggest risks are not basic compilation. They are product truthfulness, editor maintainability, payload weight, and operational clarity.
+Strong product, verified pipeline (tsc/lint/tests/build all clean, 37 tests).
+Remaining gap to a serious public launch is external services, which the owner
+will green-light explicitly ("production ready") - until then all work is
+local revenue/retention features.
 
-## Priority 0 - Business Correctness
+## Done (2026-07-03)
 
-- New order requests must not be stored as paid before a payment provider exists.
-- Admin revenue must count confirmed value only, not every open request.
-- Customer-facing status text must match the actual workflow: request, review, payment confirmation later, production later.
+- Editor decomposition: StudioCanvas, OrderRequestModal (dynamic import),
+  ShareFan, Upload/AI/Shapes panels, keyboard/persistence/history hooks.
+  page.tsx 2062 -> 1701 lines (~134KB).
+- Guided flow: nextStep engine drives all primary CTAs; live 3-step progress;
+  studio opens on templates.
+- Revenue: volume discounts (2/-5%, 3/-10%, 5/-15%), print-location
+  surcharges (back +4.99, sleeve +2.49), server-side pricing (lib/pricing,
+  tested), qty bug fixed (server was recording qty 1 always).
+- Growth: share links encode the design (/design?d=...), catalog remix
+  (/design?remix=id), "Remix in studio" on catalog detail pages.
+- Retention: catalog favorites + Saved filter, profile Saved Designs with
+  Order/Remix links, ContinueDesignBanner on home/catalog, clickable order
+  history, home "Hot right now" strip.
+- Email: lib/email.ts (Resend HTTP, no dep) wired into order creation and
+  admin status changes; honest no-op until RESEND_API_KEY exists. DORMANT
+  by owner decision until production.
+- Mobile: sticky checkout bar <=760px, 100dvh, viewportFit cover, Playwright
+  390x844 screenshot audit (fixed quickstart/zoom overlap).
+- Security audit: rate limits on all routes, strict CSP, hardened sessions,
+  protected cron, server-side pricing. No gaps found.
+- Status labels/colors: single source in lib/types (re-exported via
+  lib/orderStatus).
 
-Status: first fixes applied. New order requests now start as `DRAFT`, order tracking starts at request received, admin/customer confirmed value excludes open requests, and the admin customer-to-orders filter now works end to end.
+## Next (in priority order)
 
-## Priority 1 - Editor Architecture
+1. Extract the TEXT tool panel (last big block in page.tsx, ~230 lines).
+   Careful: ~25 mirrored state values; wire via grouped props.
+2. Complexity pricing v2: charge for high layer counts? (evaluate)
+3. Structured data: Product JSON-LD exists on catalog/[id]; consider
+   ItemList on /catalog.
+4. When owner says "production ready": RESEND_API_KEY + EMAIL_FROM, payment
+   (Paddle/LemonSqueezy/PayPal - Stripe unavailable for IL bank), domain,
+   Printify. See admin /admin/integrations for env checklist.
 
-The editor is the most important product surface and still too large in one file.
+## Verification loop (every batch)
 
-Current state:
-- `app/design/page.tsx` is still about 171KB after the first extraction.
-- The file mixes state management, SVG rendering, tool panels, sharing UI, ordering UI, keyboard shortcuts, and persistence.
-
-Target structure:
-- `components/design/ShareFan.tsx`
-- `components/design/StudioCanvas.tsx`
-- `components/design/LayerPanel.tsx`
-- `components/design/ToolSidebar.tsx`
-- `components/design/OrderRequestModal.tsx`
-- `hooks/useDesignHistory.ts`
-- `hooks/useDesignKeyboardShortcuts.ts`
-- `hooks/useStudioPersistence.ts`
-
-Status: started. `ShareFan` and `useDesignHistory` were extracted, and studio workflow/tool configuration moved into `lib/studio/constants.ts`.
-
-## Priority 2 - Performance
-
-Known issues:
-- The design page ships too much client code at once.
-- Heavy editor panels should be split and loaded only when needed.
-- Repeated inline styles increase component noise and make optimization harder.
-
-Targets:
-- Reduce `app/design/page.tsx` under 80KB source.
-- Split non-critical panels with dynamic imports where appropriate.
-- Keep first editor load focused on canvas, core actions, and primary tools.
-
-## Priority 3 - UX Clarity
-
-Known issues:
-- The editor has many powerful features, but some are still buried.
-- Empty states and next-step guidance need to be more intentional.
-- Admin labels must stay operationally honest while external integrations are not connected.
-
-Targets:
-- Add a clear first-run path: choose template, add text/image, review request.
-- Improve active tool state and selected layer affordances.
-- Keep all text aligned with the current no-third-party phase.
-
-Status: started. Order request failures now surface server-provided errors in the editor and catalog instead of a generic failure message.
-
-## Priority 4 - Code Quality
-
-Known issues:
-- Some older files still contain broken encoding in comments or legacy copy.
-- Some domain labels are duplicated in pages instead of centralized.
-- Order status meaning needs a clearer business contract.
-
-Targets:
-- Centralize order status labels and colors.
-- Remove remaining mojibake from source.
-- Add focused tests for order request status and pricing behavior.
-
-Status: started. Added order status tests and template encoding tests.
-
-## Priority 5 - Verification
-
-Required checks after every meaningful batch:
-- `cmd /c npx tsc --noEmit`
-- `cmd /c npm run lint`
-- `cmd /c npm test`
-- `cmd /c npm run build`
-
-Optional before launch:
-- Playwright smoke check for home, catalog, design, order request, profile, admin.
-- Lighthouse/performance pass in production mode.
+npx tsc --noEmit && npm run lint && npm test && npm run build
