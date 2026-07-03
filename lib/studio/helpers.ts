@@ -1,6 +1,19 @@
 import type { Layer } from './types';
+import type { TShirtSize } from '@/lib/mockData';
 
 // Pure design-studio helpers. Keep this file free of React and browser APIs.
+
+const SIZE_ORDER: TShirtSize[] = ['XS','S','M','L','XL','XXL'];
+
+// Unisex standard-fit size recommendation from height/weight. Returns null
+// for out-of-range inputs so the UI can simply hide the suggestion.
+export function recommendShirtSize(heightCm: number, weightKg: number): TShirtSize | null {
+  if (!Number.isFinite(heightCm) || !Number.isFinite(weightKg)) return null;
+  if (heightCm < 120 || heightCm > 220 || weightKg < 35 || weightKg > 200) return null;
+  const hIdx = heightCm < 160 ? 0 : heightCm < 168 ? 1 : heightCm < 176 ? 2 : heightCm < 184 ? 3 : heightCm < 192 ? 4 : 5;
+  const wIdx = weightKg < 55 ? 0 : weightKg < 65 ? 1 : weightKg < 75 ? 2 : weightKg < 88 ? 3 : weightKg < 102 ? 4 : 5;
+  return SIZE_ORDER[Math.min(5, Math.round((hIdx + wIdx) / 2 + 0.001))];
+}
 
 export function uid() {
   return Math.random().toString(36).slice(2, 9);

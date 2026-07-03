@@ -11,6 +11,8 @@ export type StudioCanvasProps = {
   h: number;
   view: GarmentView;
   interactive?: boolean;
+  /** Unique per simultaneously-mounted instance; SVG defs ids are derived from it. */
+  idScope?: string;
   layers: Layer[];
   selected: string | null;
   printArea: PrintArea;
@@ -53,7 +55,7 @@ export function StudioCanvas(props: StudioCanvasProps){
     onSelect, onLayerDown, onHandleDown, onPrintAreaDown,
   } = props;
 
-  const idScope=interactive?'live':'preview';
+  const idScope=props.idScope??(interactive?'live':'preview');
   const svgId=(name:string)=>`${name}-${idScope}`;
   const isBackView=view==='back';
   const isFrontView=view==='front';

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
-import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
+import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE, BASE_PRICE } from '@/lib/mockData';
+import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { buildDesignDocumentSvgDataUrl, submitOrder } from '@/lib/exportDesign';
@@ -23,7 +24,7 @@ import {
   EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS,
   WORKFLOW_GROUPS, SIDE_TOOLS,
 } from "@/lib/studio/constants";
-import { uid, mkLayer, starPoints, TEMPLATES } from "@/lib/studio/helpers";
+import { uid, mkLayer, starPoints, TEMPLATES, recommendShirtSize } from "@/lib/studio/helpers";
 
 // Checkout UI is heavy and only needed once the user finishes designing.
 const OrderRequestModal = dynamic(()=>import('@/components/design/OrderRequestModal'),{ssr:false});
@@ -42,6 +43,12 @@ function DesignStudio() {
   const [garmentView, setGarmentView] = useState<GarmentView>('front');
   const showBack = garmentView === 'back';
   const [fullscreen,setFullscreen]=useState(false);
+  const [compareOpen,setCompareOpen]=useState(false);
+  const [fitHeight,setFitHeight]=useState('');
+  const [fitWeight,setFitWeight]=useState('');
+  const recommendedSize=recommendShirtSize(Number(fitHeight),Number(fitWeight));
+  // A share link (?d=...) takes priority over the locally saved design.
+  const [sharedCode]=useState(()=> typeof window==='undefined'?null:new URLSearchParams(window.location.search).get('d'));
 
   // Layers + history for undo/redo
   const [layers,   setLayers]   = useState<Layer[]>([]);
@@ -71,7 +78,6 @@ function DesignStudio() {
 
   // AI
   const [aiPrompt,  setAiPrompt]  = useState('');
-  const [aiHelperPrompt, setAiHelperPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiProgress,setAiProgress]=useState(0);
   const [aiSvg,     setAiSvg]     = useState<string|null>(null);
@@ -238,6 +244,7 @@ function DesignStudio() {
     buildDocument: buildDesignDocument,
     restoreDocument: restoreDesignDocument,
     onSlotsLoad: setDesignSlots,
+    skipDesignLoad: Boolean(sharedCode),
     onLegacyLoad: (d)=>{
       if(Array.isArray(d.layers)&&d.layers.length){setLayersWithHistory(d.layers as Layer[]);}
       if(d.colorId){const c=SHIRT_COLORS.find(x=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
@@ -370,8 +377,14 @@ function DesignStudio() {
     }
     showToast(`${kind[0].toUpperCase()+kind.slice(1)} style applied.`, 'success');
   }
-  function applySmartFix(kind:'fit'|'center'|'contrast'|'premium'|'collar') {
+  function applySmartFix(kind:'fit'|'center'|'contrast'|'premium'|'collar'|'textsize') {
     if(kind==='fit') { smartFitDesign(); return; }
+    if(kind==='textsize') {
+      const next=layers.map(l=>l.type==='text'&&!l.collarMode&&l.fontSize<9?{...l,fontSize:10}:l);
+      setLayersWithHistory(next);
+      showToast('Small text enlarged to a print-safe size.','success');
+      return;
+    }
     if(kind==='center') {
       if(layers.length===0) return;
       setLayersWithHistory(layers.map(l=>l.collarMode?l:{...l,x:50}));
@@ -553,10 +566,25 @@ function DesignStudio() {
     window.addEventListener('beforeunload',h); return()=>window.removeEventListener('beforeunload',h);
   },[]);
 
+  // Restore a design arriving via a shared link, then clean the URL.
+  useEffect(()=>{
+    if(!sharedCode) return;
+    // deferred restore avoids synchronous setState cascades in the effect body
+    const t=setTimeout(()=>{
+      const doc=decodeDesignShare(sharedCode);
+      if(doc){
+        restoreDesignDocument(doc);
+        showToast('Shared design loaded - make it yours!','success');
+      }
+      window.history.replaceState({},'',window.location.pathname);
+    },0);
+    return()=>clearTimeout(t);
+  },[]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useDesignKeyboardShortcuts({
     selected, layers, undo, redo, updateLayer, deleteLayer, duplicateLayer,
     clearSelection: ()=>setSelected(null),
-    onEscape: ()=>{setFullscreen(false);setCheckoutOpen(false);setShareFanOpen(false);},
+    onEscape: ()=>{setFullscreen(false);setCheckoutOpen(false);setShareFanOpen(false);setCompareOpen(false);},
   });
 
   // Upload
@@ -592,7 +620,7 @@ function DesignStudio() {
   const phoneValid=  shipPhone.replace(/\D/g,'').length>=7;
   const deliveryDone=shipName.trim().length>1&&emailValid&&phoneValid&&shipStreet.trim().length>3&&shipCity.trim().length>1&&/^\d{5}$/.test(shipZip)&&shipState!=='';
   const canOrder=    color&&size&&deliveryDone;
-  const shirtPrice=  24.99*qty;
+  const shirtPrice=  BASE_PRICE*qty;
   const total=       shirtPrice+SHIPPING_PRICE;
 
   async function handleOrder(){
@@ -619,14 +647,22 @@ function DesignStudio() {
   }
 
   async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'){
+    // Share links carry the design itself so friends open a live remix, not a blank studio.
+    const shareCode = !ordered && layers.length>0
+      ? encodeDesignShare({version:1,colorId:color.id,size,activeView:garmentView,layers,printArea,printBg})
+      : null;
     const url=typeof window==='undefined'
       ? '/design'
       : ordered && orderId
         ? `${window.location.origin}/orders/${orderId}`
-        : `${window.location.origin}/design`;
+        : shareCode
+          ? `${window.location.origin}/design?d=${shareCode}`
+          : `${window.location.origin}/design`;
     const text=ordered
       ? `I just designed a custom STYLX shirt${orderId?` #${orderId.slice(0,8).toUpperCase()}`:''}`
-      : 'I am designing a custom STYLX shirt';
+      : shareCode
+        ? 'Check out the STYLX shirt I designed - open the link to remix it'
+        : 'I am designing a custom STYLX shirt';
     const shareUrl=encodeURIComponent(url);
     const shareText=encodeURIComponent(`${text} ${url}`);
     setShareFanOpen(false);
@@ -673,6 +709,7 @@ function DesignStudio() {
     {label:'Shirt size', ok:Boolean(size), fix:'shirt'},
     {label:'Print area fit', ok:layers.every(l=>l.collarMode || (l.x>=8&&l.x<=92&&l.y>=8&&l.y<=92)), fix:'fit'},
     {label:'Strong contrast', ok:layers.length===0 || layers.some(l=>l.gradient || l.strokeWidth>0 || l.color===color.textColor || l.glowBlur>0), fix:'contrast'},
+    {label:'Print-safe text size', ok:layers.every(l=>l.type!=='text' || Boolean(l.collarMode) || l.fontSize>=9), fix:'textsize'},
     {label:'Ready preview', ok:previewMode==='premium', fix:'preview'},
   ];
   const qualityScore = Math.round((qualityChecks.filter(c=>c.ok).length / qualityChecks.length) * 100);
@@ -684,8 +721,8 @@ function DesignStudio() {
     {label:'Add collar', hint:'Add a small brand detail near the neck', fix:'collar'},
   ];
 
-  const renderShirtCanvas=(w:number,h:number,interactive=true,view:GarmentView=garmentView)=>(
-    <StudioCanvas w={w} h={h} view={view} interactive={interactive}
+  const renderShirtCanvas=(w:number,h:number,interactive=true,view:GarmentView=garmentView,idScope?:string)=>(
+    <StudioCanvas w={w} h={h} view={view} interactive={interactive} idScope={idScope}
       layers={layers} selected={selected} printArea={printArea} printBg={printBg}
       uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
       aiSvg={aiSvg} color={color} isLight={isLight} isTouch={isTouch} snapGuide={snapGuide}
@@ -733,7 +770,7 @@ function DesignStudio() {
             {(['front','right','back','left'] as GarmentView[]).map(v=>(
               <button key={v} onClick={e=>{e.stopPropagation();setGarmentView(v);}} style={{border:'1px solid rgba(255,255,255,0.08)',background:garmentView===v?'rgba(0,229,200,0.06)':'rgba(255,255,255,0.025)',borderRadius:14,padding:'12px 10px 10px',cursor:'pointer',color:'#fff',filter:'drop-shadow(0 34px 70px rgba(0,0,0,0.55))'}}>
                 <div style={{height:300,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  {renderShirtCanvas(240,276,false,v)}
+                  {renderShirtCanvas(240,276,false,v,`fs-${v}`)}
                 </div>
                 <div style={{fontSize:'0.62rem',fontWeight:800,letterSpacing:'0.14em',textTransform:'uppercase',color:garmentView===v?'#00E5C8':'rgba(255,255,255,0.42)'}}>{v}</div>
               </button>
@@ -741,6 +778,28 @@ function DesignStudio() {
           </div>
           <p style={{marginTop:24,color:'rgba(255,255,255,0.62)',fontSize:'0.65rem',letterSpacing:'0.14em',textTransform:'uppercase'}}>360 product preview</p>
           <button onClick={e=>{e.stopPropagation();setFullscreen(false);}} style={{position:'absolute',top:24,right:28,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'8px 20px',color:'rgba(255,255,255,0.5)',fontSize:'0.75rem',fontWeight:700,cursor:'pointer'}}>Close</button>
+        </div>
+      )}
+
+      {/* Compare the current design across every shirt color */}
+      {compareOpen&&(
+        <div style={{position:'fixed',inset:0,zIndex:9500,background:'rgba(0,0,0,0.78)',backdropFilter:'blur(16px)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,animation:'fsIn 0.2s ease'}} onClick={()=>setCompareOpen(false)}>
+          <div style={{fontSize:'0.72rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.14em',textTransform:'uppercase',marginBottom:16}}>Pick the color that sells your design</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(140px,1fr))',gap:12,width:'min(920px,94vw)',maxHeight:'78vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+            {SHIRT_COLORS.map(c=>(
+              <button key={c.id} onClick={()=>{pickColor(c);setCompareOpen(false);showToast(`${c.name} selected.`,'success');}}
+                style={{border:`1px solid ${color.id===c.id?'rgba(0,229,200,0.45)':'rgba(255,255,255,0.08)'}`,background:color.id===c.id?'rgba(0,229,200,0.06)':'rgba(255,255,255,0.025)',borderRadius:14,padding:'10px 8px 9px',cursor:'pointer',color:'#fff'}}>
+                <div style={{height:150,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <StudioCanvas w={126} h={145} view={garmentView} interactive={false} idScope={`cmp-${c.id}`}
+                    layers={layers} selected={null} printArea={printArea} printBg={printBg}
+                    uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
+                    aiSvg={aiSvg} color={c} isLight={c.id==='white'||c.id==='sand'} isTouch={false} snapGuide={{x:false,y:false}}/>
+                </div>
+                <div style={{fontSize:'0.62rem',fontWeight:900,marginTop:4,color:color.id===c.id?'#00E5C8':'rgba(255,255,255,0.66)'}}>{c.name}</div>
+              </button>
+            ))}
+          </div>
+          <button onClick={()=>setCompareOpen(false)} style={{marginTop:18,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'8px 20px',color:'rgba(255,255,255,0.5)',fontSize:'0.75rem',fontWeight:700,cursor:'pointer'}}>Close</button>
         </div>
       )}
 
@@ -779,21 +838,23 @@ function DesignStudio() {
       </header>
 
       {/* Section */}
-      <div className="studio-ai-helper" style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(90deg,rgba(0,229,200,0.055),rgba(6,6,9,0.98) 28%,rgba(0,153,255,0.045))',display:'grid',gridTemplateColumns:'220px 1fr auto',alignItems:'center',gap:10,padding:'0 14px',position:'relative',zIndex:13}}>
+      <div className="studio-commerce-bar" style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(90deg,rgba(0,229,200,0.055),rgba(6,6,9,0.98) 28%,rgba(0,153,255,0.045))',display:'grid',gridTemplateColumns:'auto 1fr auto',alignItems:'center',gap:12,padding:'0 14px',position:'relative',zIndex:13}}>
         <div style={{minWidth:0}}>
-          <div style={{fontSize:'0.58rem',fontWeight:900,color:'#00E5C8',letterSpacing:'0.14em',textTransform:'uppercase'}}>AI design assistant</div>
-          <div style={{fontSize:'0.58rem',color:'rgba(255,255,255,0.38)',fontWeight:700,marginTop:3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Context: {viewLabels[garmentView]} - {activeWorkflow?.label ?? 'Choose a tool'} - {layers.length} layers</div>
+          <div style={{fontSize:'0.58rem',fontWeight:900,color:'#00E5C8',letterSpacing:'0.14em',textTransform:'uppercase'}}>Your custom shirt</div>
+          <div style={{fontSize:'0.72rem',color:'rgba(255,255,255,0.72)',fontWeight:900,marginTop:2,whiteSpace:'nowrap'}}>${shirtPrice.toFixed(2)}<span style={{color:'rgba(255,255,255,0.38)',fontWeight:700,fontSize:'0.6rem'}}> + ${SHIPPING_PRICE.toFixed(2)} shipping{qty>1?` - qty ${qty}`:''}</span></div>
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:7,minWidth:0}}>
-          <input value={aiHelperPrompt} onChange={e=>setAiHelperPrompt(e.target.value)} placeholder="Ask for help: make it vintage, center the logo, suggest colors, improve front and sleeves..." maxLength={180}
-            style={{width:'100%',height:32,boxSizing:'border-box',borderRadius:9,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(0,0,0,0.24)',color:'rgba(255,255,255,0.82)',padding:'0 11px',fontSize:'0.72rem',outline:'none'}}/>
-          {['Improve layout','Suggest colors','Make it premium'].map(p=>(
-            <button key={p} onClick={()=>setAiHelperPrompt(p)} style={{height:32,padding:'0 10px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.46)',fontSize:'0.58rem',fontWeight:800,letterSpacing:'0.04em',whiteSpace:'nowrap',cursor:'pointer'}}>{p}</button>
+        <div style={{display:'flex',alignItems:'center',gap:7,minWidth:0,overflow:'hidden'}}>
+          {[
+            'No payment now - request first, pay after approval',
+            'Printed on demand',
+            '100% ring-spun cotton',
+          ].map(t=>(
+            <span key={t} style={{padding:'5px 10px',borderRadius:999,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.5)',fontSize:'0.6rem',fontWeight:800,whiteSpace:'nowrap'}}>{t}</span>
           ))}
         </div>
-        <button onClick={()=>{setAiPrompt(aiHelperPrompt || `Help me improve the ${viewLabels[garmentView].toLowerCase()} design`);activateTool('ai');}} disabled={!aiHelperPrompt.trim()}
-          style={{height:32,padding:'0 14px',borderRadius:9,border:'none',background:aiHelperPrompt.trim()?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiHelperPrompt.trim()?'#050507':'rgba(255,255,255,0.24)',fontSize:'0.66rem',fontWeight:900,letterSpacing:'0.06em',textTransform:'uppercase',cursor:aiHelperPrompt.trim()?'pointer':'default',whiteSpace:'nowrap'}}>
-          Prepare AI
+        <button onClick={()=>setCheckoutOpen(true)}
+          style={{height:34,padding:'0 16px',borderRadius:9,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.68rem',fontWeight:950,letterSpacing:'0.06em',textTransform:'uppercase',cursor:'pointer',whiteSpace:'nowrap',boxShadow:'0 6px 22px rgba(0,229,200,0.22)'}}>
+          Finish design
         </button>
       </div>
 
@@ -1056,7 +1117,7 @@ function DesignStudio() {
                     </div>
                     <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
                       {qualityChecks.map(c=>(
-                        <button key={c.label} onClick={()=>c.fix==='text'?activateTool('text'):c.fix==='shirt'?activateTool('shirt'):c.fix==='preview'?setPreviewMode('premium'):applySmartFix(c.fix as 'fit'|'contrast')}
+                        <button key={c.label} onClick={()=>c.fix==='text'?activateTool('text'):c.fix==='shirt'?activateTool('shirt'):c.fix==='preview'?setPreviewMode('premium'):applySmartFix(c.fix as 'fit'|'contrast'|'textsize')}
                           style={{padding:'3px 6px',borderRadius:999,border:`1px solid ${c.ok?'rgba(0,229,200,0.22)':'rgba(245,158,11,0.18)'}`,background:c.ok?'rgba(0,229,200,0.055)':'rgba(245,158,11,0.055)',color:c.ok?'rgba(0,229,200,0.82)':'rgba(251,191,36,0.82)',fontSize:'0.52rem',fontWeight:850,cursor:'pointer'}}>
                           {c.ok?'OK':'Fix'} {c.label}
                         </button>
@@ -1664,6 +1725,10 @@ function DesignStudio() {
                       <div key={c.id} onClick={()=>pickColor(c)} style={{textAlign:'center',fontSize:'0.5rem',color:color.id===c.id?'rgba(0,229,200,0.85)':'rgba(255,255,255,0.2)',fontWeight:color.id===c.id?700:400,cursor:'pointer',lineHeight:1.3}}>{c.name.split(' ').slice(-1)[0]}</div>
                     ))}
                   </div>
+                  <button onClick={()=>setCompareOpen(true)} disabled={layers.length===0&&!printBg}
+                    style={{width:'100%',marginTop:9,padding:'9px 10px',borderRadius:10,border:'1px solid rgba(0,229,200,0.2)',background:layers.length>0||printBg?'rgba(0,229,200,0.06)':'rgba(255,255,255,0.02)',color:layers.length>0||printBg?'#00E5C8':'rgba(255,255,255,0.25)',fontSize:'0.7rem',fontWeight:900,cursor:layers.length>0||printBg?'pointer':'default'}}>
+                    Compare your design on all colors
+                  </button>
                 </div>
                 <div>
                   <div style={LS}>Size {size&&<span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}> - {size}</span>}</div>
@@ -1674,6 +1739,23 @@ function DesignStudio() {
                     ))}
                   </div>
                   <p style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',letterSpacing:'0.03em',lineHeight:1.6}}>Unisex - 100% ring-spun cotton - Pre-shrunk - Standard fit - True to size</p>
+                  <div style={{marginTop:12,border:'1px solid rgba(255,255,255,0.07)',borderRadius:11,padding:'10px 11px',background:'rgba(255,255,255,0.02)'}}>
+                    <div style={{fontSize:'0.66rem',fontWeight:900,color:'rgba(255,255,255,0.68)',marginBottom:7}}>Not sure about the size?</div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,marginBottom:8}}>
+                      <label style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.42)',letterSpacing:'0.06em',textTransform:'uppercase'}}>Height cm
+                        <input type="number" inputMode="numeric" min={120} max={220} value={fitHeight} onChange={e=>setFitHeight(e.target.value)} placeholder="175" style={{...INP,marginTop:4,padding:'7px 8px',fontSize:'0.74rem'}}/>
+                      </label>
+                      <label style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.42)',letterSpacing:'0.06em',textTransform:'uppercase'}}>Weight kg
+                        <input type="number" inputMode="numeric" min={35} max={200} value={fitWeight} onChange={e=>setFitWeight(e.target.value)} placeholder="72" style={{...INP,marginTop:4,padding:'7px 8px',fontSize:'0.74rem'}}/>
+                      </label>
+                    </div>
+                    {recommendedSize&&(
+                      <button onClick={()=>setSize(recommendedSize)}
+                        style={{width:'100%',padding:'8px 10px',borderRadius:9,border:`1px solid ${size===recommendedSize?'rgba(0,229,200,0.4)':'rgba(0,229,200,0.2)'}`,background:'rgba(0,229,200,0.07)',color:'#00E5C8',fontSize:'0.7rem',fontWeight:900,cursor:'pointer'}}>
+                        {size===recommendedSize?`Size ${recommendedSize} selected - great fit`:`We recommend ${recommendedSize} - tap to select`}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -1705,15 +1787,15 @@ function DesignStudio() {
           .share-fan{--fan-scale:0.9;}
           .studio-shell{grid-template-columns:220px minmax(360px,1fr) 340px!important;}
           .studio-bottom-tray{grid-template-columns:180px minmax(240px,280px) minmax(240px,1fr)!important;}
-          .studio-ai-helper{grid-template-columns:160px 1fr auto!important;}
-          .studio-ai-helper button:not(:last-child){display:none!important;}
+          .studio-commerce-bar{grid-template-columns:160px 1fr auto!important;}
+          .studio-commerce-bar button:not(:last-child){display:none!important;}
         }
         @media(max-width:920px){
           .share-fan{--fan-scale:0.76;}
           header{gap:7px!important;padding:0 9px!important;}
           header h1{font-size:1.05rem!important;letter-spacing:0.06em!important;}
-          .studio-ai-helper{grid-template-columns:1fr auto!important;height:auto!important;padding:8px 10px!important;}
-          .studio-ai-helper > div:first-child{display:none!important;}
+          .studio-commerce-bar{grid-template-columns:1fr auto!important;height:auto!important;padding:8px 10px!important;}
+          .studio-commerce-bar > div:first-child{display:none!important;}
           .studio-shell{grid-template-columns:160px 1fr!important;grid-template-rows:minmax(460px,1fr) minmax(360px,44vh);overflow:auto!important;}
           .studio-rail{grid-row:1 / span 2;}
           .studio-properties{grid-column:2;grid-row:2;border-left:none!important;border-top:1px solid rgba(255,255,255,0.06)!important;min-height:360px;}
@@ -1730,7 +1812,7 @@ function DesignStudio() {
           .share-fan{--fan-scale:0.62;}
           .share-fan-item{width:92px!important;height:92px!important;border-radius:24px!important;}
           .design-body{grid-template-columns:1fr!important;grid-template-rows:auto 1fr auto;overflow:auto!important;}
-          .studio-ai-helper{display:none!important;}
+          .studio-commerce-bar{display:none!important;}
           header > div:nth-of-type(2){display:none!important;}
           .studio-shell{grid-template-columns:1fr!important;grid-template-rows:auto 420px minmax(380px,1fr)!important;}
           .studio-rail{grid-column:1;grid-row:1;flex-direction:row!important;justify-content:center!important;border-right:none!important;border-bottom:1px solid rgba(255,255,255,0.06)!important;padding:6px!important;overflow-x:auto;}

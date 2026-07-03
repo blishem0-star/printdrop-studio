@@ -15,6 +15,8 @@ type Options = {
   restoreDocument: (doc: Partial<DesignDocument>) => void;
   onLegacyLoad: (d: LegacyDesign) => void;
   onSlotsLoad: (slots: DesignSlot[]) => void;
+  /** When true (e.g. a share link is being restored) the saved design is not loaded, only the slots. */
+  skipDesignLoad?: boolean;
   /** State the auto-save should react to (layers, uploads, color, ...). */
   deps: unknown[];
 };
@@ -22,7 +24,7 @@ type Options = {
 // Auto-saves the working design to localStorage and restores it (plus saved
 // design slots) on mount. Legacy pre-v1 payloads go through onLegacyLoad.
 export function useStudioPersistence(opts: Options) {
-  const { hasContent, buildDocument, restoreDocument, onLegacyLoad, onSlotsLoad, deps } = opts;
+  const { hasContent, buildDocument, restoreDocument, onLegacyLoad, onSlotsLoad, skipDesignLoad, deps } = opts;
 
   // Auto-save
   useEffect(()=>{
@@ -37,6 +39,7 @@ export function useStudioPersistence(opts: Options) {
         const slots=localStorage.getItem('pd_design_slots');
         if(slots){const parsed=JSON.parse(slots);if(Array.isArray(parsed))onSlotsLoad(parsed);}
       }catch{}
+      if(skipDesignLoad) return;
       try{
         const raw=localStorage.getItem('pd_design'); if(!raw) return;
         const d=JSON.parse(raw);

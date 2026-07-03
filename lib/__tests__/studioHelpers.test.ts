@@ -56,3 +56,13 @@ test('svgToDataUrl is Unicode-safe', () => {
   assert.ok(url.startsWith('data:image/svg+xml;utf8,'));
   assert.ok(decodeURIComponent(url.split(',')[1]).includes('עברית'));
 });
+
+test('recommendShirtSize maps height/weight to sane sizes', async () => {
+  const { recommendShirtSize } = await import('../studio/helpers');
+  assert.equal(recommendShirtSize(155, 50), 'XS');
+  assert.equal(recommendShirtSize(172, 70), 'M');
+  assert.equal(recommendShirtSize(183, 85), 'L');
+  assert.equal(recommendShirtSize(195, 110), 'XXL');
+  assert.equal(recommendShirtSize(100, 70), null);
+  assert.equal(recommendShirtSize(NaN, 70), null);
+});
