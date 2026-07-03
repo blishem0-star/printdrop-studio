@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { ContinueDesignBanner } from '@/components/ContinueDesignBanner';
 import Link from 'next/link';
 import { useToast } from '@/components/Toast';
 import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
@@ -126,6 +127,7 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#050507 0%,#060610 100%)', color: 'white', position: 'relative' }}>
       {toastEl}
+      <ContinueDesignBanner/>
       {/* Background atmosphere */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,200,0.04) 0%, transparent 60%)', top: '-5%', left: '55%' }} />

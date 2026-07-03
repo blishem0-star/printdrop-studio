@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE, BASE_PRICE } from '@/lib/mockData';
 import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
+import { quoteOrder } from '@/lib/pricing';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { buildDesignDocumentSvgDataUrl, submitOrder } from '@/lib/exportDesign';
@@ -47,8 +48,9 @@ function DesignStudio() {
   const [fitHeight,setFitHeight]=useState('');
   const [fitWeight,setFitWeight]=useState('');
   const recommendedSize=recommendShirtSize(Number(fitHeight),Number(fitWeight));
-  // A share link (?d=...) takes priority over the locally saved design.
+  // A share link (?d=...) or catalog remix (?remix=...) takes priority over the locally saved design.
   const [sharedCode]=useState(()=> typeof window==='undefined'?null:new URLSearchParams(window.location.search).get('d'));
+  const [remixId]=useState(()=> typeof window==='undefined'?null:new URLSearchParams(window.location.search).get('remix'));
 
   // Layers + history for undo/redo
   const [layers,   setLayers]   = useState<Layer[]>([]);
@@ -244,7 +246,7 @@ function DesignStudio() {
     buildDocument: buildDesignDocument,
     restoreDocument: restoreDesignDocument,
     onSlotsLoad: setDesignSlots,
-    skipDesignLoad: Boolean(sharedCode),
+    skipDesignLoad: Boolean(sharedCode||remixId),
     onLegacyLoad: (d)=>{
       if(Array.isArray(d.layers)&&d.layers.length){setLayersWithHistory(d.layers as Layer[]);}
       if(d.colorId){const c=SHIRT_COLORS.find(x=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
@@ -566,15 +568,26 @@ function DesignStudio() {
     window.addEventListener('beforeunload',h); return()=>window.removeEventListener('beforeunload',h);
   },[]);
 
-  // Restore a design arriving via a shared link, then clean the URL.
+  // Restore a design arriving via a shared link or a catalog remix, then clean the URL.
   useEffect(()=>{
-    if(!sharedCode) return;
+    if(!sharedCode&&!remixId) return;
     // deferred restore avoids synchronous setState cascades in the effect body
     const t=setTimeout(()=>{
-      const doc=decodeDesignShare(sharedCode);
-      if(doc){
-        restoreDesignDocument(doc);
-        showToast('Shared design loaded - make it yours!','success');
+      if(sharedCode){
+        const doc=decodeDesignShare(sharedCode);
+        if(doc){
+          restoreDesignDocument(doc);
+          showToast('Shared design loaded - make it yours!','success');
+        }
+      } else if(remixId){
+        const cat=CATALOG_DESIGNS.find(d=>d.id===remixId);
+        if(cat){
+          setAiSvg(sanitizeSvg(cat.svg));
+          setAiPrompt(cat.title);
+          setGarmentView('front');
+          activateTool('text');
+          showToast(`"${cat.title}" loaded - add your text and make it yours!`,'success');
+        }
       }
       window.history.replaceState({},'',window.location.pathname);
     },0);
@@ -620,8 +633,9 @@ function DesignStudio() {
   const phoneValid=  shipPhone.replace(/\D/g,'').length>=7;
   const deliveryDone=shipName.trim().length>1&&emailValid&&phoneValid&&shipStreet.trim().length>3&&shipCity.trim().length>1&&/^\d{5}$/.test(shipZip)&&shipState!=='';
   const canOrder=    color&&size&&deliveryDone;
-  const shirtPrice=  BASE_PRICE*qty;
-  const total=       shirtPrice+SHIPPING_PRICE;
+  const quote=       quoteOrder(BASE_PRICE,qty);
+  const shirtPrice=  quote.subtotal;
+  const total=       quote.total;
 
   async function handleOrder(){
     if(!canOrder) return;
@@ -636,7 +650,7 @@ function DesignStudio() {
       }
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
-        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,
+        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,
         design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
       });
       if(result.ok){
@@ -808,7 +822,7 @@ function DesignStudio() {
           onClose={()=>setCheckoutOpen(false)}
           preview={renderShirtCanvas(250,288,false,garmentView)}
           color={color} size={size} qty={qty} setQty={setQty}
-          layersCount={layers.length} uploadCount={uploadCount} total={total}
+          layersCount={layers.length} uploadCount={uploadCount} total={total} quote={quote}
           qualityScore={qualityScore} hasDesignContent={hasDesignContent}
           sidesSummary={Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ')}
           fields={{name:shipName,email:shipEmail,phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}}

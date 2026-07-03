@@ -3,12 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { getSession } from '@/lib/session';
 import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
+import { quoteOrder, MAX_ORDER_QTY } from '@/lib/pricing';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HEX_RE       = /^#[0-9A-Fa-f]{6}$/;
 const VALID_SIZES  = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-const SHIPPING_PRICE = 4.99;
 const CUSTOM_DESIGN_PRICE = 24.99;
 
 function validateBody(b: Record<string, unknown>): string | null {
@@ -26,6 +26,10 @@ function validateBody(b: Record<string, unknown>): string | null {
   if (typeof d.colorHex !== 'string' || !HEX_RE.test(d.colorHex as string)) return 'Invalid design color';
   if (typeof d.size !== 'string' || !VALID_SIZES.includes(d.size as string)) return 'Invalid design size';
   if (d.customText && typeof d.customText === 'string' && (d.customText as string).length > 200) return 'Custom text too long';
+  if (b.qty !== undefined) {
+    const q = Number(b.qty);
+    if (!Number.isInteger(q) || q < 1 || q > MAX_ORDER_QTY) return `Invalid quantity (1-${MAX_ORDER_QTY})`;
+  }
   return null;
 }
 
@@ -66,7 +70,9 @@ export async function POST(req: NextRequest) {
   } else {
     authorizedPrice = CUSTOM_DESIGN_PRICE;
   }
-  const total = parseFloat((authorizedPrice + SHIPPING_PRICE).toFixed(2));
+  const qty = Number((body as { qty?: unknown }).qty) || 1;
+  const quote = quoteOrder(authorizedPrice, qty);
+  const total = quote.total;
 
   // Reject unsafe data URLs (only raster/svg images may be stored) and cap size
   if (design.svgDataUrl) {
@@ -112,7 +118,7 @@ export async function POST(req: NextRequest) {
   if (design.artistDesignId) {
     await prisma.artistDesign.update({
       where: { id: design.artistDesignId },
-      data: { salesCount: { increment: 1 }, totalEarned: { increment: authorizedPrice * 0.5 } },
+      data: { salesCount: { increment: quote.qty }, totalEarned: { increment: authorizedPrice * 0.5 * quote.qty } },
     }).catch(() => null);
   }
 
@@ -126,7 +132,7 @@ export async function POST(req: NextRequest) {
       shippingZip,
       shippingState,
       status: 'DRAFT',
-      items: { create: { designAssetId: designAsset.id, qty: 1, unitPrice: authorizedPrice } },
+      items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice } },
     },
     include: { customer: true, items: { include: { designAsset: true } } },
   });

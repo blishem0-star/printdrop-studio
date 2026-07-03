@@ -4,6 +4,7 @@ import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { SHIPPING_PRICE } from '@/lib/mockData';
 import { US_STATES } from '@/lib/studio/constants';
 import { INP } from './studioStyles';
+import { qtyDiscountPct, nextTierHint, type OrderQuote } from '@/lib/pricing';
 
 export type ShippingFields = {
   name: string; email: string; phone: string; street: string;
@@ -20,6 +21,7 @@ export type OrderRequestModalProps = {
   layersCount: number;
   uploadCount: number;
   total: number;
+  quote?: OrderQuote;
   qualityScore: number;
   hasDesignContent: boolean;
   sidesSummary: string;
@@ -51,6 +53,8 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
           <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:13,padding:14,background:'rgba(255,255,255,0.025)'}}>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirt</span><strong>{p.color.name}{p.size?` / ${p.size}`:''}</strong></div>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Design</span><strong>{p.layersCount} layers, {p.uploadCount} uploads</strong></div>
+            {p.quote&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirts x {p.quote.qty}</span><strong>${p.quote.subtotal.toFixed(2)}</strong></div>}
+            {p.quote&&p.quote.discount>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'#34d399'}}>Volume discount ({p.quote.discountPct}%)</span><strong style={{color:'#34d399'}}>-${p.quote.discount.toFixed(2)}</strong></div>}
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:12}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shipping</span><strong>${SHIPPING_PRICE.toFixed(2)}</strong></div>
             <div style={{height:1,background:'rgba(255,255,255,0.08)',marginBottom:12}}/>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'1.05rem',fontWeight:950}}><span>Total</span><span style={{color:'#00E5C8'}}>${p.total.toFixed(2)}</span></div>
@@ -95,8 +99,21 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
             <div>
               <div style={{fontSize:'0.82rem',fontWeight:900,color:'rgba(255,255,255,0.68)',marginBottom:8}}>Quantity</div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                {[1,2,3,4,5].map(n=><button key={n} onClick={()=>p.setQty(n)} style={{width:48,height:44,borderRadius:11,border:`1.5px solid ${p.qty===n?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:p.qty===n?'rgba(0,229,200,0.11)':'rgba(255,255,255,0.03)',color:p.qty===n?'#00E5C8':'rgba(255,255,255,0.68)',fontSize:'0.95rem',fontWeight:900,cursor:'pointer'}}>{n}</button>)}
+                {[1,2,3,4,5].map(n=>{
+                  const pct=qtyDiscountPct(n);
+                  return (
+                    <button key={n} onClick={()=>p.setQty(n)} style={{width:52,height:52,borderRadius:11,border:`1.5px solid ${p.qty===n?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:p.qty===n?'rgba(0,229,200,0.11)':'rgba(255,255,255,0.03)',color:p.qty===n?'#00E5C8':'rgba(255,255,255,0.68)',fontSize:'0.95rem',fontWeight:900,cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2}}>
+                      {n}
+                      {pct>0&&<span style={{fontSize:'0.5rem',fontWeight:900,color:'#34d399'}}>-{pct}%</span>}
+                    </button>
+                  );
+                })}
               </div>
+              {(()=>{const hint=nextTierHint(p.qty);return hint?(
+                <div style={{marginTop:8,fontSize:'0.72rem',fontWeight:800,color:'#34d399'}}>Add {hint.addQty} more shirt{hint.addQty>1?'s':''} and save {hint.pct}% on all of them</div>
+              ):p.qty>=2?(
+                <div style={{marginTop:8,fontSize:'0.72rem',fontWeight:800,color:'#34d399'}}>Best price unlocked - {qtyDiscountPct(p.qty)}% off every shirt</div>
+              ):null;})()}
             </div>
 
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>

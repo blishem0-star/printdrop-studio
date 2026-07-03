@@ -67,6 +67,7 @@ export async function submitOrder(payload: {
   shippingZip: string;
   shippingState: string;
   total: number;
+  qty?: number;
   design: {
     title: string;
     emoji?: string;
