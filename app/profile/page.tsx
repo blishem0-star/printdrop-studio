@@ -4,20 +4,23 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
 import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
+import { ORDER_STATUS_LABEL, ORDER_STATUS_COLOR } from '@/lib/orderStatus';
+import { useFavorites } from '@/lib/useFavorites';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import Link from 'next/link';
+
+function SvgPreview({ svg, color, size = 44 }: { svg: string; color: string; size?: number }) {
+  const colored = svg.replace(/currentColor/g, color);
+  return <div style={{ width: size, height: size, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: colored.replace('<svg ', `<svg width="${size}" height="${size}" `) }} />;
+}
 
 type Role = 'OWNER' | 'USER' | 'ARTIST';
 type OrderStatus = 'DRAFT' | 'PAID' | 'IN_PRODUCTION' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  DRAFT: 'Request Received', PAID: 'Payment Confirmed', IN_PRODUCTION: 'In Production',
-  SHIPPED: 'Shipped', DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
-};
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  DRAFT: 'rgba(255,255,255,0.3)', PAID: '#3B82F6', IN_PRODUCTION: '#F59E0B',
-  SHIPPED: '#8B5CF6', DELIVERED: '#10B981', CANCELLED: '#EF4444',
-};
+const STATUS_LABEL = ORDER_STATUS_LABEL;
+const STATUS_COLOR = ORDER_STATUS_COLOR;
 
 type Profile = {
   id: string; name: string; email: string; role: Role; createdAt: string;
@@ -322,7 +325,7 @@ export default function ProfilePage() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {profile.orders.map(order => (
-                <div key={order.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <Link key={order.id} href={`/orders/${order.id}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.15s' }}>
                   <div style={{ flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <ShirtMockup colorHex={order.items[0]?.designAsset?.colorHex ?? '#2a2a2a'} size={44} />
                   </div>
@@ -336,11 +339,14 @@ export default function ProfilePage() {
                     {STATUS_LABEL[order.status]}
                   </span>
                   <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>${order.total.toFixed(2)}</span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
         )}
+
+        {/* Saved designs (local favorites) */}
+        <SavedDesignsSection />
 
         {/* Artist CTA */}
         {role === 'USER' && (
@@ -382,5 +388,38 @@ function AiProfileView({ data }: { data: string }) {
           </div>
         )}
       </div>
+  );
+}
+
+// Favorites saved in the catalog (localStorage) - shown here so returning
+// customers land one click away from ordering something they already liked.
+function SavedDesignsSection() {
+  const { favorites, toggle } = useFavorites();
+  const saved = favorites
+    .map(id => CATALOG_DESIGNS.find(d => d.id === id))
+    .filter((d): d is typeof CATALOG_DESIGNS[number] => Boolean(d));
+  if (saved.length === 0) return null;
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,77,109,0.14)', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem' }}>
+      <h2 style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 7, color: '#fff' }}>
+        <svg viewBox="0 0 16 16" width={13} height={13} fill="#ff4d6d" aria-hidden="true"><path d="M8 13.5C5 11 2 8.8 2 5.9 2 4 3.5 2.5 5.3 2.5c1.1 0 2.1.5 2.7 1.4.6-.9 1.6-1.4 2.7-1.4C12.5 2.5 14 4 14 5.9c0 2.9-3 5.1-6 7.6z"/></svg>
+        Saved Designs ({saved.length})
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 10 }}>
+        {saved.map(d => (
+          <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.6rem 0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+            <SvgPreview svg={d.svg} color="rgba(255,255,255,0.75)" size={34} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
+                <Link href={`/catalog/${d.id}`} style={{ fontSize: '0.6rem', fontWeight: 800, color: '#00E5C8', textDecoration: 'none' }}>Order</Link>
+                <Link href={`/design?remix=${encodeURIComponent(d.id)}`} style={{ fontSize: '0.6rem', fontWeight: 800, color: '#7dd3fc', textDecoration: 'none' }}>Remix</Link>
+              </div>
+            </div>
+            <button aria-label={`Remove ${d.title} from saved`} onClick={() => toggle(d.id)} style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.65rem', lineHeight: 1 }}>x</button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
