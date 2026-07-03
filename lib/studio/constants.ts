@@ -28,6 +28,8 @@ export const FONTS = [
   {id:'"Arial Narrow","Helvetica Neue",sans-serif', label:'Narrow',  preview:'Aa'},
   {id:'"Rockwell","Courier Bold",serif',            label:'Slab',    preview:'Aa'},
   {id:'"Verdana",Geneva,sans-serif',                label:'Round',   preview:'Aa'},
+  {id:'"Trebuchet MS","Segoe UI",sans-serif',       label:'Casual',  preview:'Aa'},
+  {id:'"Copperplate","Copperplate Gothic Light",fantasy', label:'Caps', preview:'AA'},
 ];
 
 export const SHAPES_LIB = [
