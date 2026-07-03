@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { getSession } from '@/lib/session';
+import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,6 +130,18 @@ export async function POST(req: NextRequest) {
     },
     include: { customer: true, items: { include: { designAsset: true } } },
   });
+
+  // Confirmation email is best-effort: the order must succeed even if the
+  // email provider is down or not configured yet.
+  const msg = orderReceivedEmail({
+    orderId: order.id,
+    customerName: customer.name,
+    colorName: design.colorName,
+    size: design.size,
+    total,
+    siteUrl: siteUrl(),
+  });
+  sendEmail(customer.email, msg.subject, msg.html).catch(() => null);
 
   return NextResponse.json(order, { status: 201 });
 }

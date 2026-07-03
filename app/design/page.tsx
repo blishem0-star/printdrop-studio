@@ -760,7 +760,7 @@ function DesignStudio() {
 
   //
   return (
-    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'#070709',color:'white',overflow:'hidden'}}>
+    <div className="studio-root" style={{height:'100vh',display:'flex',flexDirection:'column',background:'#070709',color:'white',overflow:'hidden'}}>
       {toastEl}
 
       {/* Fullscreen */}
@@ -1767,6 +1767,15 @@ function DesignStudio() {
         </div>
       </div>
 
+      {/* Mobile-only sticky checkout bar (shown via CSS below 760px) */}
+      <div className="studio-mobile-cta" style={{display:'none'}}>
+        <div style={{minWidth:0}}>
+          <div style={{fontSize:'0.85rem',fontWeight:950,color:'#fff'}}>${shirtPrice.toFixed(2)}<span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.45)'}}> + ${SHIPPING_PRICE.toFixed(2)} shipping</span></div>
+          <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.4)'}}>No payment now - pay after approval</div>
+        </div>
+        <button onClick={()=>setCheckoutOpen(true)} style={{flexShrink:0,padding:'12px 20px',borderRadius:11,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.8rem',fontWeight:950,letterSpacing:'0.04em',cursor:'pointer',boxShadow:'0 8px 26px rgba(0,229,200,0.3)'}}>Finish design</button>
+      </div>
+
       <style>{`
         @keyframes fsIn    { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
         @keyframes shirtIn { from{opacity:0;transform:scale(0.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
@@ -1808,7 +1817,12 @@ function DesignStudio() {
           .studio-shell{grid-template-columns:300px minmax(640px,1fr) 420px!important;}
           .share-fan{--fan-scale:1.12;}
         }
+        @media(max-width:920px){
+          .studio-root{height:100dvh!important;}
+        }
         @media(max-width:760px){
+          .studio-mobile-cta{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:8000;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(5,5,8,0.96);border-top:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(18px);}
+          .studio-properties{padding-bottom:76px!important;}
           .share-fan{--fan-scale:0.62;}
           .share-fan-item{width:92px!important;height:92px!important;border-radius:24px!important;}
           .design-body{grid-template-columns:1fr!important;grid-template-rows:auto 1fr auto;overflow:auto!important;}

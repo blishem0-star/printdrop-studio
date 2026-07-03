@@ -1,4 +1,4 @@
-export type IntegrationKey = 'openai' | 'stripe' | 'printify';
+export type IntegrationKey = 'openai' | 'stripe' | 'printify' | 'resend';
 
 export type IntegrationStatus = 'live' | 'configured' | 'missing';
 
@@ -24,8 +24,31 @@ export function getIntegrations(): IntegrationConfig[] {
   const stripePrice = present('STRIPE_PRICE_ID');
   const printifyToken = present('PRINTIFY_API_TOKEN');
   const printifyShop = present('PRINTIFY_SHOP_ID');
+  const resendKey = present('RESEND_API_KEY');
+  const emailFrom = present('EMAIL_FROM');
 
   return [
+    {
+      key: 'resend',
+      name: 'Email (Resend)',
+      tagline: 'Transactional email: order confirmations and status updates to customers.',
+      status: resendKey && emailFrom ? 'live' : resendKey ? 'configured' : 'missing',
+      accent: '#F59E0B',
+      env: [
+        { key: 'RESEND_API_KEY', present: resendKey, secret: true },
+        { key: 'EMAIL_FROM', present: emailFrom },
+      ],
+      capabilities: [
+        'Order request confirmation email on submit (wired in /api/orders)',
+        'Status change emails: paid, in production, shipped, delivered, cancelled (wired in admin)',
+        'Falls back silently when unconfigured - orders never fail because of email',
+      ],
+      nextSteps: [
+        'Create a free Resend account and add RESEND_API_KEY',
+        'Verify your domain and set EMAIL_FROM (e.g. "STYLX <orders@yourdomain.com>")',
+        'Send a test order and confirm delivery in the Resend dashboard',
+      ],
+    },
     {
       key: 'openai',
       name: 'OpenAI',
