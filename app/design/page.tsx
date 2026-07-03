@@ -13,6 +13,9 @@ import { sanitizeSvg } from '@/lib/sanitizeSvg';
 import { ShareFan } from '@/components/design/ShareFan';
 import { StudioCanvas } from '@/components/design/StudioCanvas';
 import { LS, INP } from '@/components/design/studioStyles';
+import { UploadPanel } from '@/components/design/panels/UploadPanel';
+import { AiPanel } from '@/components/design/panels/AiPanel';
+import { ShapesPanel } from '@/components/design/panels/ShapesPanel';
 import type { ShippingFields } from '@/components/design/OrderRequestModal';
 import { useDesignHistory } from '@/hooks/useDesignHistory';
 import { useDesignKeyboardShortcuts } from '@/hooks/useDesignKeyboardShortcuts';
@@ -21,11 +24,10 @@ import dynamic from 'next/dynamic';
 
 import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot, GarmentView, DesignDocument } from "@/lib/studio/types";
 import {
-  SVG_W, SVG_H, PRINT, POS_LABELS, FONTS, SHAPES_LIB,
-  EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS,
+  SVG_W, SVG_H, PRINT, FONTS, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS,
   WORKFLOW_GROUPS, SIDE_TOOLS,
 } from "@/lib/studio/constants";
-import { uid, mkLayer, starPoints, TEMPLATES, recommendShirtSize } from "@/lib/studio/helpers";
+import { uid, mkLayer, TEMPLATES, recommendShirtSize } from "@/lib/studio/helpers";
 
 // Checkout UI is heavy and only needed once the user finishes designing.
 const OrderRequestModal = dynamic(()=>import('@/components/design/OrderRequestModal'),{ssr:false});
@@ -1533,210 +1535,24 @@ function DesignStudio() {
 
             {/* UPLOAD */}
             {activeTool==='upload'&&(
-              <div style={{padding:'14px'}}>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:4,marginBottom:12}}>
-                  {([
-                    ['front','Front'],
-                    ['back','Back'],
-                    ['chest','Chest'],
-                    ['leftSleeve','Left sleeve'],
-                    ['rightSleeve','Right sleeve'],
-                  ] as [UploadSlot,string][]).map(([slot,label])=>(
-                    <button key={slot} aria-pressed={uploadSlot===slot} onClick={()=>{
-                      setUploadSlot(slot);
-                      if(slot==='front'||slot==='chest') setGarmentView('front');
-                      if(slot==='back') setGarmentView('back');
-                      if(slot==='leftSleeve') setGarmentView('left');
-                      if(slot==='rightSleeve') setGarmentView('right');
-                    }}
-                      style={{flex:1,padding:'8px 4px',borderRadius:9,border:'1px solid',borderColor:uploadSlot===slot?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.07)',background:uploadSlot===slot?'rgba(0,229,200,0.08)':'rgba(255,255,255,0.02)',color:uploadSlot===slot?'#00E5C8':'rgba(255,255,255,0.3)',fontSize:'0.65rem',fontWeight:700,cursor:'pointer',transition:'all 0.13s',display:'flex',alignItems:'center',justifyContent:'center',gap:4,textTransform:'capitalize'}}>
-                      {label}{uploads[slot]&&<span style={{width:4,height:4,borderRadius:'50%',background:'#10B981'}}/>}
-                    </button>
-                  ))}
-                </div>
-                <div onDragEnter={e=>{e.preventDefault();setFileDragging(true);}} onDragLeave={()=>setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();setFileDragging(false);const f=e.dataTransfer.files[0];if(f)handleFile(f);}} onClick={()=>fileRef.current?.click()}
-                  style={{border:`2px dashed ${fileDragging?'rgba(0,229,200,0.6)':uploads[uploadSlot]?'rgba(16,185,129,0.4)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:uploads[uploadSlot]?'1.2rem':'2.5rem 1rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(0,229,200,0.05)':uploads[uploadSlot]?'rgba(16,185,129,0.02)':'rgba(255,255,255,0.01)',transition:'all 0.2s',marginBottom:12}}>
-                  <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);e.target.value='';}}/>
-                  {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',marginTop:3}}>Click to replace</div></div></div>
-                    :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>PNG - JPG - WEBP</div></>}
-                </div>
-                {(uploadSlot==='front'||uploadSlot==='back')&&(
-                  <div style={{marginBottom:12}}>
-                    <div style={LS}>Position</div>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}}>
-                      {(Object.keys(POS_LABELS) as ImagePos[]).map(p=>(
-                        <button key={p} aria-pressed={imgPos[uploadSlot==='front'?'front':'back']===p} onClick={()=>setImgPos(prev=>({...prev,[uploadSlot==='front'?'front':'back']:p}))}
-                          style={{padding:'7px 10px',borderRadius:8,border:'1px solid',borderColor:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.07)',background:imgPos[uploadSlot==='front'?'front':'back']===p?'rgba(0,229,200,0.08)':'rgba(255,255,255,0.02)',color:imgPos[uploadSlot==='front'?'front':'back']===p?'#00E5C8':'rgba(255,255,255,0.3)',fontSize:'0.65rem',fontWeight:600,cursor:'pointer',transition:'all 0.13s',textAlign:'center'}}>
-                          {POS_LABELS[p]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div style={{marginBottom:12}}>
-                  <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Image Opacity</span><span style={{color:'#00E5C8',fontWeight:700,letterSpacing:0,textTransform:'none'}}>{Math.round(imgOpacity[uploadSlot]*100)}%</span></div>
-                  <input type="range" min={0.1} max={1} step={0.05} value={imgOpacity[uploadSlot]} onChange={e=>setImgOpacity(p=>({...p,[uploadSlot]:+e.target.value}))} style={{width:'100%',accentColor:'#00E5C8'}}/>
-                  {/* Image effect */}
-                  <div style={{...LS,marginTop:12}}>Image Effect</div>
-                  <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                    {([['none','Original'],['gray','B&W'],['sepia','Sepia'],['invert','Invert'],['punch','Punch']] as const).map(([k,label])=>(
-                      <button key={k} aria-pressed={imgFx[uploadSlot]===k} onClick={()=>setImgFx(p=>({...p,[uploadSlot]:k}))}
-                        style={{padding:'5px 10px',borderRadius:999,border:`1px solid ${imgFx[uploadSlot]===k?'rgba(0,229,200,0.4)':'rgba(255,255,255,0.08)'}`,background:imgFx[uploadSlot]===k?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.02)',color:imgFx[uploadSlot]===k?'#00E5C8':'rgba(255,255,255,0.4)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',transition:'all 0.13s'}}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {uploads[uploadSlot]&&<button onClick={()=>setUploads(p=>({...p,[uploadSlot]:null}))} style={{width:'100%',padding:'8px',borderRadius:9,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.07)',color:'#f87171',fontSize:'0.7rem',fontWeight:700,cursor:'pointer'}}>Remove image</button>}
-              </div>
+              <UploadPanel uploadSlot={uploadSlot} setUploadSlot={setUploadSlot} setGarmentView={setGarmentView}
+                uploads={uploads} removeUpload={slot=>setUploads(prev=>({...prev,[slot]:null}))}
+                imgPos={imgPos} setImgPos={setImgPos} imgOpacity={imgOpacity} setImgOpacity={setImgOpacity}
+                imgFx={imgFx} setImgFx={setImgFx} fileRef={fileRef} fileDragging={fileDragging}
+                setFileDragging={setFileDragging} handleFile={handleFile}/>
             )}
 
             {/* AI */}
             {activeTool==='ai'&&(
-              <div style={{padding:'14px'}}>
-                <div style={{background:'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,153,255,0.05))',border:'1px solid rgba(0,229,200,0.12)',borderRadius:14,padding:'14px',marginBottom:14}}>
-                  <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>AI DESIGN GENERATOR</div>
-                  <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe what you want. AI will generate a design for your shirt.</div>
-                </div>
-                <div style={{marginBottom:12}}>
-                  <div style={LS}>Your idea</div>
-                  <textarea value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. A minimalist mountain peak with bold EXPLORE typography..." rows={4} maxLength={200}
-                    style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.04)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'11px 13px',color:'#fff',fontSize:'0.82rem',outline:'none',resize:'none',fontFamily:'inherit',lineHeight:1.65,transition:'border-color 0.15s'}}
-                    onFocus={e=>(e.target.style.borderColor='rgba(0,229,200,0.45)')} onBlur={e=>(e.target.style.borderColor='rgba(255,255,255,0.09)')}/>
-                  {aiPrompt.length>160&&<span style={{fontSize:'0.58rem',color:aiPrompt.length>190?'#f87171':'rgba(255,255,255,0.25)',textAlign:'right',display:'block',marginTop:3}}>{200-aiPrompt.length} left</span>}
-                </div>
-                <button onClick={generateAI} disabled={!aiPrompt.trim()||aiLoading}
-                  style={{width:'100%',padding:'12px',borderRadius:11,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#050507':'rgba(255,255,255,0.18)',fontWeight:800,fontSize:'0.85rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s',marginBottom:10}}>
-                  {aiLoading?`Generating... ${Math.round(aiProgress)}%`:aiSvg?'Regenerate':'Generate Design'}
-                </button>
-                {aiLoading&&<div style={{height:2,background:'rgba(255,255,255,0.05)',borderRadius:999,overflow:'hidden',marginBottom:10}}><div style={{height:'100%',width:`${aiProgress}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999,transition:'width 0.2s'}}/></div>}
-                {aiSvg&&!aiLoading&&(
-                  <div style={{padding:'11px',background:'rgba(16,185,129,0.05)',border:'1px solid rgba(16,185,129,0.15)',borderRadius:11,display:'flex',gap:10,alignItems:'center',marginBottom:14}}>
-                    <div style={{width:44,height:44,background:'rgba(255,255,255,0.03)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <div style={{width:34,height:34}} dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,'rgba(255,255,255,0.7)').replace('<svg ','<svg width="34" height="34" ')}}/>
-                    </div>
-                    <div><div style={{fontSize:'0.68rem',color:'#10B981',fontWeight:700}}>Applied to shirt</div><div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.32)',marginTop:2}}>Showing on preview</div></div>
-                    <button onClick={()=>setAiSvg(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:18}}>x</button>
-                  </div>
-                )}
-                <div>
-                  <div style={LS}>Inspiration</div>
-                  <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                    {['Minimalist mountain peak','Neon cyberpunk dragon','Bold street art letters','Abstract geometric waves','Vintage 80s sunset logo','Japanese wave pattern'].map(p=>(
-                      <button key={p} onClick={()=>setAiPrompt(p)} style={{padding:'8px 11px',borderRadius:9,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.35)',fontSize:'0.72rem',cursor:'pointer',transition:'all 0.12s',textAlign:'left'}}
-                        onMouseEnter={e=>{(e.currentTarget.style.borderColor='rgba(0,229,200,0.28)');(e.currentTarget.style.color='rgba(255,255,255,0.65)');(e.currentTarget.style.background='rgba(0,229,200,0.04)');}}
-                        onMouseLeave={e=>{(e.currentTarget.style.borderColor='rgba(255,255,255,0.07)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');(e.currentTarget.style.background='rgba(255,255,255,0.03)');}}>
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <AiPanel aiPrompt={aiPrompt} setAiPrompt={setAiPrompt} aiLoading={aiLoading}
+                aiProgress={aiProgress} aiSvg={aiSvg} clearAiSvg={()=>setAiSvg(null)} generate={generateAI}/>
             )}
 
             {/* SHAPES */}
             {activeTool==='shapes'&&(
-              <div style={{padding:'14px'}}>
-                {/* Sub-tabs */}
-                <div style={{display:'flex',background:'rgba(0,0,0,0.4)',borderRadius:10,padding:3,gap:2,marginBottom:14}}>
-                  {(['vector','shapes','emoji'] as const).map(t=>(
-                    <button key={t} onClick={()=>setShapesTab(t)} style={{flex:1,padding:'6px',borderRadius:7,border:'none',cursor:'pointer',background:shapesTab===t?'rgba(0,229,200,0.1)':'transparent',color:shapesTab===t?'#00E5C8':'rgba(255,255,255,0.3)',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase',transition:'all 0.13s'}}>
-                      {t==='vector'?'Vector':t==='shapes'?'Glyphs':'Emoji'}
-                    </button>
-                  ))}
-                </div>
-
-                {shapesTab==='vector'&&(
-                  <div>
-                    <div style={LS}>Vector Shapes - crisp at any size</div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:16}}>
-                      {VECTOR_SHAPES.map(v=>(
-                        <button key={v.kind} title={v.label} onClick={()=>addShape(v.kind)}
-                          style={{padding:'12px 4px',borderRadius:10,cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',transition:'all 0.12s',display:'flex',flexDirection:'column',alignItems:'center',gap:6,color:'rgba(255,255,255,0.8)'}}
-                          onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.09)');(x.currentTarget.style.borderColor='rgba(0,229,200,0.25)');(x.currentTarget.style.transform='scale(1.04)');}}
-                          onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.03)');(x.currentTarget.style.borderColor='rgba(255,255,255,0.07)');(x.currentTarget.style.transform='scale(1)');}}>
-                          <svg viewBox="-12 -12 24 24" width={22} height={22} aria-hidden="true">
-                            {v.kind==='rect'&&<rect x={-9} y={-9} width={18} height={18} rx={1.5} fill="currentColor"/>}
-                            {v.kind==='circle'&&<circle r={9} fill="currentColor"/>}
-                            {v.kind==='ring'&&<circle r={7.4} fill="none" stroke="currentColor" strokeWidth={3.2}/>}
-                            {v.kind==='triangle'&&<polygon points="0,-9 9,9 -9,9" fill="currentColor"/>}
-                            {v.kind==='diamond'&&<polygon points="0,-10 10,0 0,10 -10,0" fill="currentColor"/>}
-                            {v.kind==='star'&&<polygon points={starPoints(20)} fill="currentColor"/>}
-                            {v.kind==='line'&&<rect x={-10} y={-1} width={20} height={2} rx={1} fill="currentColor"/>}
-                            {v.kind==='capsule'&&<rect x={-10} y={-5} width={20} height={10} rx={5} fill="currentColor"/>}
-                          </svg>
-                          <span style={{fontSize:'0.48rem',color:'rgba(255,255,255,0.62)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{v.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {shapesTab==='shapes'&&(
-                  <div>
-                    <div style={LS}>Geometric Shapes</div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:16}}>
-                      {SHAPES_LIB.map(s=>(
-                        <button key={s.char} title={s.label} onClick={()=>addGfx(s.char)}
-                          style={{padding:'14px 8px',borderRadius:10,cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',transition:'all 0.12s',display:'flex',flexDirection:'column',alignItems:'center',gap:5}}
-                          onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.09)');(x.currentTarget.style.borderColor='rgba(0,229,200,0.25)');(x.currentTarget.style.transform='scale(1.04)');}}
-                          onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.03)');(x.currentTarget.style.borderColor='rgba(255,255,255,0.07)');(x.currentTarget.style.transform='scale(1)');}}>
-                          <span style={{fontSize:'1.5rem',lineHeight:1,color:'rgba(255,255,255,0.85)'}}>{s.char}</span>
-                          <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.62)',fontWeight:700,letterSpacing:'0.06em',textTransform:'uppercase'}}>{s.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {shapesTab==='emoji'&&(
-                  <div>
-                    <div style={LS}>Emoji Library</div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:14}}>
-                      {EMOJIS_LIB.map(e=>(
-                        <button key={e} onClick={()=>addGfx(e)}
-                          style={{padding:'10px 2px',borderRadius:9,cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',fontSize:'1.3rem',lineHeight:1,transition:'all 0.12s'}}
-                          onMouseEnter={x=>{(x.currentTarget.style.background='rgba(0,229,200,0.1)');(x.currentTarget.style.transform='scale(1.14)');}}
-                          onMouseLeave={x=>{(x.currentTarget.style.background='rgba(255,255,255,0.03)');(x.currentTarget.style.transform='scale(1)');}}>
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Selected shape controls */}
-                {selLayer&&(
-                  <div style={{background:'rgba(0,229,200,0.04)',border:'1px solid rgba(0,229,200,0.12)',borderRadius:10,padding:'11px 12px'}}>
-                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Scale</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{selLayer.fontSize}px</span></div>
-                    <input type="range" min={12} max={80} value={selLayer.fontSize} onChange={e=>updateLayer(selLayer.id,{fontSize:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
-                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Rotate</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{selLayer.rotation}deg</span></div>
-                    <input type="range" min={-180} max={180} value={selLayer.rotation} onChange={e=>updateLayer(selLayer.id,{rotation:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
-                    <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Opacity</span><span style={{color:'#00E5C8',letterSpacing:0,textTransform:'none',fontWeight:700}}>{Math.round((selLayer.opacity??1)*100)}%</span></div>
-                    <input type="range" min={0.1} max={1} step={0.05} value={selLayer.opacity??1} onChange={e=>updateLayer(selLayer.id,{opacity:+e.target.value})} style={{width:'100%',accentColor:'#00E5C8',marginBottom:8}}/>
-                    <div style={LS}>Color</div>
-                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-                      {TEXT_COLORS.slice(0,8).map(c=>(
-                        <button key={c} onClick={()=>updateLayer(selLayer.id,{color:c})} style={{width:24,height:24,borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:selLayer.color===c?'2px solid #00E5C8':'2px solid transparent',outlineOffset:2,transition:'all 0.12s'}}/>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Print area background */}
-                <div style={{marginTop:14}}>
-                  <div style={LS}>Print Area Background</div>
-                  <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-                    <button onClick={()=>setPrintBg(null)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${!printBg?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:'rgba(255,255,255,0.66)'}}>None</button>
-                    {['#000000','#ffffff','#FF4D1C','#FFD700','#10B981','#0099FF','#6C63FF','#FF69B4'].map(c=>(
-                      <button key={c} onClick={()=>setPrintBg(c)} style={{width:28,height:28,borderRadius:6,border:`1.5px solid ${printBg===c?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:c,cursor:'pointer',transition:'all 0.12s',transform:printBg===c?'scale(1.15)':'scale(1)'}}/>
-                    ))}
-                    <label style={{width:28,height:28,borderRadius:6,cursor:'pointer',background:`${printBg||'rgba(255,255,255,0.06)'}`,border:'1.5px dashed rgba(255,255,255,0.2)',position:'relative',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',color:'rgba(255,255,255,0.5)'}}>
-                      +<input type="color" aria-hidden tabIndex={-1} value={printBg||'#ffffff'} onChange={e=>setPrintBg(e.target.value)} style={{opacity:0,position:'absolute',inset:0,cursor:'pointer'}}/>
-                    </label>
-                  </div>
-                </div>
-              </div>
+              <ShapesPanel shapesTab={shapesTab} setShapesTab={setShapesTab} addShape={addShape}
+                addGfx={addGfx} selLayer={selLayer} updateLayer={updateLayer}
+                printBg={printBg} setPrintBg={setPrintBg}/>
             )}
 
             {/* SHIRT */}
