@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
+import { STATUS_LABEL } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,10 +12,6 @@ export const metadata = {
 };
 
 const STATUS_FLOW = ['DRAFT', 'PAID', 'IN_PRODUCTION', 'SHIPPED', 'DELIVERED'] as const;
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'Request received', PAID: 'Payment confirmed', IN_PRODUCTION: 'In production',
-  SHIPPED: 'Shipped', DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
-};
 
 export default async function OrderTrackingPage(
   { params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ email?: string }> }
