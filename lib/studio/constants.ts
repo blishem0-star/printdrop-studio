@@ -80,7 +80,7 @@ export const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI'
 export const WORKFLOW_GROUPS: { label: string; tools: ActiveTool[]; primary: ActiveTool; detail: string }[] = [
   { label: 'Template', tools: ['templates'], primary: 'templates', detail: 'Start from a ready design' },
   { label: 'Design', tools: ['text', 'shapes'], primary: 'text', detail: 'Add words, icons, and shapes' },
-  { label: 'Image', tools: ['upload', 'ai'], primary: 'upload', detail: 'Upload a picture or ask for AI help' },
+  { label: 'Image', tools: ['upload', 'ai'], primary: 'upload', detail: 'Upload a picture or browse artwork' },
   { label: 'Shirt', tools: ['shirt'], primary: 'shirt', detail: 'Choose color and size' },
   { label: 'Order', tools: ['order'], primary: 'order', detail: 'Review quantity and delivery details' },
 ];
@@ -89,7 +89,7 @@ export const SIDE_TOOLS: { id: ActiveTool; icon: string; label: string; hint: st
   { id: 'templates', icon: 'T', label: 'Ready design', hint: 'Start from a template' },
   { id: 'text', icon: 'Aa', label: 'Add text', hint: 'Names, slogans, numbers' },
   { id: 'upload', icon: 'Up', label: 'Add image', hint: 'Logo, photo, sleeve art' },
-  { id: 'ai', icon: 'AI', label: 'AI helper', hint: 'Ideas, layout, smart fixes' },
+  { id: 'ai', icon: 'Art', label: 'Art ideas', hint: 'Match artwork to your idea' },
   { id: 'shapes', icon: 'S', label: 'Icons', hint: 'Symbols and shapes' },
   { id: 'order', icon: 'OK', label: 'Finish', hint: 'Review, share, and submit request' },
 ];

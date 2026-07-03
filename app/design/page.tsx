@@ -617,17 +617,18 @@ function DesignStudio() {
   }
 
   //
+  // Quick honest lookup: match the idea against catalog artwork.
   function generateAI(){
     if(!aiPrompt.trim()) return;
     setAiLoading(true); setAiProgress(0); setAiSvg(null);
-    const iv=setInterval(()=>setAiProgress(p=>p>=90?(clearInterval(iv),90):p+Math.random()*14),180);
+    const iv=setInterval(()=>setAiProgress(p=>Math.min(95,p+22)),120);
     setTimeout(()=>{
       clearInterval(iv); setAiProgress(100);
       const kw=aiPrompt.toLowerCase();
       const match=CATALOG_DESIGNS.find(d=>kw.includes(d.category.toLowerCase())||kw.includes(d.title.toLowerCase().split(' ')[0]))
         ??CATALOG_DESIGNS[Math.floor(Math.random()*CATALOG_DESIGNS.length)];
       setAiSvg(sanitizeSvg(match.svg)); setAiLoading(false);
-    },2800);
+    },700);
   }
 
   //
@@ -996,7 +997,7 @@ function DesignStudio() {
               <div className="studio-quickstart" onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:46,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5,maxWidth:'92%'}}>
                 <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Start your design</p>
                 <div style={{display:'flex',gap:7,justifyContent:'center',flexWrap:'wrap'}}>
-                  {([['Pick a template','templates'],['Add text','text'],['Upload image','upload'],['AI design','ai']] as [string,ActiveTool][]).map(([label,tool])=>(
+                  {([['Pick a template','templates'],['Add text','text'],['Upload image','upload'],['Find artwork','ai']] as [string,ActiveTool][]).map(([label,tool])=>(
                     <button key={tool} onClick={()=>activateTool(tool)} style={{padding:'8px 13px',borderRadius:999,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.66rem',fontWeight:900,letterSpacing:'0.05em',cursor:'pointer',backdropFilter:'blur(10px)'}}>{label}</button>
                   ))}
                 </div>
@@ -1090,7 +1091,7 @@ function DesignStudio() {
               {activeTool==='templates'&&'READY DESIGNS'}
               {activeTool==='text'&&'ADD TEXT'}
               {activeTool==='upload'&&'UPLOAD IMAGE'}
-              {activeTool==='ai'&&'AI DESIGN HELP'}
+              {activeTool==='ai'&&'ART IDEAS'}
               {activeTool==='shapes'&&'ICONS & SHAPES'}
               {activeTool==='shirt'&&'COLOR & SIZE'}
               {activeTool==='order'&&'CHECKOUT'}

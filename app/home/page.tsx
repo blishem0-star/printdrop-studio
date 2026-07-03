@@ -216,7 +216,7 @@ export default function HomePage() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.75rem', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1, marginBottom: 7 }}>Design Studio</div>
-                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch - add text, upload images, or generate with AI</div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.36)', lineHeight: 1.6 }}>Design from scratch - your text, your photos, your shirt</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 700, color: '#00E5C8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>

@@ -368,8 +368,8 @@ export default function CatalogPage() {
             The Collection
           </div>
           <h2 className="text-reveal" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(3rem,9vw,7rem)', fontWeight: 400, letterSpacing: '0.025em', lineHeight: 0.86, margin: 0, maxWidth: 720 }}>
-            <span style={{ display: 'block', color: '#fff' }}>Designed by AI.</span>
-            <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 50%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Worn by you.</span>
+            <span style={{ display: 'block', color: '#fff' }}>Designed by you.</span>
+            <span style={{ display: 'block', background: 'linear-gradient(135deg,#00E5C8 0%,#0099FF 50%,#7B61FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Worn everywhere.</span>
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: 420, marginTop: '1.1rem' }}>
             Every piece starts as a curated design concept. Pick one, make it yours, and submit a clean order request in seconds.

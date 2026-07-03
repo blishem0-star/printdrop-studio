@@ -21,8 +21,8 @@ export function AiPanel(p: AiPanelProps) {
   return (
     <div style={{padding:'14px'}}>
       <div style={{background:'linear-gradient(135deg,rgba(0,229,200,0.06),rgba(0,153,255,0.05))',border:'1px solid rgba(0,229,200,0.12)',borderRadius:14,padding:'14px',marginBottom:14}}>
-        <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>AI DESIGN GENERATOR</div>
-        <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Describe what you want. AI will generate a design for your shirt.</div>
+        <div style={{fontSize:'0.6rem',color:'#00E5C8',fontWeight:700,letterSpacing:'0.1em',marginBottom:6}}>ART FINDER</div>
+        <div style={{fontSize:'0.73rem',color:'rgba(255,255,255,0.35)',lineHeight:1.6}}>Tell us the vibe - we match artwork from our collection to your idea.</div>
       </div>
       <div style={{marginBottom:12}}>
         <div style={LS}>Your idea</div>
@@ -33,7 +33,7 @@ export function AiPanel(p: AiPanelProps) {
       </div>
       <button onClick={p.generate} disabled={!aiPrompt.trim()||aiLoading}
         style={{width:'100%',padding:'12px',borderRadius:11,border:'none',background:aiPrompt.trim()&&!aiLoading?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.06)',color:aiPrompt.trim()&&!aiLoading?'#050507':'rgba(255,255,255,0.18)',fontWeight:800,fontSize:'0.85rem',cursor:aiPrompt.trim()&&!aiLoading?'pointer':'default',transition:'all 0.2s',marginBottom:10}}>
-        {aiLoading?`Generating... ${Math.round(aiProgress)}%`:aiSvg?'Regenerate':'Generate Design'}
+        {aiLoading?`Matching... ${Math.round(aiProgress)}%`:aiSvg?'Try another match':'Find artwork'}
       </button>
       {aiLoading&&<div style={{height:2,background:'rgba(255,255,255,0.05)',borderRadius:999,overflow:'hidden',marginBottom:10}}><div style={{height:'100%',width:`${aiProgress}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999,transition:'width 0.2s'}}/></div>}
       {aiSvg&&!aiLoading&&(

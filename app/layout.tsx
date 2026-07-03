@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import CursorEffect from '@/components/CursorEffect';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -98,7 +97,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body suppressHydrationWarning style={{ margin: 0, backgroundColor: '#050507', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <a href="#main-content" className="skip-link">Skip to content</a>
-        <CursorEffect />
         <div id="main-content">
         {children}
         </div>
