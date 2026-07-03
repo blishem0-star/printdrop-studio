@@ -89,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }}>
         <div className="admin-brand" style={{ marginBottom: '1.75rem', padding: '0 0.625rem' }}>
           <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.4rem', letterSpacing: '0.06em', lineHeight: 1, color: '#fff' }}>
-            STYLX<span style={{ color: '#00E5C8' }}>.AI</span>
+            STYLX<span style={{ color: '#00E5C8' }}>.</span>
           </div>
           <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.22)', fontWeight: 700, marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</div>
         </div>

@@ -40,7 +40,7 @@ export default function OgImage() {
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
             <span style={{ fontSize: 88, fontWeight: 900, color: '#ffffff', letterSpacing: '-2px', lineHeight: 1 }}>STYLX</span>
-            <span style={{ fontSize: 88, fontWeight: 900, color: '#00E5C8', letterSpacing: '-2px', lineHeight: 1 }}>.AI</span>
+            <span style={{ fontSize: 88, fontWeight: 900, color: '#00E5C8', letterSpacing: '-2px', lineHeight: 1 }}>.</span>
           </div>
 
           {/* Tagline */}

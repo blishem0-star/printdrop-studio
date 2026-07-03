@@ -452,7 +452,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', height: '100%', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg,#00E5C8,#0099FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, color: '#050507' }}>S</div>
-            <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.3rem', fontWeight: 400, color: '#fff', letterSpacing: '0.04em' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></span>
+            <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.3rem', fontWeight: 400, color: '#fff', letterSpacing: '0.04em' }}>STYLX<span style={{ color: '#00E5C8' }}>.</span></span>
           </div>
           <button onClick={enterGuest} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', cursor: 'pointer' }}>Browse as guest</button>
         </div>
@@ -704,7 +704,7 @@ export default function LandingPage() {
       )}
 
       <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
+        <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.</span></div>
         <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem' }}>&copy; 2026 STYLX &mdash; Describe it. Wear it.</div>
       </footer>
 

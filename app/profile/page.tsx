@@ -281,11 +281,11 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* AI Style Profile */}
+        {/* Style Profile */}
         <div style={{ ...sectionStyle, background: 'rgba(0,229,200,0.03)', border: '1px solid rgba(0,229,200,0.12)' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, borderLeft: '2px solid rgba(0,229,200,0.4)', paddingLeft: '10px' }}>
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" width={12} height={12} aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M5 7l1.5 1.5L9.5 5"/></svg>
-            AI Style Profile
+            Style Profile
             {!aiUnlocked && <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}>Unlocks after 3 orders</span>}
           </div>
 
