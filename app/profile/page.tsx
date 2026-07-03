@@ -1,4 +1,5 @@
 'use client';
+import { US_STATES } from '@/lib/studio/constants';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
@@ -17,7 +18,6 @@ function SvgPreview({ svg, color, size = 44 }: { svg: string; color: string; siz
 type Role = 'OWNER' | 'USER' | 'ARTIST';
 type OrderStatus = 'DRAFT' | 'PAID' | 'IN_PRODUCTION' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
-const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 const STATUS_LABEL = ORDER_STATUS_LABEL;
 const STATUS_COLOR = ORDER_STATUS_COLOR;

@@ -1,4 +1,5 @@
 'use client';
+import { US_STATES } from '@/lib/studio/constants';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContinueDesignBanner } from '@/components/ContinueDesignBanner';
@@ -17,7 +18,6 @@ import { svgToDataUrl } from '@/lib/svgDataUrl';
 type TextPos = 'top' | 'center' | 'bottom';
 type FontStyle = 'bold' | 'script' | 'minimal';
 
-const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 const FONT_CSS: Record<FontStyle, React.CSSProperties> = {
   bold:    { fontWeight: 900, fontStyle: 'normal', letterSpacing: '0.03em' },
   script:  { fontWeight: 600, fontStyle: 'italic', letterSpacing: '0.01em' },
