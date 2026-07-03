@@ -173,6 +173,7 @@ export default function CatalogPage() {
   const [productFilter, setProductFilter] = useState<ProductType | 'ALL'>('ALL');
   const [drawerProductType, setDrawerProductType] = useState<ProductType>('TSHIRT');
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'featured'|'price-asc'|'price-desc'|'newest'>('featured');
   const [selected, setSelected] = useState<CatalogDesign | null>(null);
   const [artistDesigns, setArtistDesigns] = useState<CatalogDesign[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -253,7 +254,14 @@ export default function CatalogPage() {
     .filter(d => !favOnly || favorites.includes(d.id))
     .filter(d => catFilter === 'All' || d.category === catFilter)
     .filter(d => productFilter === 'ALL' || d.productType === productFilter)
-    .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()));
+    .filter(d => !search || d.title.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      const rank = (d: CatalogDesign) => d.badge === 'bestseller' ? 0 : d.badge === 'new' ? 1 : 2;
+      if (sortBy === 'newest') return (a.badge === 'new' ? 0 : 1) - (b.badge === 'new' ? 0 : 1);
+      return rank(a) - rank(b); // featured: bestsellers, then new, then the rest
+    });
 
   // Density-contrast: highlight one bestseller as a large editorial card, but only
   // in the unfiltered default view (filtering/searching keeps a clean uniform grid).
@@ -334,6 +342,13 @@ export default function CatalogPage() {
           {CATALOG_CATEGORIES.map(c => (
             <button key={c} aria-pressed={catFilter === c} onClick={() => setCatFilter(c)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: catFilter === c ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)', background: catFilter === c ? 'rgba(99,102,241,0.1)' : 'transparent', color: catFilter === c ? '#818CF8' : 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>{c}</button>
           ))}
+          <select aria-label="Sort designs" value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
+            style={{ marginLeft: 'auto', padding: '5px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', outline: 'none' }}>
+            <option value="featured" style={{ background: '#111' }}>Featured</option>
+            <option value="newest" style={{ background: '#111' }}>Newest</option>
+            <option value="price-asc" style={{ background: '#111' }}>Price: low to high</option>
+            <option value="price-desc" style={{ background: '#111' }}>Price: high to low</option>
+          </select>
           {favorites.length > 0 && (
             <button aria-pressed={favOnly} onClick={() => setFavOnly(v => !v)} style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', borderColor: favOnly ? 'rgba(255,77,109,0.55)' : 'rgba(255,77,109,0.22)', background: favOnly ? 'rgba(255,77,109,0.12)' : 'transparent', color: favOnly ? '#ff4d6d' : 'rgba(255,77,109,0.65)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <svg viewBox="0 0 16 16" width={11} height={11} fill="currentColor" aria-hidden="true"><path d="M8 13.5C5 11 2 8.8 2 5.9 2 4 3.5 2.5 5.3 2.5c1.1 0 2.1.5 2.7 1.4.6-.9 1.6-1.4 2.7-1.4C12.5 2.5 14 4 14 5.9c0 2.9-3 5.1-6 7.6z"/></svg>
