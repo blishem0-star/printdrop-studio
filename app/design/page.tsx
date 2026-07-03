@@ -978,7 +978,7 @@ function DesignStudio() {
             )}
 
             {/* Zoom controls */}
-            <div style={{position:'absolute',bottom:8,right:12,display:'flex',gap:4,background:'rgba(4,4,7,0.85)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:3,backdropFilter:'blur(12px)',zIndex:5}}>
+            <div className="studio-zoom" style={{position:'absolute',bottom:8,right:12,display:'flex',gap:4,background:'rgba(4,4,7,0.85)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:3,backdropFilter:'blur(12px)',zIndex:5}}>
               {([
                 {label:'-', aria:'Zoom out', action:()=>setZoom(z=>Math.max(0.5,+(z-0.1).toFixed(1))), compact:true},
                 {label:`${Math.round(zoom*100)}%`, aria:'Reset zoom', action:()=>setZoom(1), compact:false},
@@ -993,9 +993,9 @@ function DesignStudio() {
             </div>
 
             {previewMode==='edit'&&layers.length===0&&!activeImg&&!aiSvg&&!showBack&&!printBg&&(
-              <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:46,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5}}>
+              <div className="studio-quickstart" onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:46,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5,maxWidth:'92%'}}>
                 <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Start your design</p>
-                <div style={{display:'flex',gap:7,justifyContent:'center'}}>
+                <div style={{display:'flex',gap:7,justifyContent:'center',flexWrap:'wrap'}}>
                   {([['Pick a template','templates'],['Add text','text'],['Upload image','upload'],['AI design','ai']] as [string,ActiveTool][]).map(([label,tool])=>(
                     <button key={tool} onClick={()=>activateTool(tool)} style={{padding:'8px 13px',borderRadius:999,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.66rem',fontWeight:900,letterSpacing:'0.05em',cursor:'pointer',backdropFilter:'blur(10px)'}}>{label}</button>
                   ))}
@@ -1670,6 +1670,8 @@ function DesignStudio() {
         @media(max-width:760px){
           .studio-mobile-cta{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:8000;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(5,5,8,0.96);border-top:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(18px);}
           .studio-properties{padding-bottom:76px!important;}
+          .studio-zoom{display:none!important;}
+          .studio-quickstart{bottom:10px!important;}
           .share-fan{--fan-scale:0.62;}
           .share-fan-item{width:92px!important;height:92px!important;border-radius:24px!important;}
           .design-body{grid-template-columns:1fr!important;grid-template-rows:auto 1fr auto;overflow:auto!important;}
