@@ -76,8 +76,7 @@ function DesignStudio() {
   const [uploadSlot, setUploadSlot] = useState<UploadSlot>('front');
   const [imgPos,     setImgPos]     = useState<Record<'front'|'back',ImagePos>>({front:'center',back:'center'});
   const [imgOpacity, setImgOpacity] = useState<Record<UploadSlot,number>>({front:1,back:1,chest:1,leftSleeve:1,rightSleeve:1});
-  const [imgFx,      setImgFx]      = useState<Record<UploadSlot,'none'|'gray'|'sepia'|'invert'|'punch'>>({front:'none',back:'none',chest:'none',leftSleeve:'none',rightSleeve:'none'});
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [imgFx,      setImgFx]      = useState<Record<UploadSlot,'none'|'gray'|'sepia'|'invert'|'punch'>>({front:'none',back:'none',chest:'none',leftSleeve:'none',rightSleeve:'none'});
   const [fileDragging,setFileDragging]=useState(false);
 
   // AI
@@ -1538,7 +1537,7 @@ function DesignStudio() {
               <UploadPanel uploadSlot={uploadSlot} setUploadSlot={setUploadSlot} setGarmentView={setGarmentView}
                 uploads={uploads} removeUpload={slot=>setUploads(prev=>({...prev,[slot]:null}))}
                 imgPos={imgPos} setImgPos={setImgPos} imgOpacity={imgOpacity} setImgOpacity={setImgOpacity}
-                imgFx={imgFx} setImgFx={setImgFx} fileRef={fileRef} fileDragging={fileDragging}
+                imgFx={imgFx} setImgFx={setImgFx} fileDragging={fileDragging}
                 setFileDragging={setFileDragging} handleFile={handleFile}/>
             )}
 

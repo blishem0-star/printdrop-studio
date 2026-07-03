@@ -1,5 +1,5 @@
 'use client';
-import type { RefObject } from 'react';
+import { useRef } from 'react';
 import type { ImagePos, UploadSlot, GarmentView, UploadMap, ImageOpacityMap, ImageFxMap, ImageFx } from '@/lib/studio/types';
 import { POS_LABELS } from '@/lib/studio/constants';
 import { LS } from '../studioStyles';
@@ -16,7 +16,6 @@ export type UploadPanelProps = {
   setImgOpacity: (fn: (p: ImageOpacityMap) => ImageOpacityMap) => void;
   imgFx: ImageFxMap;
   setImgFx: (fn: (p: ImageFxMap) => ImageFxMap) => void;
-  fileRef: RefObject<HTMLInputElement | null>;
   fileDragging: boolean;
   setFileDragging: (v: boolean) => void;
   handleFile: (f: File) => void;
@@ -24,6 +23,8 @@ export type UploadPanelProps = {
 
 export function UploadPanel(p: UploadPanelProps) {
   const { uploadSlot, uploads, imgPos, imgOpacity, imgFx, fileDragging } = p;
+  const fileRef = useRef<HTMLInputElement>(null);
+  function openPicker() { fileRef.current?.click(); }
   return (
     <div style={{padding:'14px'}}>
       <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:4,marginBottom:12}}>
@@ -46,10 +47,9 @@ export function UploadPanel(p: UploadPanelProps) {
           </button>
         ))}
       </div>
-      {/* eslint-disable-next-line react-hooks/refs -- fileRef.current is only touched inside the onClick handler */}
-      <div onDragEnter={e=>{e.preventDefault();p.setFileDragging(true);}} onDragLeave={()=>p.setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();p.setFileDragging(false);const f=e.dataTransfer.files[0];if(f)p.handleFile(f);}} onClick={()=>p.fileRef.current?.click()}
+      <div onDragEnter={e=>{e.preventDefault();p.setFileDragging(true);}} onDragLeave={()=>p.setFileDragging(false)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();p.setFileDragging(false);const f=e.dataTransfer.files[0];if(f)p.handleFile(f);}} onClick={openPicker}
         style={{border:`2px dashed ${fileDragging?'rgba(0,229,200,0.6)':uploads[uploadSlot]?'rgba(16,185,129,0.4)':'rgba(255,255,255,0.1)'}`,borderRadius:14,padding:uploads[uploadSlot]?'1.2rem':'2.5rem 1rem',textAlign:'center',cursor:'pointer',background:fileDragging?'rgba(0,229,200,0.05)':uploads[uploadSlot]?'rgba(16,185,129,0.02)':'rgba(255,255,255,0.01)',transition:'all 0.2s',marginBottom:12}}>
-        <input ref={p.fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)p.handleFile(f);e.target.value='';}}/>
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)p.handleFile(f);e.target.value='';}}/>
         {/* eslint-disable-next-line @next/next/no-img-element -- data-URL preview, next/image adds nothing here */}
         {uploads[uploadSlot]?<div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}><img src={uploads[uploadSlot]!} alt="upload" style={{height:60,maxWidth:110,borderRadius:8,objectFit:'contain'}}/><div><div style={{fontSize:'0.72rem',color:'#10B981',fontWeight:700}}>Uploaded</div><div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.62)',marginTop:3}}>Click to replace</div></div></div>
           :<><div style={{opacity:0.4,marginBottom:8,display:'flex',justifyContent:'center'}}><svg viewBox="0 0 28 28" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={28} height={28} aria-hidden="true"><path d="M14 18V7M10 11l4-4 4 4"/><path d="M22 18v3a2 2 0 01-2 2H8a2 2 0 01-2-2v-3"/></svg></div><div style={{fontWeight:700,color:'rgba(255,255,255,0.5)',fontSize:'0.82rem',marginBottom:5}}>Drop image here</div><div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.62)'}}>PNG - JPG - WEBP</div></>}
