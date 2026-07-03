@@ -104,7 +104,8 @@ function DesignStudio() {
   const [designSlots, setDesignSlots] = useState<DesignSlot[]>([]);
 
   // Active tool + shapes tab
-  const [activeTool, setActiveTool] = useState<ActiveTool|null>(null);
+  // Land on ready designs so a new user always has an obvious first step.
+  const [activeTool, setActiveTool] = useState<ActiveTool|null>('templates');
   const [shapesTab,  setShapesTab]  = useState<'vector'|'shapes'|'emoji'>('vector');
   const activeWorkflow = activeTool ? (WORKFLOW_GROUPS.find(g=>g.tools.includes(activeTool)) ?? WORKFLOW_GROUPS[0]) : null;
   function activateTool(tool: ActiveTool) {
@@ -708,6 +709,17 @@ function DesignStudio() {
   const uploadCount = Object.values(uploads).filter(Boolean).length;
   const completedSteps = [hasDesignContent, Boolean(color), Boolean(size), deliveryDone].filter(Boolean).length;
   const designScore = Math.round((completedSteps / 4) * 100);
+  // The single next action that moves the user toward ordering - shown as the
+  // primary CTA everywhere so nobody ever wonders "what now?".
+  const guidedSteps = [
+    {n:'1',title:'Design',desc:'Template, text, or image',done:hasDesignContent,isNext:!hasDesignContent,go:()=>activateTool('templates')},
+    {n:'2',title:'Size',desc:'Pick color and size',done:Boolean(size),isNext:hasDesignContent&&!size,go:()=>activateTool('shirt')},
+    {n:'3',title:'Order',desc:'Send your request',done:false,isNext:hasDesignContent&&Boolean(size),go:()=>setCheckoutOpen(true)},
+  ];
+  const nextStep: { label: string; sub: string; go: () => void } =
+    !hasDesignContent ? { label: 'Start designing', sub: 'Pick a template or add text', go: () => activateTool('templates') }
+    : !size ? { label: 'Pick your size', sub: 'One tap - then you can order', go: () => activateTool('shirt') }
+    : { label: `Finish design - $${total.toFixed(2)}`, sub: 'Review and send your request', go: () => setCheckoutOpen(true) };
   const viewHasContent: Record<GarmentView, boolean> = {
     front: layers.length>0 || Boolean(uploads.front) || Boolean(uploads.chest) || Boolean(aiSvg) || Boolean(printBg),
     back: layers.length>0 || Boolean(uploads.back) || Boolean(printBg),
@@ -866,9 +878,9 @@ function DesignStudio() {
             <span key={t} style={{padding:'5px 10px',borderRadius:999,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.5)',fontSize:'0.6rem',fontWeight:800,whiteSpace:'nowrap'}}>{t}</span>
           ))}
         </div>
-        <button onClick={()=>setCheckoutOpen(true)}
+        <button onClick={nextStep.go} title={nextStep.sub}
           style={{height:34,padding:'0 16px',borderRadius:9,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.68rem',fontWeight:950,letterSpacing:'0.06em',textTransform:'uppercase',cursor:'pointer',whiteSpace:'nowrap',boxShadow:'0 6px 22px rgba(0,229,200,0.22)'}}>
-          Finish design
+          {nextStep.label}
         </button>
       </div>
 
@@ -994,7 +1006,7 @@ function DesignStudio() {
               <button aria-haspopup="menu" onClick={()=>setShareFanOpen(true)} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(0,229,200,0.2)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Share</button>
               <ShareFan open={shareFanOpen} onClose={()=>setShareFanOpen(false)} onShare={shareTo}/>
             </div>
-            <button onClick={()=>setCheckoutOpen(true)} style={{padding:'10px 16px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.82rem',fontWeight:950,cursor:'pointer',boxShadow:'0 8px 28px rgba(0,229,200,0.24)'}}>Finish design</button>
+            <button onClick={nextStep.go} title={nextStep.sub} style={{padding:'10px 16px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.82rem',fontWeight:950,cursor:'pointer',boxShadow:'0 8px 28px rgba(0,229,200,0.24)'}}>{nextStep.label}</button>
           </div>
 
           <div className="studio-bottom-tray" style={{width:'100%',minHeight:118,flexShrink:0,borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(5,5,8,0.92)',backdropFilter:'blur(16px)',display:'grid',gridTemplateColumns:'190px 300px minmax(260px,1fr)',gap:10,padding:'10px 12px',position:'relative',zIndex:8}}>
@@ -1142,18 +1154,18 @@ function DesignStudio() {
               </div>
 
               <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:12}}>
-                {[
-                  ['1','Add','Pick text, image, or icon'],
-                  ['2','Move','Drag it or use arrows'],
-                  ['3','Finish','Submit request, then share'],
-                ].map(([n,title,desc])=>(
-                  <button key={n} onClick={()=>title==='Add'?activateTool('text'):title==='Finish'?setCheckoutOpen(true):undefined}
-                    style={{minHeight:62,borderRadius:10,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.68)',cursor:title==='Move'?'default':'pointer',padding:'8px 7px',textAlign:'left'}}>
-                    <span style={{display:'inline-flex',width:18,height:18,borderRadius:6,alignItems:'center',justifyContent:'center',background:'rgba(0,229,200,0.08)',color:'#00E5C8',fontSize:'0.58rem',fontWeight:950,marginBottom:5}}>{n}</span>
-                    <span style={{display:'block',fontSize:'0.7rem',fontWeight:950}}>{title}</span>
-                    <span style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'rgba(255,255,255,0.38)',marginTop:2,lineHeight:1.25}}>{desc}</span>
-                  </button>
-                ))}
+                {/* eslint-disable-next-line react-hooks/refs -- go() touches panelRef only inside onClick, never during render */}
+                {guidedSteps.map(({n,title,desc,done,isNext,go})=>{
+                  return (
+                    <button key={n} onClick={go}
+                      style={{minHeight:62,borderRadius:10,border:`1px solid ${done?'rgba(16,185,129,0.3)':isNext?'rgba(0,229,200,0.35)':'rgba(255,255,255,0.07)'}`,background:done?'rgba(16,185,129,0.06)':isNext?'rgba(0,229,200,0.07)':'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.68)',cursor:'pointer',padding:'8px 7px',textAlign:'left',position:'relative'}}>
+                      <span style={{display:'inline-flex',width:18,height:18,borderRadius:6,alignItems:'center',justifyContent:'center',background:done?'rgba(16,185,129,0.16)':'rgba(0,229,200,0.08)',color:done?'#10B981':'#00E5C8',fontSize:'0.58rem',fontWeight:950,marginBottom:5}}>{done?'OK':n}</span>
+                      <span style={{display:'block',fontSize:'0.7rem',fontWeight:950,color:done?'#34d399':isNext?'#00E5C8':'rgba(255,255,255,0.68)'}}>{title}</span>
+                      <span style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'rgba(255,255,255,0.38)',marginTop:2,lineHeight:1.25}}>{done?'Done':desc}</span>
+                      {isNext&&<span style={{position:'absolute',top:7,right:8,fontSize:'0.46rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.08em'}}>NEXT</span>}
+                    </button>
+                  );
+                })}
               </div>
 
               <div style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',borderRadius:12,overflow:'hidden',marginBottom:12}}>
@@ -1785,9 +1797,9 @@ function DesignStudio() {
       <div className="studio-mobile-cta" style={{display:'none'}}>
         <div style={{minWidth:0}}>
           <div style={{fontSize:'0.85rem',fontWeight:950,color:'#fff'}}>${shirtPrice.toFixed(2)}<span style={{fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.45)'}}> + ${SHIPPING_PRICE.toFixed(2)} shipping</span></div>
-          <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.4)'}}>No payment now - pay after approval</div>
+          <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.4)'}}>{nextStep.sub}</div>
         </div>
-        <button onClick={()=>setCheckoutOpen(true)} style={{flexShrink:0,padding:'12px 20px',borderRadius:11,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.8rem',fontWeight:950,letterSpacing:'0.04em',cursor:'pointer',boxShadow:'0 8px 26px rgba(0,229,200,0.3)'}}>Finish design</button>
+        <button onClick={nextStep.go} style={{flexShrink:0,padding:'12px 20px',borderRadius:11,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.8rem',fontWeight:950,letterSpacing:'0.04em',cursor:'pointer',boxShadow:'0 8px 26px rgba(0,229,200,0.3)'}}>{nextStep.label}</button>
       </div>
 
       <style>{`
