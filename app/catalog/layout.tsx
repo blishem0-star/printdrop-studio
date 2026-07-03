@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 
 export const metadata: Metadata = {
   title: 'Browse Designs',
-  description: 'Explore 50+ premium AI-designed shirt styles - urban, minimal, nature, vintage and more. Filter by category and customize any design.',
-  keywords: ['custom shirt designs', 'ai shirt catalog', 'browse t-shirts', 'premium shirt designs', 'custom tees'],
+  description: 'Explore 50+ hand-picked shirt designs - urban, minimal, nature, vintage and more. Filter by category, customize any design, and order in minutes.',
+  keywords: ['custom shirt designs', 'shirt catalog', 'browse t-shirts', 'premium shirt designs', 'custom tees'],
   openGraph: {
     title: 'Browse Designs - STYLX',
-    description: 'Explore 50+ premium AI-designed shirt styles. Filter, customize, and order in minutes.',
+    description: 'Explore 50+ hand-picked shirt designs. Filter, customize, and order in minutes.',
     type: 'website',
   },
   alternates: {
@@ -14,6 +15,25 @@ export const metadata: Metadata = {
   },
 };
 
+// ItemList schema so search engines can surface catalog designs with prices.
+const itemListJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'STYLX shirt designs',
+  numberOfItems: CATALOG_DESIGNS.length,
+  itemListElement: CATALOG_DESIGNS.slice(0, 20).map((d, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `https://stylx.ai/catalog/${d.id}`,
+    name: d.title,
+  })),
+};
+
 export default function CatalogLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      {children}
+    </>
+  );
 }

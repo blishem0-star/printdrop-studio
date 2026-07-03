@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'STYLX - Describe it. Wear it.',
     short_name: 'STYLX',
-    description: 'AI-powered custom shirt design and printing.',
+    description: 'Custom shirt design and printing, made to order.',
     start_url: '/',
     display: 'standalone',
     background_color: '#050507',

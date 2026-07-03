@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: { default: "STYLX - Describe it. Wear it.", template: "%s | STYLX" },
   description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
-  keywords: ["ai shirt design", "custom t-shirts", "ai fashion", "print on demand", "personalized shirts", "ai generated clothing"],
+  keywords: ["custom shirt design", "custom t-shirts", "design your own shirt", "print on demand", "personalized shirts", "custom apparel"],
   metadataBase: new URL("https://stylx.ai"),
   alternates: { canonical: "https://stylx.ai" },
   icons: { icon: '/favicon.ico', shortcut: '/favicon.ico' },
@@ -53,7 +53,7 @@ const jsonLd = {
       name: "STYLX",
       url: "https://stylx.ai",
       logo: "https://stylx.ai/opengraph-image",
-      description: "AI-powered custom shirt design and printing service.",
+      description: "Custom shirt design and printing, made to order.",
       sameAs: [],
     },
     {
