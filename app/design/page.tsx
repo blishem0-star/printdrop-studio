@@ -1191,6 +1191,13 @@ function DesignStudio() {
                 </div>
                 {selLayer?(
                   <div style={{padding:'10px 11px'}}>
+                    {selLayer.type==='text'&&(
+                      <label style={{display:'block',fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.42)',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:9}}>Edit text
+                        <input value={selLayer.content} maxLength={40}
+                          onChange={e=>updateLayer(selLayer.id,{content:e.target.value})}
+                          style={{...INP,marginTop:4,fontSize:'0.85rem',fontFamily:selLayer.fontFamily,fontWeight:selLayer.fontWeight==='bold'?'bold':'normal'}}/>
+                      </label>
+                    )}
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:9}}>
                       <label style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.42)',letterSpacing:'0.08em',textTransform:'uppercase'}}>X
                         <input value={Math.round(selLayer.x)} onChange={e=>updateLayer(selLayer.id,{x:Math.max(0,Math.min(100,+e.target.value||0))})} type="number" min={0} max={100} style={{...INP,marginTop:4,padding:'7px 8px',fontSize:'0.72rem'}}/>
