@@ -10,30 +10,30 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: { default: "STYLX.AI - Describe it. Wear it.", template: "%s | STYLX.AI" },
+  title: { default: "STYLX - Describe it. Wear it.", template: "%s | STYLX" },
   description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
   keywords: ["ai shirt design", "custom t-shirts", "ai fashion", "print on demand", "personalized shirts", "ai generated clothing"],
   metadataBase: new URL("https://stylx.ai"),
   alternates: { canonical: "https://stylx.ai" },
   icons: { icon: '/favicon.ico', shortcut: '/favicon.ico' },
   openGraph: {
-    title: "STYLX.AI - Describe it. Wear it.",
+    title: "STYLX - Describe it. Wear it.",
     description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
     type: "website",
-    siteName: "STYLX.AI",
+    siteName: "STYLX",
     url: "https://stylx.ai",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "STYLX.AI - AI-Powered Custom Shirt Design",
+        alt: "STYLX - Custom Shirt Design Studio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "STYLX.AI - Describe it. Wear it.",
+    title: "STYLX - Describe it. Wear it.",
     description: "Type a shirt idea, personalize it, and turn it into a custom apparel order.",
     images: ["/opengraph-image"],
   },
@@ -50,7 +50,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": "https://stylx.ai/#org",
-      name: "STYLX.AI",
+      name: "STYLX",
       url: "https://stylx.ai",
       logo: "https://stylx.ai/opengraph-image",
       description: "AI-powered custom shirt design and printing service.",
@@ -60,7 +60,7 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": "https://stylx.ai/#website",
       url: "https://stylx.ai",
-      name: "STYLX.AI",
+      name: "STYLX",
       publisher: { "@id": "https://stylx.ai/#org" },
       potentialAction: {
         "@type": "SearchAction",

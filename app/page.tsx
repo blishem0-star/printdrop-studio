@@ -143,7 +143,7 @@ function ShirtSVG({ shirt, prompt }: { shirt: typeof SHIRTS[0]; prompt: string }
             <text x="180" y="180" textAnchor="middle" fill={inkDim} fontSize="7.5" fontFamily="system-ui" fontWeight="700" letterSpacing="4">
               {words.slice(1,3).join(' ').toUpperCase().slice(0,14) || 'ORIGINAL DESIGN'}
             </text>
-            <text x="180" y="205" textAnchor="middle" fill={inkDim} fontSize="5.5" fontFamily="system-ui" letterSpacing="2">STYLX.AI &mdash; 2026</text>
+            <text x="180" y="205" textAnchor="middle" fill={inkDim} fontSize="5.5" fontFamily="system-ui" letterSpacing="2">STYLX &mdash; 2026</text>
           </>
         )}
         {shirt.style === 'wave' && (
@@ -503,7 +503,7 @@ export default function LandingPage() {
                 : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Generate<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
             </button>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; preview free &middot; built for fast product decisions</p>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; free previews, no payment until you approve your design</p>
         </div>
 
         {/* Stats */}
@@ -705,7 +705,7 @@ export default function LandingPage() {
 
       <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.AI</span></div>
-        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem' }}>&copy; 2026 STYLX.AI &mdash; Describe it. Wear it.</div>
+        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem' }}>&copy; 2026 STYLX &mdash; Describe it. Wear it.</div>
       </footer>
 
       <style>{`

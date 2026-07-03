@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Track your order request',
-  description: 'Follow your STYLX.AI order request from review to fulfillment.',
+  description: 'Follow your STYLX order request from review to fulfillment.',
   robots: { index: false }, // order pages are private, keep them out of search
 };
 

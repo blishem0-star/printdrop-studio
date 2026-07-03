@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: design.title,
     description: desc,
     alternates: { canonical: `https://stylx.ai/catalog/${design.id}` },
-    openGraph: { title: `${design.title} | STYLX.AI`, description: desc, type: 'website' },
+    openGraph: { title: `${design.title} | STYLX`, description: desc, type: 'website' },
   };
 }
 

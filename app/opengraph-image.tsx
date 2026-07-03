@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'STYLX.AI - Describe it. Wear it.';
+export const alt = 'STYLX - Describe it. Wear it.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

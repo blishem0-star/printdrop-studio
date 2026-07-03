@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'STYLX.AI - Describe it. Wear it.',
-    short_name: 'STYLX.AI',
+    name: 'STYLX - Describe it. Wear it.',
+    short_name: 'STYLX',
     description: 'AI-powered custom shirt design and printing.',
     start_url: '/',
     display: 'standalone',
