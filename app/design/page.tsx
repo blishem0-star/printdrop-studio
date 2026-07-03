@@ -9,15 +9,24 @@ import { useToast } from '@/components/Toast';
 import { useLocalSession } from '@/lib/useLocalSession';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
 import { ShareFan } from '@/components/design/ShareFan';
+import { StudioCanvas } from '@/components/design/StudioCanvas';
+import { LS, INP } from '@/components/design/studioStyles';
+import type { ShippingFields } from '@/components/design/OrderRequestModal';
 import { useDesignHistory } from '@/hooks/useDesignHistory';
+import { useDesignKeyboardShortcuts } from '@/hooks/useDesignKeyboardShortcuts';
+import { useStudioPersistence } from '@/hooks/useStudioPersistence';
+import dynamic from 'next/dynamic';
 
 import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot, GarmentView, DesignDocument } from "@/lib/studio/types";
 import {
-  SVG_W, SVG_H, PRINT, SHIRT_PATH, IMG_ZONE, POS_LABELS, FONTS, SHAPES_LIB,
-  EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS, US_STATES,
+  SVG_W, SVG_H, PRINT, POS_LABELS, FONTS, SHAPES_LIB,
+  EMOJIS_LIB, VECTOR_SHAPES, TEXT_COLORS, GRADIENT_PRESETS, TEXT_PRESETS,
   WORKFLOW_GROUPS, SIDE_TOOLS,
 } from "@/lib/studio/constants";
-import { uid, mkLayer, calcArcPath, starPoints, TEMPLATES } from "@/lib/studio/helpers";
+import { uid, mkLayer, starPoints, TEMPLATES } from "@/lib/studio/helpers";
+
+// Checkout UI is heavy and only needed once the user finishes designing.
+const OrderRequestModal = dynamic(()=>import('@/components/design/OrderRequestModal'),{ssr:false});
 
 // Component
 function DesignStudio() {
@@ -161,6 +170,11 @@ function DesignStudio() {
   const [orderError,setOrderError]=useState<string|null>(null);
   const [shareFanOpen,setShareFanOpen]=useState(false);
   const {show:showToast,element:toastEl}=useToast();
+  const shipSetters: Record<keyof ShippingFields,(v:string)=>void> = {
+    name:setShipName,email:setShipEmail,phone:setShipPhone,street:setShipStreet,
+    city:setShipCity,zip:setShipZip,state:setShipState,notes:setShipNotes,
+  };
+  function onShipField(key:keyof ShippingFields,value:string){ shipSetters[key](value); }
 
   function buildDesignDocument(): DesignDocument {
     return {
@@ -219,35 +233,19 @@ function DesignStudio() {
   // Shirt color change also resets the text color default (handler, not effect)
   function pickColor(c:TShirtColor){ setColor(c); setTextColor(c.textColor); }
 
-  // Auto-save
-  useEffect(()=>{
-    const hasContent = layers.length>0 || Object.values(uploads).some(Boolean) || Boolean(aiSvg) || Boolean(printBg);
-    if(!hasContent) return;
-    try{localStorage.setItem('pd_design',JSON.stringify(buildDesignDocument()));}catch{}
-  },[layers,uploads,imgPos,imgOpacity,imgFx,color.id,size,printBg,printArea,aiPrompt,aiSvg,garmentView]); // eslint-disable-line
-
-  // Load saved design + saved slots on mount
-  useEffect(()=>{
-    const t=setTimeout(()=>{
-      try{
-        const slots=localStorage.getItem('pd_design_slots');
-        if(slots){const parsed=JSON.parse(slots);if(Array.isArray(parsed))setDesignSlots(parsed);}
-      }catch{}
-      try{
-        const raw=localStorage.getItem('pd_design'); if(!raw) return;
-        const d=JSON.parse(raw);
-        if(d.version===1) {
-          restoreDesignDocument(d);
-        } else {
-          if(d.layers?.length){setLayersWithHistory(d.layers);}
-          if(d.colorId){const c=SHIRT_COLORS.find((x:typeof SHIRT_COLORS[0])=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
-          if(d.sizeVal)setSize(d.sizeVal);
-          if(d.printBg)setPrintBg(d.printBg);
-        }
-      }catch{}
-    },0);
-    return()=>clearTimeout(t);
-  },[]); // eslint-disable-line react-hooks/exhaustive-deps
+  useStudioPersistence({
+    hasContent: layers.length>0 || Object.values(uploads).some(Boolean) || Boolean(aiSvg) || Boolean(printBg),
+    buildDocument: buildDesignDocument,
+    restoreDocument: restoreDesignDocument,
+    onSlotsLoad: setDesignSlots,
+    onLegacyLoad: (d)=>{
+      if(Array.isArray(d.layers)&&d.layers.length){setLayersWithHistory(d.layers as Layer[]);}
+      if(d.colorId){const c=SHIRT_COLORS.find(x=>x.id===d.colorId);if(c){setColor(c);setTextColor(c.textColor);}}
+      if(d.sizeVal)setSize(d.sizeVal as typeof size);
+      if(d.printBg)setPrintBg(d.printBg);
+    },
+    deps: [layers,uploads,imgPos,imgOpacity,imgFx,color.id,size,printBg,printArea,aiPrompt,aiSvg,garmentView],
+  });
 
   // Mouse wheel zoom
   useEffect(()=>{
@@ -555,29 +553,11 @@ function DesignStudio() {
     window.addEventListener('beforeunload',h); return()=>window.removeEventListener('beforeunload',h);
   },[]);
 
-  useEffect(()=>{
-    function onKey(e:KeyboardEvent){
-      const notInput=!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement);
-      const key=e.key.toLowerCase();
-      if(e.key==='PrintScreen'||((e.metaKey||e.ctrlKey)&&e.shiftKey&&(key==='s'||key==='4'||key==='5'))||((e.metaKey||e.ctrlKey)&&key==='p')){
-        e.preventDefault();
-        return;
-      }
-      if((e.metaKey||e.ctrlKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
-      if((e.metaKey||e.ctrlKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
-      if((e.metaKey||e.ctrlKey)&&e.key==='d'&&selected&&notInput){e.preventDefault();duplicateLayer(selected);return;}
-      if((e.key==='Delete'||e.key==='Backspace')&&selected&&notInput){deleteLayer(selected);return;}
-      if(e.key==='Escape'){setSelected(null);setFullscreen(false);setCheckoutOpen(false);setShareFanOpen(false);return;}
-      if(selected&&notInput){
-        const s=e.shiftKey?5:1;
-        if(e.key==='ArrowLeft') {e.preventDefault();const l=layers.find(x=>x.id===selected);if(l)updateLayer(selected,{x:Math.max(0,l.x-s)});}
-        if(e.key==='ArrowRight'){e.preventDefault();const l=layers.find(x=>x.id===selected);if(l)updateLayer(selected,{x:Math.min(100,l.x+s)});}
-        if(e.key==='ArrowUp')   {e.preventDefault();const l=layers.find(x=>x.id===selected);if(l)updateLayer(selected,{y:Math.max(0,l.y-s)});}
-        if(e.key==='ArrowDown') {e.preventDefault();const l=layers.find(x=>x.id===selected);if(l)updateLayer(selected,{y:Math.min(100,l.y+s)});}
-      }
-    }
-    window.addEventListener('keydown',onKey); return()=>window.removeEventListener('keydown',onKey);
-  },[selected,layers]); // eslint-disable-line
+  useDesignKeyboardShortcuts({
+    selected, layers, undo, redo, updateLayer, deleteLayer, duplicateLayer,
+    clearSelection: ()=>setSelected(null),
+    onEscape: ()=>{setFullscreen(false);setCheckoutOpen(false);setShareFanOpen(false);},
+  });
 
   // Upload
   function handleFile(file:File){
@@ -704,230 +684,14 @@ function DesignStudio() {
     {label:'Add collar', hint:'Add a small brand detail near the neck', fix:'collar'},
   ];
 
-  function renderVectorShape(l:Layer, fill:string, filter?:string){
-    const s=l.fontSize;
-    const common={fill,stroke:l.strokeColor||undefined,strokeWidth:l.strokeWidth||undefined,filter,style:{userSelect:'none' as const}};
-    switch(l.content){
-      case 'rect':     return <rect x={-s/2} y={-s/2} width={s} height={s} rx={s*0.08} {...common}/>;
-      case 'circle':   return <circle r={s/2} {...common}/>;
-      case 'ring':     return <circle r={s/2-s*0.09} {...common} fill="none" stroke={fill} strokeWidth={s*0.18}/>;
-      case 'triangle': return <polygon points={`0,${-s/2} ${s/2},${s/2} ${-s/2},${s/2}`} {...common}/>;
-      case 'diamond':  return <polygon points={`0,${-s/2} ${s/2},0 0,${s/2} ${-s/2},0`} {...common}/>;
-      case 'star':     return <polygon points={starPoints(s)} {...common}/>;
-      case 'line':     return <rect x={-s/2} y={-s*0.045} width={s} height={s*0.09} rx={s*0.045} {...common}/>;
-      case 'capsule':  return <rect x={-s/2} y={-s/4} width={s} height={s/2} rx={s/4} {...common}/>;
-      default:         return <circle r={s/2} {...common}/>;
-    }
-  }
+  const renderShirtCanvas=(w:number,h:number,interactive=true,view:GarmentView=garmentView)=>(
+    <StudioCanvas w={w} h={h} view={view} interactive={interactive}
+      layers={layers} selected={selected} printArea={printArea} printBg={printBg}
+      uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
+      aiSvg={aiSvg} color={color} isLight={isLight} isTouch={isTouch} snapGuide={snapGuide}
+      onSelect={setSelected} onLayerDown={onLayerDown} onHandleDown={onHandleDown} onPrintAreaDown={onPrintAreaDown}/>
+  );
 
-  function renderLayers(interactive=true,idScope='live'){
-    return layers.map(layer=>{
-      if(layer.hidden) return null;
-      const isCollar=Boolean(layer.collarMode);
-      const lx=printArea.x+(layer.x/100)*printArea.w, ly=printArea.y+(layer.y/100)*printArea.h;
-      const isSel=selected===layer.id&&interactive;
-      const aw=layer.type==='text'?layer.content.length*layer.fontSize*0.58:layer.fontSize*1.15;
-      const ah=layer.fontSize*1.3;
-      const ls=layer.letterSpacing??0;
-      const hasArc=!isCollar&&Math.abs(layer.arcAngle??0)>=2;
-      const hasShadow=(layer.shadowBlur??0)>0&&(layer.shadowColor??'')!=='';
-      const hasGlow=(layer.glowBlur??0)>0&&(layer.glowColor??'')!=='';
-      const hasFilter=hasShadow||hasGlow;
-      const filterId=`flt-${idScope}-${layer.id}`;
-      const arcPathId=isCollar?`collar-${idScope}-${layer.id}`:`arc-${idScope}-${layer.id}`;
-      const displayContent=layer.textTransform==='uppercase'?layer.content.toUpperCase():layer.textTransform==='lowercase'?layer.content.toLowerCase():layer.content;
-      const commonTextProps={
-        fontSize:layer.fontSize,
-        fill:layer.gradient&&GRADIENT_PRESETS[layer.gradient]?`url(#lg-${idScope}-${layer.id})`:layer.color,
-        fontFamily:layer.fontFamily, fontWeight:layer.fontWeight,
-        fontStyle:layer.italic?'italic' as const:'normal' as const,
-        stroke:layer.strokeColor||undefined,
-        strokeWidth:layer.strokeWidth||undefined,
-        paintOrder:(layer.strokeWidth?'stroke fill':undefined) as string|undefined,
-        filter:hasFilter?`url(#${filterId})`:undefined,
-        style:{userSelect:'none' as const},
-      };
-      if(isCollar) {
-        const hitPath=layer.collarMode==='full'
-          ? 'M72 51 C79 67,88 75,100 75 C112 75,121 67,128 51'
-          : 'M80 58 C89 66,111 66,120 58';
-        return (
-          <g key={layer.id} opacity={layer.opacity??1}
-            style={interactive&&!layer.locked?{cursor:'pointer'}:{}}
-            onPointerDown={interactive&&!layer.locked?e=>{e.stopPropagation();setSelected(layer.id);}:undefined}>
-            <path d={hitPath} fill="none" stroke="transparent" strokeWidth="15"/>
-            <text {...commonTextProps}>
-              <textPath href={`#${arcPathId}`} startOffset="50%" textAnchor="middle" letterSpacing={ls>0?ls:undefined}>
-                {displayContent}
-              </textPath>
-            </text>
-            {isSel&&<>
-              <path d={hitPath} fill="none" stroke="#00E5C8" strokeWidth="1" strokeDasharray="2.5,1.5" opacity="0.85"/>
-              <circle cx="100" cy={layer.collarMode==='full'?75:66} r={3} fill="#050507" stroke="#00E5C8" strokeWidth="1"/>
-            </>}
-          </g>
-        );
-      }
-      return (
-        <g key={layer.id} transform={`translate(${lx},${ly}) rotate(${layer.rotation}) scale(${layer.flipH?-1:1},${layer.flipV?-1:1})`}
-          opacity={layer.opacity??1}
-          style={interactive&&!layer.locked?{cursor:'move'}:{}}
-          onPointerDown={interactive&&!layer.locked?e=>onLayerDown(e,layer.id):undefined}>
-          {/* Hit box */}
-          <rect x={-aw/2-6} y={-ah/2-3} width={aw+12} height={ah+6} fill="transparent"/>
-          {layer.type==='shape'?(
-            renderVectorShape(layer,commonTextProps.fill,hasFilter?`url(#${filterId})`:undefined)
-          ):hasArc?(
-            <text {...commonTextProps}>
-              <textPath href={`#${arcPathId}`} startOffset="50%" textAnchor="middle"
-                letterSpacing={ls>0?ls:undefined}>
-                {displayContent}
-              </textPath>
-            </text>
-          ):(
-            <text {...commonTextProps} textAnchor="middle" dominantBaseline="middle"
-              letterSpacing={ls>0?ls:undefined}>
-              {displayContent}
-            </text>
-          )}
-          {isSel&&<>
-            <rect x={-aw/2-6} y={-ah/2-4} width={aw+12} height={ah+8}
-              fill="rgba(0,229,200,0.06)" stroke="#00E5C8" strokeWidth="0.8" strokeDasharray="2.5,1.5" rx="2"/>
-            {[[-aw/2-6,-ah/2-4],[aw/2+6,-ah/2-4],[-aw/2-6,ah/2+4]].map(([cx,cy],i)=>
-              <circle key={i} cx={cx} cy={cy} r={isTouch?'3':'2.2'} fill="#00E5C8"/>)}
-            {/* Section */}
-            <circle cx={aw/2+6} cy={ah/2+4} r={isTouch?12:8} fill="transparent"
-              style={{cursor:'nwse-resize',touchAction:'none'}}
-              onPointerDown={e=>onHandleDown(e,layer.id,'resize')}/>
-            <circle cx={aw/2+6} cy={ah/2+4} r={isTouch?5:3.6} fill="#050507" stroke="#00E5C8" strokeWidth="1" style={{pointerEvents:'none'}}/>
-            {/* Rotate handle (above top-center) */}
-            <line x1={0} y1={-ah/2-4} x2={0} y2={-ah/2-13} stroke="#00E5C8" strokeWidth="0.7" opacity="0.7" style={{pointerEvents:'none'}}/>
-            <circle cx={0} cy={-ah/2-15} r={isTouch?12:8} fill="transparent"
-              style={{cursor:'grab',touchAction:'none'}}
-              onPointerDown={e=>onHandleDown(e,layer.id,'rotate')}/>
-            <circle cx={0} cy={-ah/2-15} r={isTouch?5:3.4} fill="#050507" stroke="#00E5C8" strokeWidth="1" style={{pointerEvents:'none'}}/>
-          </>}
-        </g>
-      );
-    });
-  }
-
-  // Component
-  function renderShirtCanvas(w:number,h:number,interactive=true,view:GarmentView=garmentView){
-    const idScope=interactive?'live':'preview';
-    const svgId=(name:string)=>`${name}-${idScope}`;
-    const area=printArea;
-    const isBackView=view==='back';
-    const isFrontView=view==='front';
-    const isSideView=view==='left'||view==='right';
-    const sideSlot: UploadSlot = view==='left'?'leftSleeve':'rightSleeve';
-    const bodyImg=isBackView?uploads.back:isFrontView?uploads.front:null;
-    const bodyPos=isBackView?imgPos.back:imgPos.front;
-    const bodyZone=IMG_ZONE[bodyPos];
-    const bodySlot: UploadSlot=isBackView?'back':'front';
-    return (
-      <svg width={w} height={h} viewBox={`0 0 ${SVG_W} ${SVG_H}`} fill="none" style={{overflow:'visible'}}>
-        <defs>
-          <filter id={svgId('ss')} x="-30%" y="-10%" width="160%" height="140%">
-            <feDropShadow dx="0" dy="18" stdDeviation="22" floodColor="rgba(0,0,0,0.42)"/>
-            <feDropShadow dx="0" dy="4"  stdDeviation="8"  floodColor="rgba(0,0,0,0.24)"/>
-          </filter>
-          <filter id={svgId('pb')}><feGaussianBlur stdDeviation="6"/></filter>
-          <pattern id={svgId('weave')} width="6" height="6" patternUnits="userSpaceOnUse">
-            <path d="M0 1.5H6M1.5 0V6" stroke={isLight?'rgba(0,0,0,0.032)':'rgba(255,255,255,0.05)'} strokeWidth="0.35"/>
-          </pattern>
-          <linearGradient id={svgId('sg')} x1="0.18" y1="0" x2="0.82" y2="1">
-            <stop offset="0%"   stopColor={color.hex} stopOpacity="1"/>
-            <stop offset="100%" stopColor={color.hex} stopOpacity="0.92"/>
-          </linearGradient>
-          <linearGradient id={svgId('sh')} x1="0.12" y1="0" x2="0.88" y2="0.55">
-            <stop offset="0%"   stopColor="rgba(255,255,255,0.24)"/>
-            <stop offset="45%"  stopColor="rgba(255,255,255,0.04)"/>
-            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-          </linearGradient>
-          <radialGradient id={svgId('sp')} cx="50%" cy="20%" r="70%">
-            <stop offset="0%"   stopColor="rgba(255,255,255,0.18)"/>
-            <stop offset="72%"  stopColor="rgba(255,255,255,0)"/>
-            <stop offset="100%" stopColor="rgba(0,0,0,0.08)"/>
-          </radialGradient>
-          <filter id={svgId('shirtTint')} colorInterpolationFilters="sRGB">
-            <feFlood floodColor={color.hex} result="tint"/>
-            <feComposite in="tint" in2="SourceAlpha" operator="in" result="color"/>
-            <feBlend in="SourceGraphic" in2="color" mode="multiply"/>
-          </filter>
-          <clipPath id={svgId('ccb')}><rect x="56" y="82" width="88" height="130" rx="3"/></clipPath>
-          <clipPath id={svgId('ccf')}><path d={SHIRT_PATH}/></clipPath>
-          {/* Arc text paths */}
-          {layers.filter(l=>Math.abs(l.arcAngle??0)>=2&&!l.collarMode).map(l=>{
-            const lx=area.x+(l.x/100)*area.w, ly=area.y+(l.y/100)*area.h;
-            return <path key={l.id} id={`arc-${idScope}-${l.id}`} d={calcArcPath(lx,ly,l.arcAngle,l.content.length,l.fontSize)} fill="none"/>;
-          })}
-          {layers.filter(l=>l.collarMode).map(l=>(
-            <path key={`collar-${l.id}`} id={`collar-${idScope}-${l.id}`}
-              d={l.collarMode==='full'
-                ? 'M70 51 C78 70,88 78,100 78 C112 78,122 70,130 51'
-                : 'M80 58 C89 67,111 67,120 58'}
-              fill="none"/>
-          ))}
-          {/* Image effect filters */}
-          <filter id={svgId('fx-gray')}><feColorMatrix type="saturate" values="0"/></filter>
-          <filter id={svgId('fx-sepia')}><feColorMatrix type="matrix" values="0.39 0.77 0.19 0 0  0.35 0.69 0.17 0 0  0.27 0.53 0.13 0 0  0 0 0 1 0"/></filter>
-          <filter id={svgId('fx-invert')}><feComponentTransfer><feFuncR type="table" tableValues="1 0"/><feFuncG type="table" tableValues="1 0"/><feFuncB type="table" tableValues="1 0"/></feComponentTransfer></filter>
-          <filter id={svgId('fx-punch')}><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.12"/><feFuncG type="linear" slope="1.35" intercept="-0.12"/><feFuncB type="linear" slope="1.35" intercept="-0.12"/></feComponentTransfer><feColorMatrix type="saturate" values="1.4"/></filter>
-          {/* Per-layer gradient fills */}
-          {layers.filter(l=>l.gradient&&GRADIENT_PRESETS[l.gradient]).map(l=>(
-            <linearGradient key={`lg-${l.id}`} id={`lg-${idScope}-${l.id}`} x1="0" y1="0" x2="1" y2="1">
-              {GRADIENT_PRESETS[l.gradient].stops.map((s,i,arr)=>(
-                <stop key={i} offset={`${Math.round((i/(arr.length-1))*100)}%`} stopColor={s}/>
-              ))}
-            </linearGradient>
-          ))}
-          {/* Layer effect filters */}
-          {layers.filter(l=>(l.shadowBlur??0)>0||(l.glowBlur??0)>0).map(l=>(
-            <filter key={l.id} id={`flt-${idScope}-${l.id}`} x="-50%" y="-50%" width="200%" height="200%">
-              {(l.shadowBlur??0)>0&&l.shadowColor&&<feDropShadow dx={l.shadowDx??2} dy={l.shadowDy??2} stdDeviation={(l.shadowBlur??0)/2} floodColor={l.shadowColor} floodOpacity="1"/>}
-              {(l.glowBlur??0)>0&&l.glowColor&&<>
-                <feGaussianBlur in="SourceGraphic" stdDeviation={(l.glowBlur??0)/2.5} result="gblur"/>
-                <feFlood floodColor={l.glowColor} result="gc"/>
-                <feComposite in="gc" in2="gblur" operator="in" result="coloredGlow"/>
-                <feMerge><feMergeNode in="coloredGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </>}
-            </filter>
-          ))}
-        </defs>
-        <ellipse cx="100" cy="216" rx={isSideView?36:58} ry="7" fill="rgba(0,0,0,0.25)" filter={`url(#${svgId('pb')})`}/>
-        <g transform={isSideView&&view==='left'?'translate(200 0) scale(-1 1)':''}>
-          <image href={isSideView?'/mockups/tshirt-side.png':isBackView?'/mockups/tshirt-back.png':'/mockups/tshirt-front.png'} x={isSideView?29:2} y={isSideView?16:14} width={isSideView?142:196} height={isSideView?196:196} preserveAspectRatio="xMidYMid meet" filter={color.id==='white'?undefined:`url(#${svgId('shirtTint')})`}/>
-          {isSideView ? (
-            uploads[sideSlot] ? (
-              <image href={uploads[sideSlot]!} x="82" y="67" width="34" height="34" preserveAspectRatio="xMidYMid meet" opacity={imgOpacity[sideSlot]} filter={imgFx[sideSlot]!=='none'?`url(#${svgId(`fx-${imgFx[sideSlot]}`)})`:undefined}/>
-            ) : interactive ? (
-              <rect x="82" y="67" width="34" height="34" rx="5" fill="rgba(0,229,200,0.03)" stroke={isLight?'rgba(0,0,0,0.28)':'rgba(255,255,255,0.28)'} strokeDasharray="3,2" strokeWidth="0.75"/>
-            ) : null
-          ) : (
-            <>
-              {printBg&&<rect x={area.x} y={area.y} width={area.w} height={area.h} fill={printBg} rx="3" opacity="0.9"/>}
-              {bodyImg&&<image href={bodyImg} x={bodyZone.x} y={bodyZone.y} width={bodyZone.w} height={bodyZone.h} preserveAspectRatio={bodyZone.slice?'xMidYMid slice':'xMidYMid meet'} opacity={imgOpacity[bodySlot]} filter={imgFx[bodySlot]!=='none'?`url(#${svgId(`fx-${imgFx[bodySlot]}`)})`:undefined}/>}
-              {isFrontView&&uploads.chest&&<image href={uploads.chest} x="68" y="76" width="25" height="25" preserveAspectRatio="xMidYMid meet" opacity={imgOpacity.chest} filter={imgFx.chest!=='none'?`url(#${svgId(`fx-${imgFx.chest}`)})`:undefined}/>}
-              {isFrontView&&!uploads.front&&aiSvg&&<g transform="translate(71,93)" dangerouslySetInnerHTML={{__html:aiSvg.replace(/currentColor/g,color.textColor).replace(/<svg[^>]*>/,'').replace('</svg>','').replace(/width="[^"]*"/,'width="58"').replace(/height="[^"]*"/,'height="58"')}}/>}
-              {interactive&&layers.length===0&&!bodyImg&&!aiSvg&&!printBg&&(
-                <rect x={area.x} y={area.y} width={area.w} height={area.h} fill="rgba(0,229,200,0.025)" stroke={isLight?'rgba(0,0,0,0.24)':'rgba(255,255,255,0.24)'} strokeDasharray="4,3" rx="5" strokeWidth="0.85"/>
-              )}
-              {interactive&&(
-                <>
-                  <rect x={area.x} y={area.y} width={area.w} height={area.h} fill="transparent" stroke="#00E5C8" strokeOpacity="0.42" strokeDasharray="4,3" rx="5" strokeWidth="1.1" pointerEvents="stroke" style={{cursor:'move'}} onPointerDown={e=>onPrintAreaDown(e,'move')}/>
-                  <circle cx={area.x+area.w} cy={area.y+area.h} r={isTouch?8:5} fill="#050507" stroke="#00E5C8" strokeWidth="1" style={{cursor:'nwse-resize'}} onPointerDown={e=>onPrintAreaDown(e,'resize')}/>
-                </>
-              )}
-              {interactive&&snapGuide.x&&<line x1={area.x+area.w/2} y1={area.y-6} x2={area.x+area.w/2} y2={area.y+area.h+6} stroke="#00E5C8" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.9"/>}
-              {interactive&&snapGuide.y&&<line x1={area.x-6} y1={area.y+area.h/2} x2={area.x+area.w+6} y2={area.y+area.h/2} stroke="#00E5C8" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.9"/>}
-              {renderLayers(interactive,idScope)}
-            </>
-          )}
-        </g>
-      </svg>
-    );
-  }
 
   if(ordered) return (
     <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(180deg,#050507,#060610)',position:'relative',overflow:'hidden'}}>
@@ -981,90 +745,17 @@ function DesignStudio() {
       )}
 
       {checkoutOpen&&(
-        <div role="dialog" aria-modal="true" aria-label="Review and submit order request" style={{position:'fixed',inset:0,zIndex:9000,background:'rgba(0,0,0,0.68)',backdropFilter:'blur(18px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}} onClick={()=>setCheckoutOpen(false)}>
-          <div className="checkout-modal" onClick={e=>e.stopPropagation()} style={{width:'min(1080px,96vw)',maxHeight:'92vh',overflow:'hidden',border:'1px solid rgba(255,255,255,0.1)',background:'linear-gradient(180deg,rgba(13,13,18,0.98),rgba(6,6,9,0.98))',borderRadius:16,boxShadow:'0 30px 90px rgba(0,0,0,0.62)',display:'grid',gridTemplateColumns:'minmax(320px,0.85fr) minmax(360px,1fr)'}}>
-            <div style={{padding:'24px',borderRight:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.018)',display:'flex',flexDirection:'column',gap:16,overflowY:'auto'}}>
-              <div>
-                <div style={{fontSize:'1.15rem',fontWeight:950,color:'rgba(255,255,255,0.92)',marginBottom:5}}>Review your shirt</div>
-                <div style={{fontSize:'0.86rem',color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>Check the design, choose quantity, then confirm your delivery details.</div>
-              </div>
-              <div style={{height:330,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,background:'radial-gradient(ellipse at 50% 38%,rgba(0,229,200,0.055),rgba(255,255,255,0.018) 55%,rgba(0,0,0,0.16))'}}>
-                {renderShirtCanvas(250,288,false,garmentView)}
-              </div>
-              <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:13,padding:14,background:'rgba(255,255,255,0.025)'}}>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirt</span><strong>{color.name}{size?` / ${size}`:''}</strong></div>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Design</span><strong>{layers.length} layers, {uploadCount} uploads</strong></div>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:12}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shipping</span><strong>${SHIPPING_PRICE.toFixed(2)}</strong></div>
-                <div style={{height:1,background:'rgba(255,255,255,0.08)',marginBottom:12}}/>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'1.05rem',fontWeight:950}}><span>Total</span><span style={{color:'#00E5C8'}}>${total.toFixed(2)}</span></div>
-              </div>
-            </div>
-
-            <div style={{padding:'24px',overflowY:'auto'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:16,marginBottom:18}}>
-                <div>
-                  <div style={{fontSize:'1.15rem',fontWeight:950,color:'rgba(255,255,255,0.92)',marginBottom:5}}>Delivery details</div>
-                  <div style={{fontSize:'0.86rem',color:'rgba(255,255,255,0.48)',lineHeight:1.5}}>A few details and your order request is ready for review.</div>
-                </div>
-                <button onClick={()=>setCheckoutOpen(false)} style={{width:34,height:34,borderRadius:10,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.62)',cursor:'pointer',fontSize:'1rem'}}>x</button>
-              </div>
-
-              {!size&&<div style={{padding:'12px 13px',borderRadius:12,border:'1px solid rgba(245,158,11,0.2)',background:'rgba(245,158,11,0.07)',color:'rgba(245,158,11,0.92)',fontSize:'0.86rem',fontWeight:800,marginBottom:14}}>Choose a shirt size before placing the order.</div>}
-
-              <div style={{border:'1px solid rgba(0,229,200,0.16)',background:'linear-gradient(145deg,rgba(0,229,200,0.06),rgba(255,255,255,0.02))',borderRadius:13,padding:12,marginBottom:14}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
-                  <div>
-                    <div style={{fontSize:'0.72rem',fontWeight:950,color:'#00E5C8',letterSpacing:'0.12em',textTransform:'uppercase'}}>Production review</div>
-                    <div style={{fontSize:'0.66rem',fontWeight:750,color:'rgba(255,255,255,0.48)',marginTop:3}}>Final check before submitting the request.</div>
-                  </div>
-                  <div style={{width:44,height:44,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',background:qualityScore>=80?'rgba(0,229,200,0.12)':'rgba(245,158,11,0.1)',border:`1px solid ${qualityScore>=80?'rgba(0,229,200,0.32)':'rgba(245,158,11,0.24)'}`,color:qualityScore>=80?'#00E5C8':'#fbbf24',fontWeight:950}}>{qualityScore}</div>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:7}}>
-                  {[
-                    ['Color',color.name],
-                    ['Size',size || 'Missing'],
-                    ['Artwork',hasDesignContent?'Added':'Missing'],
-                    ['Sides',Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ') || 'Front'],
-                  ].map(([label,value])=>(
-                    <div key={label} style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.025)',borderRadius:9,padding:'8px 9px'}}>
-                      <div style={{fontSize:'0.54rem',fontWeight:950,color:'rgba(255,255,255,0.36)',letterSpacing:'0.08em',textTransform:'uppercase'}}>{label}</div>
-                      <div style={{fontSize:'0.78rem',fontWeight:900,color:value==='Missing'?'#fbbf24':'rgba(255,255,255,0.78)',marginTop:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{display:'grid',gap:12}}>
-                <div>
-                  <div style={{fontSize:'0.82rem',fontWeight:900,color:'rgba(255,255,255,0.68)',marginBottom:8}}>Quantity</div>
-                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                    {[1,2,3,4,5].map(n=><button key={n} onClick={()=>setQty(n)} style={{width:48,height:44,borderRadius:11,border:`1.5px solid ${qty===n?'#00E5C8':'rgba(255,255,255,0.1)'}`,background:qty===n?'rgba(0,229,200,0.11)':'rgba(255,255,255,0.03)',color:qty===n?'#00E5C8':'rgba(255,255,255,0.68)',fontSize:'0.95rem',fontWeight:900,cursor:'pointer'}}>{n}</button>)}
-                  </div>
-                </div>
-
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-                  <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>Full name<input style={INP} autoComplete="name" value={shipName} onChange={e=>setShipName(e.target.value)} placeholder="Jane Smith" maxLength={80}/></label>
-                  <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>Phone<input style={INP} autoComplete="tel" inputMode="tel" value={shipPhone} onChange={e=>setShipPhone(e.target.value)} placeholder="555-123-4567" maxLength={30}/></label>
-                </div>
-                <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>Email<input style={INP} type="email" autoComplete="email" value={shipEmail} onChange={e=>setShipEmail(e.target.value)} placeholder="you@example.com" maxLength={120}/></label>
-                <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>Street address<input style={INP} autoComplete="street-address" value={shipStreet} onChange={e=>setShipStreet(e.target.value)} placeholder="123 Main St" maxLength={120}/></label>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 82px 96px',gap:10}}>
-                  <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>City<input style={INP} autoComplete="address-level2" value={shipCity} onChange={e=>setShipCity(e.target.value)} placeholder="New York" maxLength={60}/></label>
-                  <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>State<select value={shipState} onChange={e=>setShipState(e.target.value)} style={{...INP,appearance:'none' as const,cursor:'pointer',color:shipState?'#fff':'rgba(255,255,255,0.42)'}}><option value="">ST</option>{US_STATES.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
-                  <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>ZIP<input style={{...INP,fontFamily:'monospace'}} autoComplete="postal-code" inputMode="numeric" value={shipZip} onChange={e=>setShipZip(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001"/></label>
-                </div>
-                <label style={{display:'grid',gap:6,fontSize:'0.78rem',fontWeight:900,color:'rgba(255,255,255,0.6)'}}>Delivery notes<textarea value={shipNotes} onChange={e=>setShipNotes(e.target.value)} placeholder="Gate code, leave at door, preferred delivery note..." rows={3} maxLength={180} style={{...INP,minHeight:82,resize:'vertical',lineHeight:1.45}}/></label>
-                <label style={{display:'flex',alignItems:'center',gap:9,fontSize:'0.82rem',fontWeight:800,color:'rgba(255,255,255,0.68)',cursor:'pointer'}}><input type="checkbox" checked={saveShipping} onChange={e=>setSaveShipping(e.target.checked)} style={{width:16,height:16,accentColor:'#00E5C8'}}/> Save these delivery details for next time</label>
-              </div>
-
-              {orderError&&<div role="alert" style={{padding:'11px 12px',borderRadius:10,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.08)',color:'#f87171',fontSize:'0.82rem',fontWeight:800,marginTop:14}}>{orderError}</div>}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1.3fr',gap:10,marginTop:18}}>
-                <button onClick={()=>setCheckoutOpen(false)} style={{padding:'14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.72)',fontSize:'0.9rem',fontWeight:900,cursor:'pointer'}}>Back to editing</button>
-                <button onClick={handleOrder} disabled={!canOrder||submitting} style={{padding:'14px',borderRadius:12,border:'none',background:canOrder?'linear-gradient(135deg,#00E5C8,#0099FF)':'rgba(255,255,255,0.07)',color:canOrder?'#050507':'rgba(255,255,255,0.34)',fontSize:'0.92rem',fontWeight:950,cursor:canOrder&&!submitting?'pointer':'default',boxShadow:canOrder?'0 10px 34px rgba(0,229,200,0.28)':'none'}}>{submitting?'Sending request...':canOrder?`Submit order request - $${total.toFixed(2)}`:'Complete required details'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OrderRequestModal
+          onClose={()=>setCheckoutOpen(false)}
+          preview={renderShirtCanvas(250,288,false,garmentView)}
+          color={color} size={size} qty={qty} setQty={setQty}
+          layersCount={layers.length} uploadCount={uploadCount} total={total}
+          qualityScore={qualityScore} hasDesignContent={hasDesignContent}
+          sidesSummary={Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ')}
+          fields={{name:shipName,email:shipEmail,phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}}
+          onField={onShipField}
+          saveShipping={saveShipping} setSaveShipping={setSaveShipping}
+          orderError={orderError} submitting={submitting} canOrder={Boolean(canOrder)} onSubmit={handleOrder}/>
       )}
 
       {/* Section */}
@@ -1208,8 +899,13 @@ function DesignStudio() {
             </div>
 
             {previewMode==='edit'&&layers.length===0&&!activeImg&&!aiSvg&&!showBack&&!printBg&&(
-              <div style={{position:'absolute',bottom:46,textAlign:'center',pointerEvents:'none',animation:'fadeUp 0.5s ease 0.4s both'}}>
-                <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase'}}>Choose a template or use the tools</p>
+              <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:46,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5}}>
+                <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Start your design</p>
+                <div style={{display:'flex',gap:7,justifyContent:'center'}}>
+                  {([['Pick a template','templates'],['Add text','text'],['Upload image','upload'],['AI design','ai']] as [string,ActiveTool][]).map(([label,tool])=>(
+                    <button key={tool} onClick={()=>activateTool(tool)} style={{padding:'8px 13px',borderRadius:999,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.66rem',fontWeight:900,letterSpacing:'0.05em',cursor:'pointer',backdropFilter:'blur(10px)'}}>{label}</button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -2058,5 +1754,3 @@ export default function DesignPage() {
   );
 }
 
-const LS: React.CSSProperties  = {display:'block',fontSize:'0.57rem',fontWeight:700,color:'rgba(255,255,255,0.62)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:5};
-const INP: React.CSSProperties = {width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.09)',borderRadius:9,padding:'9px 11px',color:'#fff',fontSize:'0.8rem',outline:'none',transition:'border-color 0.15s'};
