@@ -22,12 +22,12 @@ const SHIRTS = [
 ];
 
 const CARD_MSGS = [
-  ['Initializing...', 'Neural synthesis...', 'Style transfer...', 'Color grading...', 'Rendering...'],
-  ['Loading weights...', 'Prompt encoding...', 'Visual pass 1/3...', 'Detail pass 2/3...', 'Finalizing...'],
-  ['Analyzing mood...', 'Texture mapping...', 'Compositing...', 'Sharpening...', 'Rendering...'],
+  ['Setting up the shirt...', 'Placing the artwork...', 'Fitting your text...', 'Adjusting colors...', 'Almost there...'],
+  ['Picking the fabric color...', 'Laying out the print...', 'Sizing the design...', 'Fine-tuning...', 'Almost there...'],
+  ['Reading your idea...', 'Matching a style...', 'Building the mockup...', 'Polishing...', 'Almost there...'],
 ];
 
-const MAIN_MSGS = ['Analyzing prompt...','Loading model...','Rendering layers...','Applying textures...','Finalizing...'];
+const MAIN_MSGS = ['Reading your idea...','Building shirt previews...','Placing the design...','Adjusting the fit...','Almost ready...'];
 
 function eased(elapsed: number, total: number) {
   const t = Math.min(elapsed / total, 1);
