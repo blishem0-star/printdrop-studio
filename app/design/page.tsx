@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'rea
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE, BASE_PRICE } from '@/lib/mockData';
 import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
 import { quoteOrder, type PrintSide } from '@/lib/pricing';
+import { track } from '@/lib/track';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { buildDesignDocumentSvgDataUrl, submitOrder } from '@/lib/exportDesign';
@@ -594,6 +595,7 @@ function DesignStudio() {
           setGarmentView('front');
           activateTool('text');
           showToast(`"${cat.title}" loaded - add your text and make it yours!`,'success');
+          track('remix',{category:cat.category,designId:cat.id});
         }
       }
       window.history.replaceState({},'',window.location.pathname);
@@ -670,6 +672,7 @@ function DesignStudio() {
       if(result.ok){
         if(saveShipping){try{localStorage.setItem('pd_shipping',JSON.stringify({phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}));}catch{}}
         setOrderId(result.id); setOrdered(true); showToast('Order request sent!','success');
+        track('order',{category:'custom-studio'});
       } else { setOrderError(result.error); showToast(result.error,'error'); }
     }catch{setOrderError('Network error.');showToast('Network error.','error');}finally{setSubmitting(false);}
   }

@@ -186,3 +186,16 @@ model LoginThrottle {
   lockedUntil  DateTime?
   updatedAt    DateTime  @updatedAt
 }
+
+// Anonymous product-usage signals that drive data-led catalog growth:
+// which categories get favorited, remixed, filtered, and ordered.
+model UsageEvent {
+  id        String   @id @default(cuid())
+  type      String   // favorite | remix | order | filter | studio_start
+  category  String?
+  designId  String?
+  createdAt DateTime @default(now())
+
+  @@index([type, category])
+  @@index([createdAt])
+}

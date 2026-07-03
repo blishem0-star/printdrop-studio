@@ -7,6 +7,10 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
+// Server-side cutoff for the demand window (impure by nature - this is a
+// per-request server component, not a client render).
+function demandWindowStart() { return new Date(Date.now() - 30 * 24 * 3600 * 1000); }
+
 export default async function AdminOverview() {
   const [revenueAgg, orderCount, customerCount, designCount, pendingCount, deliveredCount, recent] = await Promise.all([
     prisma.order.aggregate({ _sum: { total: true }, where: { status: { in: CONFIRMED_ORDER_STATUSES } } }),
@@ -23,6 +27,29 @@ export default async function AdminOverview() {
   ]);
 
   const revenue = revenueAgg._sum.total ?? 0;
+
+  // Category demand (last 30 days) - drives which categories get new designs
+  const since = demandWindowStart();
+  const demandRaw = await prisma.usageEvent.groupBy({
+    by: ['category', 'type'],
+    where: { createdAt: { gte: since }, category: { not: null } },
+    _count: { _all: true },
+  }).catch(() => [] as { category: string | null; type: string; _count: { _all: number } }[]);
+  const WEIGHT: Record<string, number> = { order: 5, remix: 3, favorite: 2, filter: 1, studio_start: 1 };
+  const demand = new Map<string, { score: number; orders: number; remixes: number; favorites: number; filters: number }>();
+  for (const row of demandRaw) {
+    const cat = row.category!;
+    const cur = demand.get(cat) ?? { score: 0, orders: 0, remixes: 0, favorites: 0, filters: 0 };
+    const n = row._count._all;
+    cur.score += n * (WEIGHT[row.type] ?? 1);
+    if (row.type === 'order') cur.orders += n;
+    if (row.type === 'remix') cur.remixes += n;
+    if (row.type === 'favorite') cur.favorites += n;
+    if (row.type === 'filter') cur.filters += n;
+    demand.set(cat, cur);
+  }
+  const demandTop = [...demand.entries()].sort((a, b) => b[1].score - a[1].score).slice(0, 8);
+  const demandMax = demandTop[0]?.[1].score ?? 1;
   const integrations = getIntegrations();
   const readiness = integrationScore(integrations);
   const plannedIntegrations = integrations.filter(i => i.status === 'missing');
@@ -196,6 +223,30 @@ export default async function AdminOverview() {
             </table>
           </div>
         )}
+
+        {/* Category demand - what customers actually want (last 30 days) */}
+        <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,229,200,0.14)', borderRadius: 16, padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+            <h2 style={{ fontSize: '0.8rem', fontWeight: 800, margin: 0, color: '#00E5C8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Category demand - 30 days</h2>
+            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)' }}>score = orders x5 + remixes x3 + favorites x2 + filters x1</span>
+          </div>
+          {demandTop.length === 0 ? (
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: '10px 0 2px' }}>No signals yet - favorites, remixes, filters and orders will appear here as customers use the site.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              {demandTop.map(([cat, d]) => (
+                <div key={cat} style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'rgba(255,255,255,0.8)' }}>{cat}</span>
+                  <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.max(4, Math.round((d.score / demandMax) * 100))}%`, borderRadius: 999, background: 'linear-gradient(90deg,#00E5C8,#0099FF)' }} />
+                  </div>
+                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap' }}>{d.orders} orders - {d.remixes} remixes - {d.favorites} saves</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.35)', margin: '12px 0 0', lineHeight: 1.5 }}>Add new designs to the top categories first - that is where customer intent already is.</p>
+        </div>
       </div>
     </div>
   );
