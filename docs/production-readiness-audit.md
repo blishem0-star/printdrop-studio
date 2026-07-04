@@ -39,10 +39,17 @@ local revenue/retention features.
 1. When owner says "production ready": RESEND_API_KEY + EMAIL_FROM, payment
    (Paddle/LemonSqueezy/PayPal - Stripe unavailable for IL bank), domain,
    Printify, Redis rate-limit if multi-instance.
-2. Ongoing: keep e2e suite green (34 tests), grow catalog past 20 designs,
-   monitor studio bundle size.
+2. Next build items: weekly owner digest in admin, multi-product studio
+   (hoodies/long-sleeve), community gallery (opt-in at checkout).
+3. Ongoing: keep e2e green (34), watch Category-demand panel, run
+   /api/cron/catalog weekly + /api/cron/shipments monthly once deployed.
 
-Completed since last update: TextPanel extracted (decomposition done),
+Completed 2026-07-03 (automation sprint): UsageEvent analytics + Category
+demand panel, procedural design generator + admin one-click publish +
+demand-driven /api/cron/catalog, legal pages (terms/privacy/refunds),
+customer self-cancel of DRAFT orders, password reset flow.
+
+Completed earlier: TextPanel extracted (decomposition done),
 truth audit (all claims verified), de-AI rebrand to STYLX, catalog at 20
 designs, mockups compressed 3.2MB -> 451KB, dead code removed, e2e 34/34.
 
