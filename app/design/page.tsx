@@ -181,6 +181,8 @@ function DesignStudio() {
   const [checkoutOpen,setCheckoutOpen]=useState(false);
   const [submitting,setSubmitting]=useState(false);
   const [ordered,   setOrdered]  = useState(false);
+  const orderedRef=useRef(false);
+  useEffect(()=>{ orderedRef.current=ordered; },[ordered]);
   const [orderId,   setOrderId]  = useState<string|null>(null);
   const [orderError,setOrderError]=useState<string|null>(null);
   const [shareFanOpen,setShareFanOpen]=useState(false);
@@ -572,13 +574,13 @@ function DesignStudio() {
   },[]);
 
   useEffect(()=>{
-    function h(e:BeforeUnloadEvent){if(layersRef.current.length>0)e.preventDefault();}
+    function h(e:BeforeUnloadEvent){if(layersRef.current.length>0&&!orderedRef.current)e.preventDefault();}
     window.addEventListener('beforeunload',h); return()=>window.removeEventListener('beforeunload',h);
   },[]);
 
   // Restore a design arriving via a shared link or a catalog remix, then clean the URL.
   useEffect(()=>{
-    if(!sharedCode&&!remixId) return;
+
     // deferred restore avoids synchronous setState cascades in the effect body
     const t=setTimeout(()=>{
       if(sharedCode){
@@ -598,6 +600,15 @@ function DesignStudio() {
           track('remix',{category:cat.category,designId:cat.id});
         }
       }
+      try{
+        const idea=localStorage.getItem('pd_landing_prompt');
+        if(idea&&!sharedCode&&!remixId){
+          localStorage.removeItem('pd_landing_prompt');
+          setAiPrompt(idea);
+          activateTool('ai');
+          showToast('Your idea is loaded - tap Find artwork to match a design.','success');
+        }
+      }catch{}
       window.history.replaceState({},'',window.location.pathname);
     },0);
     return()=>clearTimeout(t);

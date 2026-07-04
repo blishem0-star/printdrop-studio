@@ -272,6 +272,7 @@ export default function LandingPage() {
 
   function generate() {
     if (!prompt.trim()) return;
+    try { localStorage.setItem('pd_landing_prompt', prompt.trim()); } catch { /**/ }
     setPhase('generating');
     setMainPct(0); setCardPct([0, 0, 0]); setCardReady([false, false, false]);
     startRef.current = performance.now();
@@ -308,7 +309,8 @@ export default function LandingPage() {
 
   function enterGuest() {
     try { localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })); } catch { /**/ }
-    router.push('/home');
+    const hasIdea = (() => { try { return Boolean(localStorage.getItem('pd_landing_prompt')); } catch { return false; } })();
+    router.push(hasIdea ? '/design' : '/home');
   }
 
   async function submitAuth(e: React.FormEvent) {
@@ -325,7 +327,8 @@ export default function LandingPage() {
       if (!res.ok) { const d = await res.json().catch(() => ({})); setError((d as {error?:string}).error ?? 'Failed'); return; }
       const u = await res.json() as {id:string;name:string;email:string;role:string};
       localStorage.setItem('pd_session', JSON.stringify({ type:'user', customerId:u.id, name:u.name, email:u.email, role:u.role }));
-      router.push(u.role === 'ARTIST' ? '/artist' : '/home');
+      const hasIdea = (() => { try { return Boolean(localStorage.getItem('pd_landing_prompt')); } catch { return false; } })();
+      router.push(u.role === 'ARTIST' ? '/artist' : hasIdea ? '/design' : '/home');
     } catch { setError('Network error'); } finally { setLoading(false); }
   }
 
