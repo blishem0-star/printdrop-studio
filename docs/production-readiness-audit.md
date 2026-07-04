@@ -39,8 +39,12 @@ local revenue/retention features.
 1. When owner says "production ready": RESEND_API_KEY + EMAIL_FROM, payment
    (Paddle/LemonSqueezy/PayPal - Stripe unavailable for IL bank), domain,
    Printify, Redis rate-limit if multi-instance.
-2. Next build items: weekly owner digest in admin, multi-product studio
-   (hoodies/long-sleeve), community gallery (opt-in at checkout).
+2. Next build items (in order): coupon codes (schema+server validation+
+   checkout field+admin CRUD), multi-product studio (hoodies/long-sleeve),
+   dynamic OG images per design, community gallery (opt-in at checkout).
+   DONE 2026-07-05: owner pulse panel, SEO category pages (/designs/*),
+   size guide + FAQ (FAQPage schema), newsletter capture, landing-idea
+   handoff fix, qty display fix, beforeunload fix.
 3. Ongoing: keep e2e green (34), watch Category-demand panel, run
    /api/cron/catalog weekly + /api/cron/shipments monthly once deployed.
 
