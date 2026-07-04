@@ -199,3 +199,14 @@ model UsageEvent {
   @@index([type, category])
   @@index([createdAt])
 }
+
+// One-time password-reset tokens; emailed as a link, valid for 1 hour.
+model PasswordReset {
+  token      String   @id @default(cuid())
+  customerId String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}

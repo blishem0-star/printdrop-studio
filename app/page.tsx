@@ -528,6 +528,7 @@ export default function LandingPage() {
                   <input id="auth-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'} maxLength={128} aria-describedby={authMode === 'signup' ? 'pwd-hint' : undefined} style={{ background:'rgba(255,255,255,0.04)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'0.7rem 2.8rem 0.7rem 0.9rem', color:'#fff', fontSize:'0.875rem', outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' as const }} />
                   <button type="button" onClick={() => setShowPwd(v => !v)} aria-label={showPwd ? 'Hide password' : 'Show password'} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.25)', fontSize:'0.75rem', fontWeight:700, padding:'2px 4px' }}>{showPwd ? 'HIDE' : 'SHOW'}</button>
                 </div>
+                {authMode === 'signin' && (<a href='/forgot' style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', justifySelf: 'end' }}>Forgot password?</a>)}
                 {authMode === 'signup' && password && (
                   <div id="pwd-hint" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                     {[8, 12, 16].map(n => (
