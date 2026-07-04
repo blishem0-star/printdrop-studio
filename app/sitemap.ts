@@ -18,6 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/designs/abstract`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/designs/minimal`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/designs/vintage`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/faq`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/size-guide`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   ];
 
   const designPages: MetadataRoute.Sitemap = CATALOG_DESIGNS.map(d => ({
