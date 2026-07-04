@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 import { STATUS_LABEL } from '@/lib/types';
+import { CancelButton } from './CancelButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,8 @@ export default async function OrderTrackingPage(
             <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.3rem', color: '#00E5C8' }}>${order.total.toFixed(2)}</span>
           </div>
         </div>
+
+        {order.status === 'DRAFT' && <CancelButton orderId={order.id} email={email} />}
 
         <div style={{ marginTop: 16, fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>
           Delivery details: {order.shippingCity}, {order.shippingState} - Last update {order.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
