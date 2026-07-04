@@ -13,6 +13,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/legal/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${base}/legal/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${base}/legal/refunds`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${base}/designs/nature`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/designs/urban`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/designs/abstract`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/designs/minimal`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/designs/vintage`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
   const designPages: MetadataRoute.Sitemap = CATALOG_DESIGNS.map(d => ({
