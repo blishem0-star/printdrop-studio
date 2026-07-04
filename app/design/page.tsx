@@ -178,6 +178,9 @@ function DesignStudio() {
   const [shipState, setShipState]= useState('');
   const [shipNotes, setShipNotes]= useState('');
   const [saveShipping,setSaveShipping]=useState(true);
+  const [couponCode,setCouponCode]=useState('');
+  const [couponPct,setCouponPct]=useState(0);
+  const [couponBusy,setCouponBusy]=useState(false);
   const [checkoutOpen,setCheckoutOpen]=useState(false);
   const [submitting,setSubmitting]=useState(false);
   const [ordered,   setOrdered]  = useState(false);
@@ -660,9 +663,21 @@ function DesignStudio() {
     ...(uploads.leftSleeve?['leftSleeve' as const]:[]),
     ...(uploads.rightSleeve?['rightSleeve' as const]:[]),
   ];
-  const quote=       quoteOrder(BASE_PRICE,qty,printSides);
+  const quote=       quoteOrder(BASE_PRICE,qty,printSides,couponPct);
   const shirtPrice=  quote.subtotal;
   const total=       quote.total;
+
+  async function applyCoupon(){
+    if(!couponCode.trim()) return;
+    setCouponBusy(true);
+    try{
+      const r=await fetch('/api/coupon?code='+encodeURIComponent(couponCode.trim()));
+      const d=await r.json().catch(()=>null);
+      if(d?.valid){ setCouponPct(d.pct); showToast('Coupon applied - '+d.pct+'% off!','success'); }
+      else { setCouponPct(0); showToast('That code is not valid.','error'); }
+    }catch{ showToast('Could not check the code.','error'); }
+    finally{ setCouponBusy(false); }
+  }
 
   async function handleOrder(){
     if(!canOrder) return;
@@ -677,7 +692,7 @@ function DesignStudio() {
       }
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
-        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,printSides,
+        shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,printSides,couponCode:couponPct>0?couponCode.trim():undefined,
         design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
       });
       if(result.ok){
@@ -867,6 +882,8 @@ function DesignStudio() {
           sidesSummary={Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ')}
           fields={{name:shipName,email:shipEmail,phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}}
           onField={onShipField}
+          couponCode={couponCode} couponPct={couponPct} couponBusy={couponBusy}
+          onCouponChange={v=>{setCouponCode(v);setCouponPct(0);}} onApplyCoupon={applyCoupon}
           saveShipping={saveShipping} setSaveShipping={setSaveShipping}
           orderError={orderError} submitting={submitting} canOrder={Boolean(canOrder)} onSubmit={handleOrder}/>
       )}

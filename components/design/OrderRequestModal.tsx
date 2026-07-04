@@ -27,6 +27,11 @@ export type OrderRequestModalProps = {
   sidesSummary: string;
   fields: ShippingFields;
   onField: (key: keyof ShippingFields, value: string) => void;
+  couponCode: string;
+  couponPct: number;
+  couponBusy: boolean;
+  onCouponChange: (v:string)=>void;
+  onApplyCoupon: ()=>void;
   saveShipping: boolean;
   setSaveShipping: (v:boolean) => void;
   orderError: string | null;
@@ -58,6 +63,7 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
               <div key={s} style={{display:'flex',justifyContent:'space-between',fontSize:'0.78rem',marginBottom:6,paddingLeft:10}}><span style={{color:'rgba(255,255,255,0.4)'}}>incl. {SIDE_SURCHARGES[s].label}</span><span style={{color:'rgba(255,255,255,0.4)'}}>+${SIDE_SURCHARGES[s].price.toFixed(2)}/shirt</span></div>
             ))}
             {p.quote&&p.quote.discount>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'#34d399'}}>Volume discount ({p.quote.discountPct}%)</span><strong style={{color:'#34d399'}}>-${p.quote.discount.toFixed(2)}</strong></div>}
+            {p.quote&&p.quote.couponDiscount>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'#34d399'}}>Coupon ({p.quote.couponPct}%)</span><strong style={{color:'#34d399'}}>-${p.quote.couponDiscount.toFixed(2)}</strong></div>}
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:12}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shipping</span><strong>${SHIPPING_PRICE.toFixed(2)}</strong></div>
             <div style={{height:1,background:'rgba(255,255,255,0.08)',marginBottom:12}}/>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'1.05rem',fontWeight:950}}><span>Total</span><span style={{color:'#00E5C8'}}>${p.total.toFixed(2)}</span></div>
@@ -131,6 +137,14 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
               <label style={FIELD_LABEL}>ZIP<input style={{...INP,fontFamily:'monospace'}} autoComplete="postal-code" inputMode="numeric" value={fields.zip} onChange={e=>onField('zip',e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="10001"/></label>
             </div>
             <label style={FIELD_LABEL}>Delivery notes<textarea value={fields.notes} onChange={e=>onField('notes',e.target.value)} placeholder="Gate code, leave at door, preferred delivery note..." rows={3} maxLength={180} style={{...INP,minHeight:82,resize:'vertical',lineHeight:1.45}}/></label>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <input value={p.couponCode} onChange={e=>p.onCouponChange(e.target.value.toUpperCase())} placeholder='Coupon code' maxLength={24} aria-label='Coupon code'
+                style={{...INP,flex:1,textTransform:'uppercase',fontFamily:'monospace'}}/>
+              <button onClick={p.onApplyCoupon} disabled={p.couponBusy||!p.couponCode.trim()}
+                style={{padding:'10px 16px',borderRadius:10,border:'1px solid rgba(0,229,200,0.25)',background:p.couponPct>0?'rgba(16,185,129,0.12)':'rgba(0,229,200,0.07)',color:p.couponPct>0?'#34d399':'#00E5C8',fontSize:'0.76rem',fontWeight:900,cursor:p.couponBusy?'default':'pointer',whiteSpace:'nowrap'}}>
+                {p.couponBusy?'Checking...':p.couponPct>0?`-${p.couponPct}% applied`:'Apply'}
+              </button>
+            </div>
             <label style={{display:'flex',alignItems:'center',gap:9,fontSize:'0.82rem',fontWeight:800,color:'rgba(255,255,255,0.68)',cursor:'pointer'}}><input type="checkbox" checked={p.saveShipping} onChange={e=>p.setSaveShipping(e.target.checked)} style={{width:16,height:16,accentColor:'#00E5C8'}}/> Save these delivery details for next time</label>
           </div>
 

@@ -218,3 +218,15 @@ model NewsletterSignup {
   source    String   @default("landing")
   createdAt DateTime @default(now())
 }
+
+// Percent-off coupon codes (e.g. LAUNCH15). Validated server-side on order
+// submission; uses are counted so maxUses caps are enforceable.
+model Coupon {
+  code      String    @id
+  pct       Int
+  active    Boolean   @default(true)
+  maxUses   Int?
+  uses      Int       @default(0)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}

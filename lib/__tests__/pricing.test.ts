@@ -40,3 +40,14 @@ test('side surcharges price extra print locations per shirt', async () => {
   assert.deepEqual(sanitizeSides(['back', 'back', 'bogus', 42, 'leftSleeve']), ['back', 'leftSleeve']);
   assert.deepEqual(sanitizeSides('not-array'), []);
 });
+
+test('coupon percentage applies after volume discount, never to shipping', async () => {
+  const { quoteOrder: q } = await import('../pricing');
+  const c = q(24.99, 3, [], 15); // 3 shirts: -10% volume, then -15% coupon
+  const afterVolume = 24.99 * 3 * 0.9;
+  assert.equal(c.couponPct, 15);
+  assert.equal(c.couponDiscount, +(afterVolume * 0.15).toFixed(2));
+  assert.equal(c.total, +(afterVolume - afterVolume * 0.15 + SHIPPING_PRICE).toFixed(2));
+  assert.equal(q(24.99, 1, [], 999).couponPct, 90); // clamped
+  assert.equal(q(24.99, 1).couponPct, 0);           // default unchanged
+});

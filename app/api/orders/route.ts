@@ -4,6 +4,7 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getSession } from '@/lib/session';
 import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
 import { quoteOrder, sanitizeSides, MAX_ORDER_QTY } from '@/lib/pricing';
+import { validCouponPct, consumeCoupon } from '@/lib/coupons';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -72,7 +73,8 @@ export async function POST(req: NextRequest) {
   }
   const qty = Number((body as { qty?: unknown }).qty) || 1;
   const sides = sanitizeSides((body as { printSides?: unknown }).printSides);
-  const quote = quoteOrder(authorizedPrice, qty, sides);
+  const coupon = await validCouponPct((body as { couponCode?: unknown }).couponCode);
+  const quote = quoteOrder(authorizedPrice, qty, sides, coupon?.pct ?? 0);
   const total = quote.total;
 
   // Reject unsafe data URLs (only raster/svg images may be stored) and cap size
@@ -137,6 +139,8 @@ export async function POST(req: NextRequest) {
     },
     include: { customer: true, items: { include: { designAsset: true } } },
   });
+
+  if (coupon) await consumeCoupon(coupon.code);
 
   // Confirmation email is best-effort: the order must succeed even if the
   // email provider is down or not configured yet.

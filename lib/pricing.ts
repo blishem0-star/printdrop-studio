@@ -36,6 +36,8 @@ export function sidesSurcharge(sides: PrintSide[]): number {
 }
 
 export type OrderQuote = {
+  couponPct: number;
+  couponDiscount: number;
   qty: number;
   unitPrice: number;
   /** Per-shirt surcharge for extra print locations (back/sleeves). */
@@ -48,14 +50,16 @@ export type OrderQuote = {
   total: number;
 };
 
-export function quoteOrder(unitPrice: number, qty: number, sides: PrintSide[] = []): OrderQuote {
+export function quoteOrder(unitPrice: number, qty: number, sides: PrintSide[] = [], couponPct = 0): OrderQuote {
   const q = Math.max(1, Math.min(MAX_ORDER_QTY, Math.floor(qty) || 1));
   const sideSurcharge = sidesSurcharge(sides);
   const subtotal = (unitPrice + sideSurcharge) * q;
   const discountPct = qtyDiscountPct(q);
   const discount = +(subtotal * (discountPct / 100)).toFixed(2);
-  const total = +(subtotal - discount + SHIPPING_PRICE).toFixed(2);
-  return { qty: q, unitPrice, sideSurcharge, sides, subtotal: +subtotal.toFixed(2), discountPct, discount, shipping: SHIPPING_PRICE, total };
+  const cp = Math.max(0, Math.min(90, Math.floor(couponPct) || 0));
+  const couponDiscount = +((subtotal - discount) * (cp / 100)).toFixed(2);
+  const total = +(subtotal - discount - couponDiscount + SHIPPING_PRICE).toFixed(2);
+  return { qty: q, unitPrice, sideSurcharge, sides, subtotal: +subtotal.toFixed(2), discountPct, discount, couponPct: cp, couponDiscount, shipping: SHIPPING_PRICE, total };
 }
 
 /** The savings a customer unlocks by increasing quantity - used for upsell hints. */

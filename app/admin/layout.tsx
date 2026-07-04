@@ -54,6 +54,7 @@ const NAV = [
   { href: '/admin/designs',     label: 'Designs',        iconKey: 'designs' },
   { href: '/admin/artists',     label: 'Artists',        iconKey: 'artists' },
   { href: '/admin/subscriptions', label: 'Subscriptions', iconKey: 'subscriptions' },
+  { href: '/admin/coupons',     label: 'Coupons',        iconKey: 'integrations' },
   { href: '/admin/integrations', label: 'Integrations',   iconKey: 'integrations' },
 ];
 

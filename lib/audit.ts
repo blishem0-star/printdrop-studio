@@ -5,7 +5,7 @@ import type { SessionPayload } from '@/lib/session';
 export async function recordAdminAction(
   actor: SessionPayload,
   action: string,
-  targetType: 'ArtistDesign' | 'Order',
+  targetType: 'ArtistDesign' | 'Order' | 'Coupon',
   targetId: string,
   detail?: string,
 ) {
