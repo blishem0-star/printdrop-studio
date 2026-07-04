@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
+import { GenerateForm } from './GenerateForm';
+import { GENERATABLE_CATEGORIES } from '@/lib/designGen';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +32,8 @@ export default async function AdminDesignsPage({ searchParams }: { searchParams:
           {totalCount} total - page {pageNum} of {totalPages || 1}
         </p>
       </div>
+
+      <GenerateForm categories={GENERATABLE_CATEGORIES}/>
 
       {designs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.2)' }}>
