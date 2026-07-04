@@ -611,7 +611,7 @@ export default function LandingPage() {
 
       <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.</span></div>
-        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem' }}>&copy; 2026 STYLX &mdash; Describe it. Wear it.</div>
+        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.66rem', display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}><span>&copy; 2026 STYLX &mdash; Describe it. Wear it.</span><a href='/legal/terms' style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Terms</a><a href='/legal/privacy' style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Privacy</a><a href='/legal/refunds' style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Refunds</a></div>
       </footer>
 
       <style>{`
