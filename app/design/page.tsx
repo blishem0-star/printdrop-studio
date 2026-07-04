@@ -1141,6 +1141,8 @@ function DesignStudio() {
 
           <div ref={panelRef} style={{flex:1,overflowY:'auto',minHeight:0}}>
             <div style={{padding:'12px 14px 0'}}>
+              {/* Power tools appear once there is something to improve - first-time users go straight to templates */}
+              {hasDesignContent&&(
               <div style={{border:'1px solid rgba(0,229,200,0.14)',background:'linear-gradient(145deg,rgba(0,229,200,0.055),rgba(255,255,255,0.018))',borderRadius:12,padding:12,marginBottom:12}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
                   <div>
@@ -1199,6 +1201,7 @@ function DesignStudio() {
                   </div>
                 </div>
               </div>
+              )}
 
               <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:12}}>
                 {/* eslint-disable-next-line react-hooks/refs -- go() touches panelRef only inside onClick, never during render */}
@@ -1273,6 +1276,7 @@ function DesignStudio() {
               </div>
             </div>
 
+              {hasDesignContent&&(
               <div style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',borderRadius:12,overflow:'hidden',marginBottom:12}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                   <div>
@@ -1293,6 +1297,7 @@ function DesignStudio() {
                   ))}
                 </div>
               </div>
+              )}
 
             {/* Section */}
             {activeTool==='templates'&&(
