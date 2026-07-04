@@ -210,3 +210,11 @@ model PasswordReset {
 
   @@index([customerId])
 }
+
+// Launch/newsletter list - collected locally, exported when email goes live.
+model NewsletterSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("landing")
+  createdAt DateTime @default(now())
+}
