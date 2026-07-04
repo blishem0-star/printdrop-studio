@@ -28,6 +28,21 @@ export default async function AdminOverview() {
 
   const revenue = revenueAgg._sum.total ?? 0;
 
+  // Owner attention queue + 7-day pulse
+  const weekAgo = new Date(demandWindowStart().getTime() + 23 * 24 * 3600 * 1000); // 30d window start + 23d = 7 days ago
+  const [draftOrders, pendingArtistDesigns, weekOrders, weekOrderValue, weekCustomers, weekGenerated] = await Promise.all([
+    prisma.order.count({ where: { status: 'DRAFT' } }),
+    prisma.artistDesign.count({ where: { status: 'PENDING' } }),
+    prisma.order.count({ where: { createdAt: { gte: weekAgo } } }),
+    prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: weekAgo }, status: { not: 'CANCELLED' } } }),
+    prisma.customer.count({ where: { createdAt: { gte: weekAgo }, password: { not: null } } }),
+    prisma.adminAction.count({ where: { action: 'DESIGNS_GENERATED', createdAt: { gte: weekAgo } } }),
+  ]);
+  const attention = [
+    draftOrders > 0 ? { label: `${draftOrders} order request${draftOrders > 1 ? 's' : ''} waiting for review`, href: '/admin/orders' } : null,
+    pendingArtistDesigns > 0 ? { label: `${pendingArtistDesigns} artist design${pendingArtistDesigns > 1 ? 's' : ''} awaiting approval`, href: '/admin/artists' } : null,
+  ].filter(Boolean) as { label: string; href: string }[];
+
   // Category demand (last 30 days) - drives which categories get new designs
   const since = demandWindowStart();
   const demandRaw = await prisma.usageEvent.groupBy({
@@ -223,6 +238,35 @@ export default async function AdminOverview() {
             </table>
           </div>
         )}
+
+        {/* Owner pulse: what needs you + what happened this week */}
+        <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 14 }}>
+          <div style={{ background: attention.length ? 'rgba(245,158,11,0.05)' : 'rgba(16,185,129,0.04)', border: `1px solid ${attention.length ? 'rgba(245,158,11,0.25)' : 'rgba(16,185,129,0.2)'}`, borderRadius: 16, padding: '1.1rem 1.3rem' }}>
+            <h2 style={{ fontSize: '0.72rem', fontWeight: 800, margin: '0 0 10px', color: attention.length ? '#fbbf24' : '#34d399', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Needs your attention</h2>
+            {attention.length === 0 ? (
+              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', margin: 0 }}>Nothing - the site is running itself.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {attention.map(a => (
+                  <Link key={a.href + a.label} href={a.href} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>
+                    {a.label}<span style={{ color: '#fbbf24' }}>&rarr;</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '1.1rem 1.3rem' }}>
+            <h2 style={{ fontSize: '0.72rem', fontWeight: 800, margin: '0 0 10px', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Last 7 days</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, textAlign: 'center' }}>
+              {[[String(weekOrders), 'Orders'], [`${(weekOrderValue._sum.total ?? 0).toFixed(0)}`, 'Requested'], [String(weekCustomers), 'New accounts'], [String(weekGenerated), 'Auto-gen runs']].map(([n, l]) => (
+                <div key={l}>
+                  <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.5rem', color: '#00E5C8' }}>{n}</div>
+                  <div style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Category demand - what customers actually want (last 30 days) */}
         <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,229,200,0.14)', borderRadius: 16, padding: '1.25rem 1.5rem' }}>
