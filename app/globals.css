@@ -56,9 +56,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; cursor: none; }
-@media (hover: none) { html, * { cursor: auto !important; } }
-input, textarea, select { cursor: text !important; }
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
@@ -406,8 +404,6 @@ details[open] summary span { transform: rotate(45deg); display: inline-block; tr
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   html { scroll-behavior: auto !important; }
-  /* CursorEffect is disabled in this mode — restore the native cursor */
-  html, * { cursor: auto !important; }
 }
 
 /* ── Mobile responsive utilities ── */
