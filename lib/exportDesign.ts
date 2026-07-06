@@ -77,6 +77,7 @@ export async function submitOrder(payload: {
     colorHex: string;
     colorName: string;
     size: string;
+    productType?: string;
     price: number;
     svgDataUrl?: string;
     filePath?: string;

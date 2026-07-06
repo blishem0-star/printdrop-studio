@@ -5,12 +5,12 @@ import { getSession } from '@/lib/session';
 import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
 import { quoteOrder, sanitizeSides, MAX_ORDER_QTY } from '@/lib/pricing';
 import { validCouponPct, consumeCoupon } from '@/lib/coupons';
+import { PRODUCT_BASE_PRICE, isProductType, type ProductType } from '@/lib/productTypes';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HEX_RE       = /^#[0-9A-Fa-f]{6}$/;
 const VALID_SIZES  = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-const CUSTOM_DESIGN_PRICE = 24.99;
 
 function validateBody(b: Record<string, unknown>): string | null {
   const str = (k: string) => (typeof b[k] === 'string' ? (b[k] as string).trim() : '');
@@ -27,6 +27,7 @@ function validateBody(b: Record<string, unknown>): string | null {
   if (typeof d.colorHex !== 'string' || !HEX_RE.test(d.colorHex as string)) return 'Invalid design color';
   if (typeof d.size !== 'string' || !VALID_SIZES.includes(d.size as string)) return 'Invalid design size';
   if (d.customText && typeof d.customText === 'string' && (d.customText as string).length > 200) return 'Custom text too long';
+  if (d.productType !== undefined && !isProductType(d.productType)) return 'Invalid product type';
   if (b.qty !== undefined) {
     const q = Number(b.qty);
     if (!Number.isInteger(q) || q < 1 || q > MAX_ORDER_QTY) return `Invalid quantity (1-${MAX_ORDER_QTY})`;
@@ -56,23 +57,28 @@ export async function POST(req: NextRequest) {
     customerName: string; customerEmail: string;
     shippingName: string; shippingAddr: string; shippingCity: string;
     shippingZip: string; shippingState: string;
-    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; price?: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
+    design: { title: string; emoji?: string; customText?: string; colorHex: string; colorName: string; size: string; productType?: string; price?: number; svgDataUrl?: string; filePath?: string; artistDesignId?: string };
   };
 
   // Server-side price calculation - never trust client total.
-  let authorizedPrice: number;
+  // Base price comes from the garment; an artist design priced above the
+  // t-shirt base carries that premium onto any garment it's printed on.
+  const productType: ProductType = isProductType(design.productType) ? design.productType : 'TSHIRT';
+  let artistRoyaltyBase = 0;
+  let authorizedPrice = PRODUCT_BASE_PRICE[productType];
   if (design.artistDesignId) {
     const artistDesign = await prisma.artistDesign.findUnique({
       where: { id: design.artistDesignId, status: 'APPROVED' },
       select: { price: true },
     });
     if (!artistDesign) return NextResponse.json({ error: 'Design not available' }, { status: 422 });
-    authorizedPrice = artistDesign.price;
-  } else {
-    authorizedPrice = CUSTOM_DESIGN_PRICE;
+    artistRoyaltyBase = artistDesign.price;
+    authorizedPrice += Math.max(0, artistDesign.price - PRODUCT_BASE_PRICE.TSHIRT);
   }
   const qty = Number((body as { qty?: unknown }).qty) || 1;
-  const sides = sanitizeSides((body as { printSides?: unknown }).printSides);
+  // Sleeve print locations only exist on the t-shirt.
+  const sides = sanitizeSides((body as { printSides?: unknown }).printSides)
+    .filter(s => productType === 'TSHIRT' || s === 'back');
   const coupon = await validCouponPct((body as { couponCode?: unknown }).couponCode);
   const quote = quoteOrder(authorizedPrice, qty, sides, coupon?.pct ?? 0);
   const total = quote.total;
@@ -111,17 +117,18 @@ export async function POST(req: NextRequest) {
       colorHex: design.colorHex,
       colorName: design.colorName,
       size: design.size,
+      productType,
       svgDataUrl: design.svgDataUrl ?? null,
       filePath: design.filePath ?? null,
       artistDesignId: design.artistDesignId ?? null,
     },
   });
 
-  // Credit artist 50% when their design is sold
+  // Credit artist 50% of their design price (not the garment upgrade) per unit sold
   if (design.artistDesignId) {
     await prisma.artistDesign.update({
       where: { id: design.artistDesignId },
-      data: { salesCount: { increment: quote.qty }, totalEarned: { increment: authorizedPrice * 0.5 * quote.qty } },
+      data: { salesCount: { increment: quote.qty }, totalEarned: { increment: artistRoyaltyBase * 0.5 * quote.qty } },
     }).catch(() => null);
   }
 

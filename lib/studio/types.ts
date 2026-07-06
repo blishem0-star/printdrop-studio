@@ -43,7 +43,9 @@ export type ImageFx = 'none'|'gray'|'sepia'|'invert'|'punch';
 export type ImageFxMap = Record<UploadSlot, ImageFx>;
 export type DesignDocument = {
   version: 1;
-  productType: 'tshirt';
+  // 'tshirt' is the legacy value from v1 saves; new documents store the
+  // uppercase ProductType id (TSHIRT, HOODIE, ...).
+  productType: string;
   colorId: string;
   colorHex: string;
   colorName: string;

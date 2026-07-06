@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
-import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE, BASE_PRICE } from '@/lib/mockData';
+import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
+import { PRODUCT_BASE_PRICE, PRODUCT_TYPE_LABELS, STUDIO_PRODUCTS, type ProductType } from '@/lib/productTypes';
 import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
 import { quoteOrder, type PrintSide } from '@/lib/pricing';
 import { track } from '@/lib/track';
@@ -47,6 +48,13 @@ function DesignStudio() {
   const [size,     setSize]     = useState<TShirtSize|null>(null);
   const [garmentView, setGarmentView] = useState<GarmentView>('front');
   const showBack = garmentView === 'back';
+  const [productType, setProductType] = useState<ProductType>('TSHIRT');
+  // Sleeve prints exist only on the t-shirt photo mockup.
+  const hasSleeveViews = productType === 'TSHIRT';
+  function pickProduct(pt: ProductType) {
+    setProductType(pt);
+    if (pt !== 'TSHIRT' && (garmentView === 'left' || garmentView === 'right')) setGarmentView('front');
+  }
   const [fullscreen,setFullscreen]=useState(false);
   const [compareOpen,setCompareOpen]=useState(false);
   const [everSaved,setEverSaved]=useState(false);
@@ -81,7 +89,7 @@ function DesignStudio() {
   const [uploadSlot, setUploadSlot] = useState<UploadSlot>('front');
   const [imgPos,     setImgPos]     = useState<Record<'front'|'back',ImagePos>>({front:'center',back:'center'});
   const [imgOpacity, setImgOpacity] = useState<Record<UploadSlot,number>>({front:1,back:1,chest:1,leftSleeve:1,rightSleeve:1});
-  const [imgFx,      setImgFx]      = useState<Record<UploadSlot,'none'|'gray'|'sepia'|'invert'|'punch'>>({front:'none',back:'none',chest:'none',leftSleeve:'none',rightSleeve:'none'});
+  const [imgFx,      setImgFx]      = useState<Record<UploadSlot,'none'|'gray'|'sepia'|'invert'|'punch'>>({front:'none',back:'none',chest:'none',leftSleeve:'none',rightSleeve:'none'});
   const [fileDragging,setFileDragging]=useState(false);
 
   // AI
@@ -199,7 +207,7 @@ function DesignStudio() {
   function buildDesignDocument(): DesignDocument {
     return {
       version: 1,
-      productType: 'tshirt',
+      productType,
       colorId: color.id,
       colorHex: color.hex,
       colorName: color.name,
@@ -219,6 +227,10 @@ function DesignStudio() {
   }
 
   function restoreDesignDocument(doc: Partial<DesignDocument>) {
+    if (doc.productType) {
+      const pt = String(doc.productType).toUpperCase();
+      if ((STUDIO_PRODUCTS as string[]).includes(pt)) setProductType(pt as ProductType);
+    }
     if (Array.isArray(doc.layers)) {
       setLayersWithHistory(JSON.parse(JSON.stringify(doc.layers)));
     }
@@ -266,7 +278,7 @@ function DesignStudio() {
       if(d.sizeVal)setSize(d.sizeVal as typeof size);
       if(d.printBg)setPrintBg(d.printBg);
     },
-    deps: [layers,uploads,imgPos,imgOpacity,imgFx,color.id,size,printBg,printArea,aiPrompt,aiSvg,garmentView],
+    deps: [layers,uploads,imgPos,imgOpacity,imgFx,color.id,size,printBg,printArea,aiPrompt,aiSvg,garmentView,productType],
   });
 
   // Mouse wheel zoom
@@ -660,10 +672,10 @@ function DesignStudio() {
   // Extra print locations (back/sleeves) carry a per-shirt surcharge.
   const printSides: PrintSide[] = [
     ...(uploads.back?['back' as const]:[]),
-    ...(uploads.leftSleeve?['leftSleeve' as const]:[]),
-    ...(uploads.rightSleeve?['rightSleeve' as const]:[]),
+    ...(hasSleeveViews&&uploads.leftSleeve?['leftSleeve' as const]:[]),
+    ...(hasSleeveViews&&uploads.rightSleeve?['rightSleeve' as const]:[]),
   ];
-  const quote=       quoteOrder(BASE_PRICE,qty,printSides,couponPct);
+  const quote=       quoteOrder(PRODUCT_BASE_PRICE[productType],qty,printSides,couponPct);
   const shirtPrice=  quote.subtotal;
   const total=       quote.total;
 
@@ -693,7 +705,7 @@ function DesignStudio() {
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
         shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,printSides,couponCode:couponPct>0?couponCode.trim():undefined,
-        design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,price:shirtPrice,svgDataUrl},
+        design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,productType,price:shirtPrice,svgDataUrl},
       });
       if(result.ok){
         if(saveShipping){try{localStorage.setItem('pd_shipping',JSON.stringify({phone:shipPhone,street:shipStreet,city:shipCity,zip:shipZip,state:shipState,notes:shipNotes}));}catch{}}
@@ -706,7 +718,7 @@ function DesignStudio() {
   async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'){
     // Share links carry the design itself so friends open a live remix, not a blank studio.
     const shareCode = !ordered && layers.length>0
-      ? encodeDesignShare({version:1,colorId:color.id,size,activeView:garmentView,layers,printArea,printBg})
+      ? encodeDesignShare({version:1,productType,colorId:color.id,size,activeView:garmentView,layers,printArea,printBg})
       : null;
     const url=typeof window==='undefined'
       ? '/design'
@@ -790,7 +802,7 @@ function DesignStudio() {
   ];
 
   const renderShirtCanvas=(w:number,h:number,interactive=true,view:GarmentView=garmentView,idScope?:string)=>(
-    <StudioCanvas w={w} h={h} view={view} interactive={interactive} idScope={idScope}
+    <StudioCanvas w={w} h={h} view={view} interactive={interactive} idScope={idScope} productType={productType}
       layers={layers} selected={selected} printArea={printArea} printBg={printBg}
       uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
       aiSvg={aiSvg} color={color} isLight={isLight} isTouch={isTouch} snapGuide={snapGuide}
@@ -808,7 +820,7 @@ function DesignStudio() {
           <svg viewBox="0 0 32 32" fill="none" stroke="#00E5C8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={36} height={36} aria-hidden="true"><path d="M6 16l8 8 12-14"/></svg>
         </div>
         <h1 style={{fontFamily:"'Bebas Neue',Impact,sans-serif",fontSize:'3rem',fontWeight:400,letterSpacing:'0.05em',marginBottom:8,lineHeight:1}}>Order Request Sent</h1>
-        <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{color?.name} - Size {size} - Qty {qty}</p>
+        <p style={{color:'rgba(255,255,255,0.45)',marginBottom:4}}>{PRODUCT_TYPE_LABELS[productType]} - {color?.name} - Size {size} - Qty {qty}</p>
         {orderId&&<p style={{color:'rgba(255,255,255,0.15)',fontSize:'0.68rem',fontFamily:'monospace',marginBottom:10}}>#{orderId.slice(0,8).toUpperCase()}</p>}
         <p style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.62)',marginBottom:18,lineHeight:1.6}}>Track it on your <Link href="/profile" style={{color:'#00E5C8',textDecoration:'none'}}>profile</Link>.</p>
         <div ref={canvasRef} style={{height:210,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:18}}>
@@ -835,8 +847,8 @@ function DesignStudio() {
       {/* Fullscreen */}
       {fullscreen&&(
         <div style={{position:'fixed',inset:0,zIndex:9999,background:'radial-gradient(ellipse at 50% 38%,rgba(14,14,24,1) 0%,rgba(4,4,6,1) 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',animation:'fsIn 0.25s ease'}} onClick={()=>setFullscreen(false)}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(160px,1fr))',gap:18,width:'min(1080px,92vw)',alignItems:'end'}}>
-            {(['front','right','back','left'] as GarmentView[]).map(v=>(
+          <div style={{display:'grid',gridTemplateColumns:`repeat(${hasSleeveViews?4:2},minmax(160px,1fr))`,gap:18,width:hasSleeveViews?'min(1080px,92vw)':'min(560px,92vw)',alignItems:'end'}}>
+            {((hasSleeveViews?['front','right','back','left']:['front','back']) as GarmentView[]).map(v=>(
               <button key={v} onClick={e=>{e.stopPropagation();setGarmentView(v);}} style={{border:'1px solid rgba(255,255,255,0.08)',background:garmentView===v?'rgba(0,229,200,0.06)':'rgba(255,255,255,0.025)',borderRadius:14,padding:'12px 10px 10px',cursor:'pointer',color:'#fff',filter:'drop-shadow(0 34px 70px rgba(0,0,0,0.55))'}}>
                 <div style={{height:300,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {renderShirtCanvas(240,276,false,v,`fs-${v}`)}
@@ -859,7 +871,7 @@ function DesignStudio() {
               <button key={c.id} onClick={()=>{pickColor(c);setCompareOpen(false);showToast(`${c.name} selected.`,'success');}}
                 style={{border:`1px solid ${color.id===c.id?'rgba(0,229,200,0.45)':'rgba(255,255,255,0.08)'}`,background:color.id===c.id?'rgba(0,229,200,0.06)':'rgba(255,255,255,0.025)',borderRadius:14,padding:'10px 8px 9px',cursor:'pointer',color:'#fff'}}>
                 <div style={{height:150,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <StudioCanvas w={126} h={145} view={garmentView} interactive={false} idScope={`cmp-${c.id}`}
+                  <StudioCanvas w={126} h={145} view={garmentView} interactive={false} idScope={`cmp-${c.id}`} productType={productType}
                     layers={layers} selected={null} printArea={printArea} printBg={printBg}
                     uploads={uploads} imgPos={imgPos} imgOpacity={imgOpacity} imgFx={imgFx}
                     aiSvg={aiSvg} color={c} isLight={c.id==='white'||c.id==='sand'} isTouch={false} snapGuide={{x:false,y:false}}/>
@@ -877,6 +889,7 @@ function DesignStudio() {
           onClose={()=>setCheckoutOpen(false)}
           preview={renderShirtCanvas(250,288,false,garmentView)}
           color={color} size={size} qty={qty} setQty={setQty}
+          productLabel={PRODUCT_TYPE_LABELS[productType]}
           layersCount={layers.length} uploadCount={uploadCount} total={total} quote={quote}
           qualityScore={qualityScore} hasDesignContent={hasDesignContent}
           sidesSummary={Object.entries(viewHasContent).filter(([,v])=>v).map(([k])=>viewLabels[k as GarmentView]).join(', ')}
@@ -897,6 +910,7 @@ function DesignStudio() {
 
 
         <div style={{display:'flex',gap:6,alignItems:'center'}}>
+          <div style={{padding:'3px 9px',borderRadius:20,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',fontSize:'0.62rem',fontWeight:700,color:'rgba(255,255,255,0.66)',cursor:'pointer'}} onClick={()=>activateTool('shirt')}>{PRODUCT_TYPE_LABELS[productType]}</div>
           <div style={{display:'flex',alignItems:'center',gap:6,padding:'3px 9px 3px 5px',borderRadius:20,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',cursor:'pointer'}} onClick={()=>activateTool('shirt')}>
             <span style={{width:14,height:14,borderRadius:'50%',background:color.hex,display:'inline-block',outline:'1px solid rgba(255,255,255,0.15)',outlineOffset:1,flexShrink:0}}/>
             <span style={{fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.66)'}}>{color.name}</span>
@@ -1075,8 +1089,8 @@ function DesignStudio() {
                 <div style={{fontSize:'0.54rem',fontWeight:900,color:'rgba(255,255,255,0.42)',letterSpacing:'0.12em',textTransform:'uppercase'}}>Garment sides</div>
                 <div style={{fontSize:'0.52rem',fontWeight:900,color:'rgba(255,255,255,0.26)',letterSpacing:'0.08em',textTransform:'uppercase'}}>{viewLabels[garmentView]}</div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
-                {(['front','back','left','right'] as GarmentView[]).map(v=>{
+              <div style={{display:'grid',gridTemplateColumns:`repeat(${hasSleeveViews?4:2},1fr)`,gap:5}}>
+                {((hasSleeveViews?['front','back','left','right']:['front','back']) as GarmentView[]).map(v=>{
                   const slot:UploadSlot = v==='front'?'front':v==='back'?'back':v==='left'?'leftSleeve':'rightSleeve';
                   return (
                     <button key={v} onClick={()=>{setGarmentView(v);setUploadSlot(slot);}} aria-pressed={garmentView===v}
@@ -1387,6 +1401,19 @@ function DesignStudio() {
             {/* SHIRT */}
             {activeTool==='shirt'&&(
               <div style={{padding:'14px'}}>
+                <div style={{marginBottom:18}}>
+                  <div style={LS}>Product <span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}>{PRODUCT_TYPE_LABELS[productType]} - ${PRODUCT_BASE_PRICE[productType].toFixed(2)}</span></div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+                    {STUDIO_PRODUCTS.map(pt=>(
+                      <button key={pt} aria-pressed={productType===pt} onClick={()=>pickProduct(pt)}
+                        style={{padding:'9px 8px',borderRadius:11,border:`2px solid ${productType===pt?'#00E5C8':'rgba(255,255,255,0.07)'}`,background:productType===pt?'rgba(0,229,200,0.08)':'rgba(255,255,255,0.02)',cursor:'pointer',textAlign:'left',transition:'all 0.15s'}}>
+                        <div style={{fontSize:'0.68rem',fontWeight:900,color:productType===pt?'#00E5C8':'rgba(255,255,255,0.6)'}}>{PRODUCT_TYPE_LABELS[pt]}</div>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:productType===pt?'rgba(0,229,200,0.65)':'rgba(255,255,255,0.3)',marginTop:2}}>${PRODUCT_BASE_PRICE[pt].toFixed(2)}</div>
+                      </button>
+                    ))}
+                  </div>
+                  {!hasSleeveViews&&<p style={{fontSize:'0.56rem',color:'rgba(255,255,255,0.35)',marginTop:7,lineHeight:1.5}}>Front and back printing on this garment. Sleeve printing is available on the t-shirt.</p>}
+                </div>
                 <div style={{marginBottom:18}}>
                   <div style={LS}>Color <span style={{color:'#00E5C8',textTransform:'none',letterSpacing:0,fontWeight:600,fontSize:'0.72rem'}}>{color.name}</span></div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:7,marginBottom:7}}>

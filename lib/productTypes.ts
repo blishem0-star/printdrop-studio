@@ -16,6 +16,14 @@ export const PRODUCT_TYPE_EMOJI: Record<ProductType, string> = {
   SOCKS:       '🧦',
 };
 
+// Garments the design studio can print on. Socks are catalog-only:
+// their print geometry doesn't fit the studio's torso print area.
+export const STUDIO_PRODUCTS: ProductType[] = ['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST'];
+
+export function isProductType(v: unknown): v is ProductType {
+  return typeof v === 'string' && v in PRODUCT_TYPE_LABELS;
+}
+
 export const PRODUCT_BASE_PRICE: Record<ProductType, number> = {
   TSHIRT:      24.99,
   LONG_SLEEVE: 29.99,

@@ -269,7 +269,10 @@ export default function CatalogPage() {
   const isDefaultView = !search && catFilter === 'All' && productFilter === 'ALL';
   const featuredId = isDefaultView ? (filtered.find(d => d.badge === 'bestseller')?.id ?? null) : null;
 
-  const total = PRODUCT_BASE_PRICE[drawerProductType] + SHIPPING_PRICE;
+  // Mirrors the server's pricing: garment base + any artist premium above the t-shirt base.
+  const designPremium = selected ? Math.max(0, selected.price - PRODUCT_BASE_PRICE.TSHIRT) : 0;
+  const unitPrice = PRODUCT_BASE_PRICE[drawerProductType] + designPremium;
+  const total = unitPrice + SHIPPING_PRICE;
   const customizeDone = color !== null && size !== null;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipEmail);
   const deliveryDone = shipName.trim().length > 1 && emailValid && shipStreet.trim().length > 3 && shipCity.trim().length > 1 && /^\d{5}$/.test(shipZip) && shipState !== '';
@@ -286,7 +289,7 @@ export default function CatalogPage() {
         design: {
           title: selected.title, emoji: '',
           customText: [frontText, backText].filter(Boolean).join(' | ') || undefined,
-          colorHex: color.hex, colorName: color.name, size, price: selected.price, svgDataUrl,
+          colorHex: color.hex, colorName: color.name, size, productType: drawerProductType, price: unitPrice, svgDataUrl,
           artistDesignId: selected.originalId ?? undefined,
         },
       });
@@ -499,7 +502,7 @@ export default function CatalogPage() {
                       {(['TSHIRT', 'LONG_SLEEVE', 'HOODIE', 'HOODIE_VEST', 'SOCKS'] as const).map(pt => (
                         <button key={pt} aria-pressed={drawerProductType === pt} onClick={() => setDrawerProductType(pt)} style={{ padding: '5px 11px', borderRadius: 9, border: `1.5px solid ${drawerProductType === pt ? 'rgba(0,229,200,0.45)' : 'rgba(255,255,255,0.08)'}`, background: drawerProductType === pt ? 'rgba(0,229,200,0.09)' : 'rgba(255,255,255,0.02)', color: drawerProductType === pt ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {PRODUCT_TYPE_LABELS[pt]}
-                          {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#00E5C8', opacity: 0.8 }}>${PRODUCT_BASE_PRICE[pt]}</span>}
+                          {drawerProductType === pt && <span style={{ fontSize: '0.55rem', color: '#00E5C8', opacity: 0.8 }}>${(PRODUCT_BASE_PRICE[pt] + designPremium).toFixed(2)}</span>}
                         </button>
                       ))}
                     </div>

@@ -5,7 +5,8 @@ import type { DesignDocument } from './types';
 // actual design (uploads are excluded - data URLs are far too large for URLs).
 
 export type ShareableDesign = Pick<DesignDocument,
-  'version'|'colorId'|'size'|'activeView'|'layers'|'printArea'|'printBg'>;
+  'version'|'colorId'|'size'|'activeView'|'layers'|'printArea'|'printBg'> &
+  Partial<Pick<DesignDocument, 'productType'>>;
 
 const MAX_CODE_LENGTH = 6000;
 

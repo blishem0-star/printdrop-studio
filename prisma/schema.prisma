@@ -126,6 +126,7 @@ model DesignAsset {
   colorHex       String
   colorName      String
   size           String
+  productType    ProductType @default(TSHIRT)
   filePath       String?
   svgDataUrl     String?
   artistDesignId String?

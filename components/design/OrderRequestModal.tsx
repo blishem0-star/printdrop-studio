@@ -18,6 +18,7 @@ export type OrderRequestModalProps = {
   size: TShirtSize | null;
   qty: number;
   setQty: (n:number) => void;
+  productLabel?: string;
   layersCount: number;
   uploadCount: number;
   total: number;
@@ -49,16 +50,16 @@ export default function OrderRequestModal(p: OrderRequestModalProps){
       <div className="checkout-modal" onClick={e=>e.stopPropagation()} style={{width:'min(1080px,96vw)',maxHeight:'92vh',overflow:'hidden',border:'1px solid rgba(255,255,255,0.1)',background:'linear-gradient(180deg,rgba(13,13,18,0.98),rgba(6,6,9,0.98))',borderRadius:16,boxShadow:'0 30px 90px rgba(0,0,0,0.62)',display:'grid',gridTemplateColumns:'minmax(320px,0.85fr) minmax(360px,1fr)'}}>
         <div style={{padding:'24px',borderRight:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.018)',display:'flex',flexDirection:'column',gap:16,overflowY:'auto'}}>
           <div>
-            <div style={{fontSize:'1.15rem',fontWeight:950,color:'rgba(255,255,255,0.92)',marginBottom:5}}>Review your shirt</div>
+            <div style={{fontSize:'1.15rem',fontWeight:950,color:'rgba(255,255,255,0.92)',marginBottom:5}}>Review your {(p.productLabel??'shirt').toLowerCase()}</div>
             <div style={{fontSize:'0.86rem',color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>Check the design, choose quantity, then confirm your delivery details.</div>
           </div>
           <div style={{height:330,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,background:'radial-gradient(ellipse at 50% 38%,rgba(0,229,200,0.055),rgba(255,255,255,0.018) 55%,rgba(0,0,0,0.16))'}}>
             {p.preview}
           </div>
           <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:13,padding:14,background:'rgba(255,255,255,0.025)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirt</span><strong>{p.color.name}{p.size?` / ${p.size}`:''}</strong></div>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>{p.productLabel??'Shirt'}</span><strong>{p.color.name}{p.size?` / ${p.size}`:''}</strong></div>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Design</span><strong>{p.layersCount} layers, {p.uploadCount} uploads</strong></div>
-            {p.quote&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>Shirts x {p.quote.qty}</span><strong>${p.quote.subtotal.toFixed(2)}</strong></div>}
+            {p.quote&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'0.9rem',marginBottom:8}}><span style={{color:'rgba(255,255,255,0.52)'}}>{p.productLabel??'Shirt'} x {p.quote.qty}</span><strong>${p.quote.subtotal.toFixed(2)}</strong></div>}
             {p.quote&&p.quote.sides.map(s=>(
               <div key={s} style={{display:'flex',justifyContent:'space-between',fontSize:'0.78rem',marginBottom:6,paddingLeft:10}}><span style={{color:'rgba(255,255,255,0.4)'}}>incl. {SIDE_SURCHARGES[s].label}</span><span style={{color:'rgba(255,255,255,0.4)'}}>+${SIDE_SURCHARGES[s].price.toFixed(2)}/shirt</span></div>
             ))}
