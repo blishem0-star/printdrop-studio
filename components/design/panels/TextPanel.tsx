@@ -78,16 +78,6 @@ export function TextPanel(props: TextPanelProps) {
           </div>
         </div>
 
-        <div style={{border:'1px solid rgba(0,229,200,0.13)',background:'rgba(0,229,200,0.035)',borderRadius:12,padding:'11px 12px',marginBottom:14}}>
-          <div style={{fontSize:'0.72rem',fontWeight:950,color:'rgba(255,255,255,0.78)',marginBottom:8}}>Collar text</div>
-          <input aria-label="Collar text" value={collarText} onChange={e=>setCollarText(e.target.value)} placeholder="Brand, name, team..." maxLength={34}
-            style={{...INP,marginBottom:8,fontSize:'0.82rem'}}/>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
-            <button onClick={()=>addCollarText('front')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,229,200,0.24)',background:'rgba(0,229,200,0.07)',color:'#00E5C8',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Front collar</button>
-            <button onClick={()=>addCollarText('full')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,153,255,0.24)',background:'rgba(0,153,255,0.07)',color:'#7dd3fc',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Around collar</button>
-          </div>
-        </div>
-
         {/* Font */}
         <div style={{marginBottom:14}}>
           <div style={LS}>Font</div>
@@ -117,12 +107,6 @@ export function TextPanel(props: TextPanelProps) {
                 style={{width:36,height:34,borderRadius:7,cursor:'pointer',background:italic?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.04)',border:`1.5px solid ${italic?'rgba(0,229,200,0.32)':'rgba(255,255,255,0.08)'}`,color:italic?'#00E5C8':'rgba(255,255,255,0.3)',fontStyle:'italic',fontWeight:700,fontSize:'0.88rem',transition:'all 0.13s'}}>I</button>
             </div>
           </div>
-        </div>
-
-        {/* Letter spacing */}
-        <div style={{marginBottom:14}}>
-          <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Letter Spacing</span><span style={{color:'#00E5C8',fontWeight:700,letterSpacing:0,textTransform:'none'}}>{letterSp}</span></div>
-          <input type="range" min={-2} max={20} value={letterSp} onChange={e=>{const v=+e.target.value;setLetterSp(v);if(selected)updateLayer(selected,{letterSpacing:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
         </div>
 
         {/* Section */}
@@ -173,10 +157,27 @@ export function TextPanel(props: TextPanelProps) {
         </div>
 
         <button onClick={()=>setShowAdvancedText(v=>!v)} style={{width:'100%',padding:'10px 12px',borderRadius:10,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.72)',fontSize:'0.82rem',fontWeight:900,cursor:'pointer',marginBottom:14,textAlign:'left'}}>
-          {showAdvancedText?'Hide advanced text options':'Show advanced text options'}
+          {showAdvancedText?'Hide advanced text options':'Advanced: curve, effects, outline, collar text...'}
         </button>
         {showAdvancedText&&(
           <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'12px',background:'rgba(255,255,255,0.018)',marginBottom:14}}>
+
+        {/* Collar text */}
+        <div style={{border:'1px solid rgba(0,229,200,0.13)',background:'rgba(0,229,200,0.035)',borderRadius:12,padding:'11px 12px',marginBottom:14}}>
+          <div style={{fontSize:'0.72rem',fontWeight:950,color:'rgba(255,255,255,0.78)',marginBottom:8}}>Collar text</div>
+          <input aria-label="Collar text" value={collarText} onChange={e=>setCollarText(e.target.value)} placeholder="Brand, name, team..." maxLength={34}
+            style={{...INP,marginBottom:8,fontSize:'0.82rem'}}/>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+            <button onClick={()=>addCollarText('front')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,229,200,0.24)',background:'rgba(0,229,200,0.07)',color:'#00E5C8',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Front collar</button>
+            <button onClick={()=>addCollarText('full')} style={{padding:'9px 8px',borderRadius:9,border:'1px solid rgba(0,153,255,0.24)',background:'rgba(0,153,255,0.07)',color:'#7dd3fc',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Around collar</button>
+          </div>
+        </div>
+
+        {/* Letter spacing */}
+        <div style={{marginBottom:14}}>
+          <div style={{...LS,display:'flex',justifyContent:'space-between'}}><span>Letter Spacing</span><span style={{color:'#00E5C8',fontWeight:700,letterSpacing:0,textTransform:'none'}}>{letterSp}</span></div>
+          <input type="range" min={-2} max={20} value={letterSp} onChange={e=>{const v=+e.target.value;setLetterSp(v);if(selected)updateLayer(selected,{letterSpacing:v});}} style={{width:'100%',accentColor:'#00E5C8'}}/>
+        </div>
 
         {/* Gradient fills */}
         <div style={{marginBottom:14}}>

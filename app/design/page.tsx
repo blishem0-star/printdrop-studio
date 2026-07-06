@@ -13,6 +13,7 @@ import { useToast } from '@/components/Toast';
 import { useLocalSession } from '@/lib/useLocalSession';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
 import { ShareFan } from '@/components/design/ShareFan';
+import { ProductHologram } from '@/components/design/ProductHologram';
 import { StudioCanvas } from '@/components/design/StudioCanvas';
 import { LS, INP } from '@/components/design/studioStyles';
 import { UploadPanel } from '@/components/design/panels/UploadPanel';
@@ -28,7 +29,7 @@ import dynamic from 'next/dynamic';
 import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot, GarmentView, DesignDocument } from "@/lib/studio/types";
 import {
   SVG_W, SVG_H, PRINT, FONTS,
-  WORKFLOW_GROUPS, SIDE_TOOLS,
+  SIDE_TOOLS,
 } from "@/lib/studio/constants";
 import { uid, mkLayer, TEMPLATES, recommendShirtSize } from "@/lib/studio/helpers";
 
@@ -49,6 +50,7 @@ function DesignStudio() {
   const [garmentView, setGarmentView] = useState<GarmentView>('front');
   const showBack = garmentView === 'back';
   const [productType, setProductType] = useState<ProductType>('TSHIRT');
+  const [printAreaOpen, setPrintAreaOpen] = useState(false);
   // Sleeve prints exist only on the t-shirt photo mockup.
   const hasSleeveViews = productType === 'TSHIRT';
   function pickProduct(pt: ProductType) {
@@ -121,7 +123,6 @@ function DesignStudio() {
   // Land on ready designs so a new user always has an obvious first step.
   const [activeTool, setActiveTool] = useState<ActiveTool|null>('templates');
   const [shapesTab,  setShapesTab]  = useState<'vector'|'shapes'|'emoji'>('vector');
-  const activeWorkflow = activeTool ? (WORKFLOW_GROUPS.find(g=>g.tools.includes(activeTool)) ?? WORKFLOW_GROUPS[0]) : null;
   function activateTool(tool: ActiveTool) {
     setActiveTool(tool);
     requestAnimationFrame(()=>panelRef.current?.scrollTo({top:0,behavior:'smooth'}));
@@ -761,8 +762,6 @@ function DesignStudio() {
   const isLight=  color.id==='white'||color.id==='sand';
   const hasDesignContent = layers.length>0 || Object.values(uploads).some(Boolean) || Boolean(aiSvg) || Boolean(printBg);
   const uploadCount = Object.values(uploads).filter(Boolean).length;
-  const completedSteps = [hasDesignContent, Boolean(color), Boolean(size), deliveryDone].filter(Boolean).length;
-  const designScore = Math.round((completedSteps / 4) * 100);
   // The single next action that moves the user toward ordering - shown as the
   // primary CTA everywhere so nobody ever wonders "what now?".
   const guidedSteps = [
@@ -793,13 +792,16 @@ function DesignStudio() {
     {label:'Ready preview', ok:previewMode==='premium', fix:'preview'},
   ];
   const qualityScore = Math.round((qualityChecks.filter(c=>c.ok).length / qualityChecks.length) * 100);
-  const smartSuggestions = [
-    {label:'Auto fit all', hint:'Keep every layer inside print area', fix:'fit'},
-    {label:'Center layout', hint:'Align artwork to the shirt center', fix:'center'},
-    {label:'Fix contrast', hint:'Make the design readable on this color', fix:'contrast'},
-    {label:'Premium look', hint:'Apply a luxury style and preview mode', fix:'premium'},
-    {label:'Add collar', hint:'Add a small brand detail near the neck', fix:'collar'},
-  ];
+  function fixQualityCheck(fix:string){
+    if(fix==='text')activateTool('text');
+    else if(fix==='shirt')activateTool('shirt');
+    else if(fix==='preview')setPreviewMode('premium');
+    else applySmartFix(fix as 'fit'|'contrast'|'textsize');
+  }
+  // Stable handler + data attribute keeps the React Compiler happy (no ref access in render)
+  function onQualityFixClick(e: React.MouseEvent<HTMLButtonElement>) {
+    fixQualityCheck(e.currentTarget.dataset.fix ?? '');
+  }
 
   const renderShirtCanvas=(w:number,h:number,interactive=true,view:GarmentView=garmentView,idScope?:string)=>(
     <StudioCanvas w={w} h={h} view={view} interactive={interactive} idScope={idScope} productType={productType}
@@ -990,6 +992,20 @@ function DesignStudio() {
             <div key={i} style={{position:'absolute',...(v==='Top'?{top:14}:{bottom:12}),...(h==='Left'?{left:14}:{right:14}),width:18,height:18,borderTop:v==='Top'?'1px solid rgba(0,229,200,0.18)':'none',borderBottom:v==='Bottom'?'1px solid rgba(0,229,200,0.18)':'none',borderLeft:h==='Left'?'1px solid rgba(0,229,200,0.18)':'none',borderRight:h==='Right'?'1px solid rgba(0,229,200,0.18)':'none',pointerEvents:'none'}}/>
           ))}
 
+          {/* Always-visible garment switcher - picking a product never needs digging in panels */}
+          <div className="studio-product-switch" onClick={e=>e.stopPropagation()} style={{position:'absolute',top:14,left:'50%',transform:'translateX(-50%)',display:'flex',gap:2,background:'rgba(4,4,7,0.88)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:12,padding:3,backdropFilter:'blur(14px)',zIndex:5,boxShadow:'0 8px 30px rgba(0,0,0,0.4)',maxWidth:'calc(100% - 24px)',overflowX:'auto'}}>
+            {STUDIO_PRODUCTS.map(pt=>(
+              <button key={pt} aria-pressed={productType===pt} title={`${PRODUCT_TYPE_LABELS[pt]} - $${PRODUCT_BASE_PRICE[pt].toFixed(2)}`} onClick={()=>pickProduct(pt)}
+                style={{padding:'5px 11px 5px 7px',borderRadius:10,border:'none',background:productType===pt?'linear-gradient(135deg,rgba(0,229,200,0.16),rgba(0,153,255,0.08))':'transparent',color:productType===pt?'#00E5C8':'rgba(255,255,255,0.52)',fontSize:'0.66rem',fontWeight:850,letterSpacing:'0.03em',cursor:'pointer',transition:'all 0.13s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:7,boxShadow:productType===pt?'0 0 20px rgba(0,229,200,0.12), inset 0 1px 0 rgba(255,255,255,0.08)':'none'}}>
+                <ProductHologram type={pt} active={productType===pt} colorHex={productType===pt?color.hex:'#f3f4f6'} size={34}/>
+                <span style={{display:'grid',gap:1,textAlign:'left'}}>
+                  <span>{PRODUCT_TYPE_LABELS[pt]}</span>
+                  {productType===pt&&<span style={{fontSize:'0.58rem',fontWeight:800,color:'rgba(0,229,200,0.72)'}}>${PRODUCT_BASE_PRICE[pt].toFixed(2)}</span>}
+                </span>
+              </button>
+            ))}
+          </div>
+
           <button onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:14,right:14,background:'rgba(5,5,8,0.9)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(14px)',letterSpacing:'0.06em',transition:'all 0.15s',zIndex:5}}
             onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.1)');(e.currentTarget.style.color='#00E5C8');}}
             onMouseLeave={e=>{(e.currentTarget.style.background='rgba(5,5,8,0.9)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');}}>
@@ -1061,7 +1077,6 @@ function DesignStudio() {
             <button onClick={undo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Undo</button>
             <button onClick={redo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Redo</button>
             <span title={'Shortcuts: Ctrl+Z undo | Ctrl+Y redo | Ctrl+D duplicate | Del delete | Arrows nudge (Shift = x5) | Double-click text to edit | Esc close'} style={{width:26,height:26,borderRadius:8,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.4)',fontSize:'0.72rem',fontWeight:900,display:'inline-flex',alignItems:'center',justifyContent:'center',cursor:'help'}}>?</span>
-            <button onClick={addChestSymbol} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(0,229,200,0.18)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Add chest symbol</button>
             {layers.some(l=>!l.collarMode)&&<button onClick={smartFitDesign} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.045)',color:'rgba(255,255,255,0.78)',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Smart fit</button>}
             <div style={{position:'relative',display:'inline-flex'}}>
               <button aria-haspopup="menu" onClick={()=>setShareFanOpen(true)} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(0,229,200,0.2)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Share</button>
@@ -1070,20 +1085,7 @@ function DesignStudio() {
             <button onClick={nextStep.go} title={nextStep.sub} style={{padding:'10px 16px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.82rem',fontWeight:950,cursor:'pointer',boxShadow:'0 8px 28px rgba(0,229,200,0.24)'}}>{nextStep.label}</button>
           </div>
 
-          <div className="studio-bottom-tray" style={{width:'100%',minHeight:118,flexShrink:0,borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(5,5,8,0.92)',backdropFilter:'blur(16px)',display:'grid',gridTemplateColumns:'190px 300px minmax(260px,1fr)',gap:10,padding:'10px 12px',position:'relative',zIndex:8}}>
-            <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,background:'rgba(255,255,255,0.02)',padding:10}}>
-              <div style={{fontSize:'0.54rem',fontWeight:900,color:'rgba(255,255,255,0.42)',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:8}}>Production</div>
-              <div style={{display:'flex',alignItems:'center',gap:9}}>
-                <div style={{width:34,height:34,borderRadius:10,background:'rgba(0,229,200,0.08)',border:'1px solid rgba(0,229,200,0.22)',display:'flex',alignItems:'center',justifyContent:'center',color:'#00E5C8',fontSize:'0.72rem',fontWeight:900}}>{designScore}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{height:4,borderRadius:999,background:'rgba(255,255,255,0.08)',overflow:'hidden'}}>
-                    <div style={{height:'100%',width:`${designScore}%`,background:'linear-gradient(90deg,#00E5C8,#0099FF)',borderRadius:999}}/>
-                  </div>
-                  <div style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.34)',marginTop:7,letterSpacing:'0.04em'}}>{size ? `Size ${size}` : 'Pick size'} - {uploadCount} uploads</div>
-                </div>
-              </div>
-            </div>
-
+          <div className="studio-bottom-tray" style={{width:'100%',minHeight:118,flexShrink:0,borderTop:'1px solid rgba(255,255,255,0.06)',background:'rgba(5,5,8,0.92)',backdropFilter:'blur(16px)',display:'grid',gridTemplateColumns:'300px minmax(260px,1fr)',gap:10,padding:'10px 12px',position:'relative',zIndex:8}}>
             <div style={{border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,background:'rgba(255,255,255,0.02)',padding:10}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                 <div style={{fontSize:'0.54rem',fontWeight:900,color:'rgba(255,255,255,0.42)',letterSpacing:'0.12em',textTransform:'uppercase'}}>Garment sides</div>
@@ -1167,33 +1169,11 @@ function DesignStudio() {
                     style={{padding:'8px 10px',borderRadius:9,border:`1px solid ${previewMode==='premium'?'rgba(0,229,200,0.42)':'rgba(255,255,255,0.1)'}`,background:previewMode==='premium'?'rgba(0,229,200,0.12)':'rgba(255,255,255,0.035)',color:previewMode==='premium'?'#00E5C8':'rgba(255,255,255,0.72)',fontSize:'0.62rem',fontWeight:950,cursor:'pointer',whiteSpace:'nowrap'}}>Premium preview</button>
                 </div>
 
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:10}}>
-                  {WORKFLOW_GROUPS.map(g=>(
-                    <button key={g.label} onClick={()=>activateTool(g.primary)}
-                      style={{minHeight:44,borderRadius:9,border:`1px solid ${activeWorkflow?.label===g.label?'rgba(0,229,200,0.38)':'rgba(255,255,255,0.08)'}`,background:activeWorkflow?.label===g.label?'rgba(0,229,200,0.1)':'rgba(255,255,255,0.025)',color:activeWorkflow?.label===g.label?'#00E5C8':'rgba(255,255,255,0.62)',fontSize:'0.58rem',fontWeight:950,cursor:'pointer',padding:'6px 4px'}}>
-                      {g.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}}>
+                <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:10}}>
                   {(['street','luxury','minimal','sport','vintage'] as const).map(p=>(
                     <button key={p} onClick={()=>applyStudioPreset(p)}
-                      style={{padding:'8px 9px',borderRadius:9,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.7)',fontSize:'0.64rem',fontWeight:900,cursor:'pointer',textAlign:'left',textTransform:'capitalize'}}>
+                      style={{padding:'6px 12px',borderRadius:999,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.7)',fontSize:'0.62rem',fontWeight:900,cursor:'pointer',textTransform:'capitalize'}}>
                       {p}
-                    </button>
-                  ))}
-                  <button onClick={()=>activateTool('ai')}
-                    style={{padding:'8px 9px',borderRadius:9,border:'1px solid rgba(0,153,255,0.22)',background:'rgba(0,153,255,0.06)',color:'#7dd3fc',fontSize:'0.64rem',fontWeight:900,cursor:'pointer',textAlign:'left'}}>
-                    AI helper
-                  </button>
-                </div>
-
-                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:10}}>
-                  {smartSuggestions.map(s=>(
-                    <button key={s.label} title={s.hint} onClick={()=>applySmartFix(s.fix as 'fit'|'center'|'contrast'|'premium'|'collar')}
-                      style={{minHeight:38,borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.62)',fontSize:'0.54rem',fontWeight:850,cursor:'pointer',padding:'5px 4px'}}>
-                      {s.label}
                     </button>
                   ))}
                 </div>
@@ -1205,10 +1185,12 @@ function DesignStudio() {
                       <div style={{height:'100%',width:`${qualityScore}%`,background:qualityScore>=80?'linear-gradient(90deg,#00E5C8,#0099FF)':'linear-gradient(90deg,#f59e0b,#00E5C8)',borderRadius:999}}/>
                     </div>
                     <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-                      {qualityChecks.map(c=>(
-                        <button key={c.label} onClick={()=>c.fix==='text'?activateTool('text'):c.fix==='shirt'?activateTool('shirt'):c.fix==='preview'?setPreviewMode('premium'):applySmartFix(c.fix as 'fit'|'contrast'|'textsize')}
-                          style={{padding:'3px 6px',borderRadius:999,border:`1px solid ${c.ok?'rgba(0,229,200,0.22)':'rgba(245,158,11,0.18)'}`,background:c.ok?'rgba(0,229,200,0.055)':'rgba(245,158,11,0.055)',color:c.ok?'rgba(0,229,200,0.82)':'rgba(251,191,36,0.82)',fontSize:'0.52rem',fontWeight:850,cursor:'pointer'}}>
-                          {c.ok?'OK':'Fix'} {c.label}
+                      {qualityChecks.every(c=>c.ok)?(
+                        <span style={{fontSize:'0.56rem',fontWeight:850,color:'rgba(0,229,200,0.75)'}}>All checks passed - ready to print</span>
+                      ):qualityChecks.filter(c=>!c.ok).map(c=>(
+                        <button key={c.label} data-fix={c.fix} onClick={onQualityFixClick}
+                          style={{padding:'3px 8px',borderRadius:999,border:'1px solid rgba(245,158,11,0.18)',background:'rgba(245,158,11,0.055)',color:'rgba(251,191,36,0.82)',fontSize:'0.52rem',fontWeight:850,cursor:'pointer'}}>
+                          Fix {c.label}
                         </button>
                       ))}
                     </div>
@@ -1292,14 +1274,17 @@ function DesignStudio() {
 
               {hasDesignContent&&(
               <div style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',borderRadius:12,overflow:'hidden',marginBottom:12}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                <div role="button" tabIndex={0} aria-expanded={printAreaOpen} onClick={()=>setPrintAreaOpen(v=>!v)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' ')setPrintAreaOpen(v=>!v);}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'10px 12px',borderBottom:printAreaOpen?'1px solid rgba(255,255,255,0.06)':'none',cursor:'pointer'}}>
                   <div>
                     <div style={{fontSize:'0.7rem',fontWeight:900,color:'rgba(255,255,255,0.72)',letterSpacing:'0.06em'}}>Print area</div>
-                    <div style={{fontSize:'0.64rem',fontWeight:700,color:'rgba(255,255,255,0.36)',marginTop:3}}>Drag the dashed box on the shirt or fine tune it here.</div>
+                    <div style={{fontSize:'0.64rem',fontWeight:700,color:'rgba(255,255,255,0.36)',marginTop:3}}>{printAreaOpen?'Drag the dashed box on the shirt or fine tune it here.':'Drag the dashed box on the shirt, or open to fine tune.'}</div>
                   </div>
-                  <button onClick={()=>setPrintArea(PRINT)} style={{padding:'6px 9px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.58)',fontSize:'0.68rem',fontWeight:800,cursor:'pointer'}}>Reset</button>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    {printAreaOpen&&<button onClick={e=>{e.stopPropagation();setPrintArea(PRINT);}} style={{padding:'6px 9px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.58)',fontSize:'0.68rem',fontWeight:800,cursor:'pointer'}}>Reset</button>}
+                    <span aria-hidden="true" style={{color:'rgba(255,255,255,0.4)',fontSize:'0.62rem',transform:printAreaOpen?'rotate(180deg)':'none',transition:'transform 0.15s'}}>▾</span>
+                  </div>
                 </div>
-                <div style={{padding:'11px 12px',display:'grid',gap:9}}>
+                {printAreaOpen&&<div style={{padding:'11px 12px',display:'grid',gap:9}}>
                   {([
                     ['X','x',42,82],['Y','y',66,122],['Width','w',46,104],['Height','h',56,128],
                   ] as [string,'x'|'y'|'w'|'h',number,number][]).map(([label,key,min,max])=>(
@@ -1309,7 +1294,7 @@ function DesignStudio() {
                       <span style={{textAlign:'right',color:'#00E5C8'}}>{Math.round(printArea[key])}</span>
                     </label>
                   ))}
-                </div>
+                </div>}
               </div>
               )}
 
@@ -1395,7 +1380,7 @@ function DesignStudio() {
             {activeTool==='shapes'&&(
               <ShapesPanel shapesTab={shapesTab} setShapesTab={setShapesTab} addShape={addShape}
                 addGfx={addGfx} selLayer={selLayer} updateLayer={updateLayer}
-                printBg={printBg} setPrintBg={setPrintBg}/>
+                printBg={printBg} setPrintBg={setPrintBg} addChestSymbol={addChestSymbol}/>
             )}
 
             {/* SHIRT */}
@@ -1406,9 +1391,12 @@ function DesignStudio() {
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
                     {STUDIO_PRODUCTS.map(pt=>(
                       <button key={pt} aria-pressed={productType===pt} onClick={()=>pickProduct(pt)}
-                        style={{padding:'9px 8px',borderRadius:11,border:`2px solid ${productType===pt?'#00E5C8':'rgba(255,255,255,0.07)'}`,background:productType===pt?'rgba(0,229,200,0.08)':'rgba(255,255,255,0.02)',cursor:'pointer',textAlign:'left',transition:'all 0.15s'}}>
-                        <div style={{fontSize:'0.68rem',fontWeight:900,color:productType===pt?'#00E5C8':'rgba(255,255,255,0.6)'}}>{PRODUCT_TYPE_LABELS[pt]}</div>
-                        <div style={{fontSize:'0.6rem',fontWeight:700,color:productType===pt?'rgba(0,229,200,0.65)':'rgba(255,255,255,0.3)',marginTop:2}}>${PRODUCT_BASE_PRICE[pt].toFixed(2)}</div>
+                        style={{minHeight:102,padding:'10px 9px',borderRadius:13,border:`2px solid ${productType===pt?'#00E5C8':'rgba(255,255,255,0.07)'}`,background:productType===pt?'linear-gradient(145deg,rgba(0,229,200,0.1),rgba(0,153,255,0.035))':'rgba(255,255,255,0.02)',cursor:'pointer',textAlign:'left',transition:'all 0.15s',display:'grid',gridTemplateColumns:'52px 1fr',alignItems:'center',gap:9,boxShadow:productType===pt?'0 16px 38px rgba(0,229,200,0.1), inset 0 1px 0 rgba(255,255,255,0.08)':'none'}}>
+                        <ProductHologram type={pt} active={productType===pt} colorHex={productType===pt?color.hex:'#f5f5f5'} size={52}/>
+                        <span>
+                          <span style={{display:'block',fontSize:'0.68rem',fontWeight:950,color:productType===pt?'#00E5C8':'rgba(255,255,255,0.68)',lineHeight:1.18}}>{PRODUCT_TYPE_LABELS[pt]}</span>
+                          <span style={{display:'block',fontSize:'0.6rem',fontWeight:800,color:productType===pt?'rgba(0,229,200,0.72)':'rgba(255,255,255,0.34)',marginTop:4}}>${PRODUCT_BASE_PRICE[pt].toFixed(2)}</span>
+                        </span>
                       </button>
                     ))}
                   </div>

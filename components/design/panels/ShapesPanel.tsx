@@ -13,6 +13,7 @@ export type ShapesPanelProps = {
   updateLayer: (id: string, patch: Partial<Layer>) => void;
   printBg: string | null;
   setPrintBg: (c: string | null) => void;
+  addChestSymbol: () => void;
 };
 
 export function ShapesPanel(p: ShapesPanelProps) {
@@ -30,6 +31,7 @@ export function ShapesPanel(p: ShapesPanelProps) {
 
       {shapesTab==='vector'&&(
         <div>
+          <button onClick={p.addChestSymbol} style={{width:'100%',marginBottom:12,padding:'9px 12px',borderRadius:9,border:'1px solid rgba(0,229,200,0.18)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.72rem',fontWeight:900,cursor:'pointer'}}>Add chest symbol</button>
           <div style={LS}>Vector Shapes - crisp at any size</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:16}}>
             {VECTOR_SHAPES.map(v=>(
