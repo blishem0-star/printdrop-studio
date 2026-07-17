@@ -985,10 +985,7 @@ function DesignStudio() {
             <span key={t} style={{padding:'5px 10px',borderRadius:999,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.025)',color:'rgba(255,255,255,0.5)',fontSize:'0.6rem',fontWeight:800,whiteSpace:'nowrap'}}>{t}</span>
           ))}
         </div>
-        <button onClick={nextStep.go} title={nextStep.sub}
-          style={{height:34,padding:'0 16px',borderRadius:9,border:'none',background:'linear-gradient(135deg,#00E5C8,#0099FF)',color:'#050507',fontSize:'0.68rem',fontWeight:950,letterSpacing:'0.06em',textTransform:'uppercase',cursor:'pointer',whiteSpace:'nowrap',boxShadow:'0 6px 22px rgba(0,229,200,0.22)'}}>
-          {nextStep.label}
-        </button>
+        <div style={{fontSize:'0.6rem',fontWeight:800,color:'rgba(255,255,255,0.35)',whiteSpace:'nowrap'}} title={nextStep.sub}>{nextStep.sub}</div>
       </div>
 
       <main className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'280px minmax(420px,1fr) 390px',overflow:'hidden',minHeight:0}}>
@@ -1051,7 +1048,7 @@ function DesignStudio() {
             ))}
           </div>
 
-          <button onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:14,right:14,background:'rgba(5,5,8,0.9)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(14px)',letterSpacing:'0.06em',transition:'all 0.15s',zIndex:5}}
+          <button className="studio-fullscreen-btn" onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:14,right:14,background:'rgba(5,5,8,0.9)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(14px)',letterSpacing:'0.06em',transition:'all 0.15s',zIndex:5}}
             onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.1)');(e.currentTarget.style.color='#00E5C8');}}
             onMouseLeave={e=>{(e.currentTarget.style.background='rgba(5,5,8,0.9)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');}}>
             <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" width={10} height={10} style={{display:'inline-block',verticalAlign:'middle',marginRight:4}} aria-hidden="true"><path d="M1 4V2a1 1 0 011-1h2M8 1h2a1 1 0 011 1v2M11 8v2a1 1 0 01-1 1H8M4 11H2a1 1 0 01-1-1V8"/></svg>FULLSCREEN
@@ -1107,10 +1104,9 @@ function DesignStudio() {
             </div>
 
             {previewMode==='edit'&&layers.length===0&&!activeImg&&!aiSvg&&!showBack&&!printBg&&(
-              <div className="studio-quickstart" onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:46,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5,maxWidth:'92%'}}>
-                <p style={{color:'rgba(255,255,255,0.45)',fontSize:'0.63rem',letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:9}}>Start your design</p>
+              <div className="studio-quickstart" onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:8,textAlign:'center',animation:'fadeUp 0.5s ease 0.4s both',zIndex:5,maxWidth:'92%'}}>
                 <div style={{display:'flex',gap:7,justifyContent:'center',flexWrap:'wrap'}}>
-                  {([['Pick a template','templates'],['Add text','text'],['Upload image','upload'],['Find artwork','ai']] as [string,ActiveTool][]).map(([label,tool])=>(
+                  {([['Pick a starter look','templates'],['Add your text','text']] as [string,ActiveTool][]).map(([label,tool])=>(
                     <button key={tool} onClick={()=>activateTool(tool)} style={{padding:'8px 13px',borderRadius:999,border:'1px solid rgba(0,229,200,0.22)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.66rem',fontWeight:900,letterSpacing:'0.05em',cursor:'pointer',backdropFilter:'blur(10px)'}}>{label}</button>
                   ))}
                 </div>
@@ -1260,6 +1256,10 @@ function DesignStudio() {
                 })}
               </div>
 
+              {!selLayer&&(
+                <div style={{padding:'10px 12px',borderRadius:12,border:'1px dashed rgba(255,255,255,0.12)',fontSize:'0.7rem',lineHeight:1.5,color:'rgba(255,255,255,0.42)',marginBottom:12}}>Tap any text, shape, or icon on the shirt to edit it here.</div>
+              )}
+              {selLayer&&(
               <div style={{border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',borderRadius:12,overflow:'hidden',marginBottom:12}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'9px 11px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                   <div style={{minWidth:0}}>
@@ -1312,10 +1312,9 @@ function DesignStudio() {
                       ))}
                     </div>
                   </div>
-                ):(
-                  <div style={{padding:'12px 13px',fontSize:'0.78rem',lineHeight:1.55,color:'rgba(255,255,255,0.46)'}}>Select text, a shape, or an icon on the shirt to edit its position, size, opacity, and order.</div>
-                )}
+                ):null}
               </div>
+              )}
             </div>
 
               {hasDesignContent&&(
@@ -1589,6 +1588,7 @@ function DesignStudio() {
           .studio-root{height:100dvh!important;}
         }
         @media(max-width:760px){
+          .studio-fullscreen-btn{display:none!important;}
           .studio-mobile-cta{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:8000;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(5,5,8,0.96);border-top:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(18px);}
           .studio-properties{padding-bottom:76px!important;}
           .studio-zoom{display:none!important;}
