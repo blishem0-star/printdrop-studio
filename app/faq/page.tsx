@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'FAQ',
@@ -15,7 +16,7 @@ const FAQS: [string, string][] = [
   ['What sizes do you offer?', 'Unisex XS through XXL, standard US fit. See the size guide, or let the studio recommend a size from your height and weight.'],
   ['Can I print on the back or sleeves?', 'Yes - the studio supports front, back, chest, and both sleeves. The front print is included in the base price; back and sleeve prints add a small per-shirt charge, shown before you submit.'],
   ['Do I keep the rights to my design?', 'Yes. Artwork and text you create stay yours - we only use them to print your order.'],
-  ['Can I sell my own designs on STYLX?', 'Yes - register as an artist, upload designs, and earn 50% of the design price on every sale once approved.'],
+  ['Can I sell my own designs on STYLX?', 'Yes - turn your account into an artist account with one click from your profile, upload designs, and earn 50% of the design price on every sale once approved.'],
   ['Do you ship outside the US?', 'US shipping only for now. Europe is planned next.'],
 ];
 
@@ -42,9 +43,10 @@ export default function FaqPage() {
           ))}
         </div>
         <p style={{ marginTop: 26, color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem' }}>
-          Something else? Reply to any STYLX email and a human answers. See also the <Link href="/size-guide" style={{ color: '#00E5C8', textDecoration: 'none' }}>size guide</Link> and <Link href="/legal/refunds" style={{ color: '#00E5C8', textDecoration: 'none' }}>refund policy</Link>.
+          Something else? Every order is reviewed by a person before you pay, and notes you add to an order reach us directly. See also the <Link href="/size-guide" style={{ color: '#00E5C8', textDecoration: 'none' }}>size guide</Link> and <Link href="/legal/refunds" style={{ color: '#00E5C8', textDecoration: 'none' }}>refund policy</Link>.
         </p>
       </main>
+      <SiteFooter />
     </div>
   );
 }

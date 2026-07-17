@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Size Guide',
@@ -56,6 +57,7 @@ export default function SizeGuidePage() {
           <Link href="/design" style={{ color: '#00E5C8', fontSize: '0.82rem', fontWeight: 800, textDecoration: 'none' }}>Not sure? The studio can recommend a size from your height and weight &rarr;</Link>
         </p>
       </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           .legal-body a{color:#00E5C8;text-decoration:none}
         `}</style>
       </main>
+      <SiteFooter />
     </div>
   );
 }
