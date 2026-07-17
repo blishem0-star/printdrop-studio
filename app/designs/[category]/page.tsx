@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
+import { displayPrice } from '@/lib/productTypes';
 
 export const revalidate = 3600; // fresh generated designs appear within the hour
 
@@ -90,7 +91,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 64 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.8)').replace('<svg ', '<svg width="64" height="64" ') }} />
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
               {d.artistName && <div style={{ fontSize: '0.6rem', color: 'rgba(0,153,255,0.7)', marginTop: 2 }}>by {d.artistName}</div>}
-              <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#00E5C8', marginTop: 4 }}>${d.price}</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#00E5C8', marginTop: 4 }}>${displayPrice(d.price).toFixed(2)}</div>
             </Link>
           ))}
         </div>

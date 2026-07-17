@@ -32,6 +32,15 @@ export const PRODUCT_BASE_PRICE: Record<ProductType, number> = {
   SOCKS:       12.99,
 };
 
+// The price a shopper actually pays for a design printed on a garment.
+// Mirrors the server's charge in /api/orders: garment base price, plus the
+// premium when an artist design costs more than the t-shirt base. Every
+// price shown next to a design in the UI must go through this so the
+// number on the card is the number at checkout.
+export function displayPrice(designPrice: number, productType: ProductType = 'TSHIRT'): number {
+  return PRODUCT_BASE_PRICE[productType] + Math.max(0, designPrice - PRODUCT_BASE_PRICE.TSHIRT);
+}
+
 export type ProductMockup = {
   front: string;
   back?: string;

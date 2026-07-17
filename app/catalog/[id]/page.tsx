@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
+import { displayPrice } from '@/lib/productTypes';
 
 export const revalidate = 300; // ISR: artist designs refresh every 5 minutes
 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const design = await resolveDesign(id);
   if (!design) return { title: 'Design not found' };
-  const desc = `${design.title} - ${design.category} design${design.artistName ? ` by ${design.artistName}` : ''}. Premium custom print from $${design.price.toFixed(2)}, ready to customize.`;
+  const desc = `${design.title} - ${design.category} design${design.artistName ? ` by ${design.artistName}` : ''}. Premium custom print from $${displayPrice(design.price).toFixed(2)}, ready to customize.`;
   return {
     title: design.title,
     description: desc,
@@ -65,7 +66,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
     offers: {
       '@type': 'Offer',
       priceCurrency: 'USD',
-      price: design.price.toFixed(2),
+      price: displayPrice(design.price).toFixed(2),
       availability: 'https://schema.org/InStock',
       url: `https://stylx.ai/catalog/${design.id}`,
     },
@@ -101,7 +102,8 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
             {design.title}
           </h1>
           <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '2rem', color: '#fff', marginBottom: 20 }}>
-            ${design.price.toFixed(2)}
+            ${displayPrice(design.price).toFixed(2)}
+            <span style={{ fontFamily: 'inherit', fontSize: '0.95rem', color: 'rgba(255,255,255,0.4)', marginLeft: 10 }}>on a t-shirt</span>
           </div>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: 24 }}>
             A premium print on a soft cotton tee. Pick your color and size, then send your order for review - you only pay once it is approved.

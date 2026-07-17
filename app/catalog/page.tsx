@@ -7,14 +7,14 @@ import { useFavorites } from '@/lib/useFavorites';
 import { track } from '@/lib/track';
 import Link from 'next/link';
 import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/catalogDesigns';
-import { PRODUCT_TYPE_LABELS, PRODUCT_PATHS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
+import { PRODUCT_TYPE_LABELS, PRODUCT_PATHS, PRODUCT_BASE_PRICE, displayPrice } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
 import { useToast } from '@/components/Toast';
 import ShirtMockup from '@/components/ShirtMockup';
-import { useLocalSession } from '@/lib/useLocalSession';
+import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 import { svgToDataUrl } from '@/lib/svgDataUrl';
 type TextPos = 'top' | 'center' | 'bottom';
 type FontStyle = 'bold' | 'script' | 'minimal';
@@ -134,7 +134,7 @@ function ShirtCard({ design, selected, onClick, featured = false, fav = false, o
   const mock = featured ? 200 : 120;
   const art = featured ? 80 : 48;
   return (
-    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} - $${design.price}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`scan-card holo-card${featured ? ' cat-featured-card' : ''}`} style={{ height: '100%', display: 'flex', flexDirection: featured ? 'row' : 'column', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
+    <div onClick={onClick} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick()} role="button" tabIndex={0} aria-label={`Select ${design.title} - $${displayPrice(design.price).toFixed(2)}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`scan-card holo-card${featured ? ' cat-featured-card' : ''}`} style={{ height: '100%', display: 'flex', flexDirection: featured ? 'row' : 'column', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', position: 'relative', border: `1.5px solid ${selected ? '#00E5C8' : hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)'}`, background: selected ? 'rgba(0,229,200,0.05)' : hover ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)', boxShadow: selected ? '0 0 28px rgba(0,229,200,0.22), 0 0 0 1px rgba(0,229,200,0.1)' : hover ? '0 12px 40px rgba(0,0,0,0.35)' : 'none', transform: hover ? 'translateY(-4px) scale(1.01)' : 'none' }}>
       {featured && <div aria-hidden="true" style={{ position: 'absolute', bottom: -10, right: 8, zIndex: 0, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', lineHeight: 1, color: 'rgba(0,229,200,0.05)', letterSpacing: '0.04em', pointerEvents: 'none' }}>FEATURED</div>}
       {design.badge && <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, fontSize: '0.5rem', fontWeight: 800, padding: '3px 7px', borderRadius: 999, background: design.badge === 'bestseller' ? '#FF4D1C' : design.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{design.badge}</div>}
       {design.artistName && <div style={{ position: 'absolute', top: design.badge ? 28 : 10, left: 10, zIndex: 2, fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(0,153,255,0.85)', color: '#fff', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 3 }}><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" width={8} height={8} aria-hidden="true"><path d="M1 9c1.5-3 3.5-7 4.5-7s.5 1.5 0 2c-1 1 1.5 1.5 2-.5"/><circle cx="9" cy="1.5" r=".75"/></svg>{design.artistName}</div>}
@@ -157,7 +157,7 @@ function ShirtCard({ design, selected, onClick, featured = false, fav = false, o
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: featured ? 'clamp(1.6rem,3vw,2.4rem)' : '1.05rem', letterSpacing: '0.04em', lineHeight: 1.05, marginBottom: 3 }}>{design.title}</div>
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: featured ? 14 : 8 }}>{design.category}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: featured ? '1.9rem' : '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${design.price}</span>
+          <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: featured ? '1.9rem' : '1.2rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${displayPrice(design.price).toFixed(2)}</span>
           <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>+ ${SHIPPING_PRICE} ship</span>
         </div>
       </div>
@@ -204,7 +204,9 @@ export default function CatalogPage() {
 
   useEffect(() => {
     if (session === undefined) return; // not hydrated yet
-    if (!session) { router.replace('/'); return; }
+    // The catalog is the storefront - direct visitors (shared links, search,
+    // ads) browse as guests instead of being bounced to the landing page.
+    if (!session) { setLocalSession({ type: 'guest', name: 'Guest' }); return; }
     // Prefill the order form once, asynchronously, to avoid cascading renders
     const t = setTimeout(() => {
       if (session.name && session.name !== 'Guest') setShipName(prev => prev || session.name);

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ContinueDesignBanner } from '@/components/ContinueDesignBanner';
 import Link from 'next/link';
 import { useToast } from '@/components/Toast';
-import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE } from '@/lib/productTypes';
+import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE, displayPrice } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
@@ -49,7 +49,8 @@ export default function HomePage() {
 
   useEffect(() => {
     if (session === undefined) return; // not hydrated yet
-    if (!session) { router.replace('/'); return; }
+    // Direct visitors browse as guests - the store never bounces a shopper.
+    if (!session) { setLocalSession({ type: 'guest', name: 'Guest' }); return; }
     if (session.type === 'user') {
       fetch('/api/auth/me')
         .then(r => r.ok ? r.json() : null)
@@ -258,7 +259,7 @@ export default function HomePage() {
               <Link key={d.id} href={`/catalog/${d.id}`} style={{ display: 'block', padding: '1rem', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', color: 'inherit', textAlign: 'center', transition: 'border-color 0.15s' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.75)').replace('<svg ', '<svg width="52" height="52" ') }} />
                 <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
-                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00E5C8', marginTop: 3 }}>${d.price}</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00E5C8', marginTop: 3 }}>${displayPrice(d.price).toFixed(2)}</div>
               </Link>
             ))}
           </div>
