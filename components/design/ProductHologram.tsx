@@ -1,6 +1,6 @@
 'use client';
 
-import { PRODUCT_PATHS, type ProductType } from '@/lib/productTypes';
+import { PRODUCT_MOCKUPS, PRODUCT_PATHS, type ProductType } from '@/lib/productTypes';
 import { useId } from 'react';
 
 type ProductHologramProps = {
@@ -13,6 +13,7 @@ type ProductHologramProps = {
 export function ProductHologram({ type, active = false, colorHex = '#f7f7f7', size = 46 }: ProductHologramProps) {
   const shineId = useId().replace(/:/g, '');
   const p = PRODUCT_PATHS[type];
+  const mockup = PRODUCT_MOCKUPS[type]?.front;
   const glow = active ? 'rgba(0,229,200,0.42)' : 'rgba(255,255,255,0.16)';
   const stroke = active ? '#00E5C8' : 'rgba(255,255,255,0.24)';
 
@@ -30,32 +31,50 @@ export function ProductHologram({ type, active = false, colorHex = '#f7f7f7', si
       }}
     >
       <span style={{position:'absolute',inset:'17% 12% 8%',borderRadius:'50%',background:`radial-gradient(ellipse,${glow},transparent 68%)`,filter:'blur(7px)',opacity:active?1:0.55}}/>
-      <svg
-        viewBox={p.viewBox ?? '0 0 200 200'}
-        width={size}
-        height={size}
-        fill="none"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          filter: `drop-shadow(0 10px 16px rgba(0,0,0,0.42)) drop-shadow(0 0 ${active ? 12 : 5}px ${glow})`,
-          transform: active ? 'translateY(-1px) scale(1.03)' : 'translateY(0) scale(0.96)',
-          transition: 'transform 0.16s ease, filter 0.16s ease',
-        }}
-      >
-        <path d={p.body} fill={colorHex} stroke={stroke} strokeWidth="2"/>
-        {p.shadeLeft && <path d={p.shadeLeft} fill="rgba(0,0,0,0.09)"/>}
-        {p.shadeRight && <path d={p.shadeRight} fill="rgba(255,255,255,0.08)"/>}
-        {p.detail && <path d={p.detail} fill={p.detailFill ?? 'none'} stroke={active ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.28)'} strokeWidth="2" strokeLinecap="round"/>}
-        <path d={p.body} fill={`url(#${shineId})`} opacity="0.18"/>
-        <defs>
-          <linearGradient id={shineId} x1="34" y1="24" x2="164" y2="188" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#ffffff" stopOpacity="0.42"/>
-            <stop offset="0.48" stopColor="#ffffff" stopOpacity="0.04"/>
-            <stop offset="1" stopColor="#00E5C8" stopOpacity={active ? '0.22' : '0.08'}/>
-          </linearGradient>
-        </defs>
-      </svg>
+      {mockup ? (
+        <span
+          style={{
+            width: size,
+            height: size,
+            backgroundImage: `url(${mockup})`,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain',
+            position: 'relative',
+            zIndex: 1,
+            filter: `drop-shadow(0 10px 16px rgba(0,0,0,0.42)) drop-shadow(0 0 ${active ? 12 : 5}px ${glow})`,
+            transform: active ? 'translateY(-1px) scale(1.08)' : 'translateY(0) scale(0.98)',
+            transition: 'transform 0.16s ease, filter 0.16s ease',
+          }}
+        />
+      ) : (
+        <svg
+          viewBox={p.viewBox ?? '0 0 200 200'}
+          width={size}
+          height={size}
+          fill="none"
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            filter: `drop-shadow(0 10px 16px rgba(0,0,0,0.42)) drop-shadow(0 0 ${active ? 12 : 5}px ${glow})`,
+            transform: active ? 'translateY(-1px) scale(1.03)' : 'translateY(0) scale(0.96)',
+            transition: 'transform 0.16s ease, filter 0.16s ease',
+          }}
+        >
+          <path d={p.body} fill={colorHex} stroke={stroke} strokeWidth="2"/>
+          {p.shadeLeft && <path d={p.shadeLeft} fill="rgba(0,0,0,0.09)"/>}
+          {p.shadeRight && <path d={p.shadeRight} fill="rgba(255,255,255,0.08)"/>}
+          {p.detail && <path d={p.detail} fill={p.detailFill ?? 'none'} stroke={active ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.28)'} strokeWidth="2" strokeLinecap="round"/>}
+          <path d={p.body} fill={`url(#${shineId})`} opacity="0.18"/>
+          <defs>
+            <linearGradient id={shineId} x1="34" y1="24" x2="164" y2="188" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#ffffff" stopOpacity="0.42"/>
+              <stop offset="0.48" stopColor="#ffffff" stopOpacity="0.04"/>
+              <stop offset="1" stopColor="#00E5C8" stopOpacity={active ? '0.22' : '0.08'}/>
+            </linearGradient>
+          </defs>
+        </svg>
+      )}
     </span>
   );
 }

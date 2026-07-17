@@ -32,6 +32,34 @@ export const PRODUCT_BASE_PRICE: Record<ProductType, number> = {
   SOCKS:       12.99,
 };
 
+export type ProductMockup = {
+  front: string;
+  back?: string;
+  side?: string;
+  canvas: { x: number; y: number; width: number; height: number };
+};
+
+export const PRODUCT_MOCKUPS: Partial<Record<ProductType, ProductMockup>> = {
+  TSHIRT: {
+    front: '/mockups/tshirt-front.png',
+    back: '/mockups/tshirt-back.png',
+    side: '/mockups/tshirt-side.png',
+    canvas: { x: 2, y: 14, width: 196, height: 196 },
+  },
+  LONG_SLEEVE: {
+    front: '/mockups/long-sleeve-front.png',
+    canvas: { x: 2, y: 17, width: 196, height: 200 },
+  },
+  HOODIE: {
+    front: '/mockups/hoodie-front.png',
+    canvas: { x: 17, y: 13, width: 166, height: 200 },
+  },
+  HOODIE_VEST: {
+    front: '/mockups/sleeveless-hoodie-front.png',
+    canvas: { x: 38, y: 11, width: 124, height: 204 },
+  },
+};
+
 // SVG paths for each product type (viewBox 0 0 200 200)
 // Returns an object with the main body path + optional extra paths (hood, pocket etc.)
 export const PRODUCT_PATHS: Record<ProductType, {

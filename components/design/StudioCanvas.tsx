@@ -3,7 +3,7 @@ import type { TShirtColor } from '@/lib/mockData';
 import type { Layer, ImagePos, UploadSlot, GarmentView, UploadMap, ImageOpacityMap, ImageFxMap } from '@/lib/studio/types';
 import { SVG_W, SVG_H, SHIRT_PATH, IMG_ZONE, GRADIENT_PRESETS } from '@/lib/studio/constants';
 import { calcArcPath, starPoints } from '@/lib/studio/helpers';
-import { PRODUCT_PATHS, type ProductType } from '@/lib/productTypes';
+import { PRODUCT_MOCKUPS, PRODUCT_PATHS, type ProductType } from '@/lib/productTypes';
 
 export type PrintArea = { x:number; y:number; w:number; h:number };
 
@@ -14,7 +14,7 @@ export type StudioCanvasProps = {
   interactive?: boolean;
   /** Unique per simultaneously-mounted instance; SVG defs ids are derived from it. */
   idScope?: string;
-  /** Garment to render. TSHIRT uses the photo mockup; other garments render as vector. */
+  /** Garment to render. Products use photo mockups when available, with vector fallback. */
   productType?: ProductType;
   layers: Layer[];
   selected: string | null;
@@ -63,6 +63,7 @@ export function StudioCanvas(props: StudioCanvasProps){
   const svgId=(name:string)=>`${name}-${idScope}`;
   const garment:ProductType=props.productType??'TSHIRT';
   const garmentPaths=PRODUCT_PATHS[garment];
+  const garmentMockup=PRODUCT_MOCKUPS[garment];
   const isBackView=view==='back';
   const isFrontView=view==='front';
   const isSideView=view==='left'||view==='right';
@@ -234,8 +235,16 @@ export function StudioCanvas(props: StudioCanvasProps){
       </defs>
       <ellipse cx="100" cy="216" rx={isSideView?36:58} ry="7" fill="rgba(0,0,0,0.25)" filter={`url(#${svgId('pb')})`}/>
       <g transform={isSideView&&view==='left'?'translate(200 0) scale(-1 1)':''}>
-        {garment==='TSHIRT'?(
-          <image href={isSideView?'/mockups/tshirt-side.png':isBackView?'/mockups/tshirt-back.png':'/mockups/tshirt-front.png'} x={isSideView?29:2} y={isSideView?16:14} width={isSideView?142:196} height={isSideView?196:196} preserveAspectRatio="xMidYMid meet" filter={color.id==='white'?undefined:`url(#${svgId('shirtTint')})`}/>
+        {garmentMockup?(
+          <image
+            href={isSideView && garmentMockup.side ? garmentMockup.side : isBackView && garmentMockup.back ? garmentMockup.back : garmentMockup.front}
+            x={isSideView && garmentMockup.side ? 29 : garmentMockup.canvas.x}
+            y={isSideView && garmentMockup.side ? 16 : garmentMockup.canvas.y}
+            width={isSideView && garmentMockup.side ? 142 : garmentMockup.canvas.width}
+            height={isSideView && garmentMockup.side ? 196 : garmentMockup.canvas.height}
+            preserveAspectRatio="xMidYMid meet"
+            filter={color.id==='white'?undefined:`url(#${svgId('shirtTint')})`}
+          />
         ):(
           <g transform="translate(0,15)" filter={`url(#${svgId('ss')})`}>
             <path d={garmentPaths.body} fill={color.hex} stroke={isLight?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.14)'} strokeWidth="1.5"/>
