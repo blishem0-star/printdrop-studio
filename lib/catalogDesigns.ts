@@ -138,8 +138,8 @@ export const CATALOG_DESIGNS: CatalogDesign[] = [
     </svg>`,
   },
   {
-    id: 'pine-forest',
-    title: 'Pine Forest',
+    id: 'pine-grove',
+    title: 'Pine Grove',
     category: 'Nature',
     price: 18.99,
     badge: 'new',
