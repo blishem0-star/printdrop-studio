@@ -706,6 +706,7 @@ function DesignStudio() {
       const result=await submitOrder({
         customerName:shipName,customerEmail:shipEmail,shippingName:shipName,shippingAddr:shipStreet,
         shippingCity:shipCity,shippingZip:shipZip,shippingState:shipState,total,qty,printSides,couponCode:couponPct>0?couponCode.trim():undefined,
+        notes:[shipNotes.trim(),shipPhone.trim()?`Phone: ${shipPhone.trim()}`:''].filter(Boolean).join('\n').slice(0,300)||undefined,
         design:{title:aiPrompt||'Custom Design',emoji:'Design',colorHex:color!.hex,colorName:color!.name,size:size!,productType,price:shirtPrice,svgDataUrl},
       });
       if(result.ok){
@@ -946,7 +947,7 @@ function DesignStudio() {
         </button>
       </div>
 
-      <div className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'280px minmax(420px,1fr) 390px',overflow:'hidden',minHeight:0}}>
+      <main className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'280px minmax(420px,1fr) 390px',overflow:'hidden',minHeight:0}}>
 
         {/* Section */}
         <div className="studio-rail" style={{background:'rgba(5,5,8,1)',borderRight:'1px solid rgba(255,255,255,0.06)',display:'flex',flexDirection:'column',alignItems:'stretch',padding:'12px',gap:7,zIndex:10,overflowY:'auto'}}>
@@ -1457,7 +1458,7 @@ function DesignStudio() {
           </div>
 
         </div>
-      </div>
+      </main>
 
       {/* Mobile-only sticky checkout bar (shown via CSS below 760px) */}
       <div className="studio-mobile-cta" style={{display:'none'}}>

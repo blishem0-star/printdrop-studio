@@ -70,6 +70,7 @@ export async function submitOrder(payload: {
   qty?: number;
   printSides?: string[];
   couponCode?: string;
+  notes?: string;
   design: {
     title: string;
     emoji?: string;

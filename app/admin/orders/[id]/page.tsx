@@ -70,6 +70,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               {order.shippingAddr}<br />
               {order.shippingCity}, {order.shippingState} {order.shippingZip}
             </p>
+            {order.notes && (
+              <div style={{ marginTop: 12, padding: '0.7rem 0.9rem', borderRadius: 10, background: 'rgba(0,229,200,0.05)', border: '1px solid rgba(0,229,200,0.15)', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-line' }}>
+                <span style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, color: 'rgba(0,229,200,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Delivery notes</span>
+                {order.notes}
+              </div>
+            )}
           </div>
 
           {/* Customer */}

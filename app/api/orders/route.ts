@@ -32,6 +32,7 @@ function validateBody(b: Record<string, unknown>): string | null {
     const q = Number(b.qty);
     if (!Number.isInteger(q) || q < 1 || q > MAX_ORDER_QTY) return `Invalid quantity (1-${MAX_ORDER_QTY})`;
   }
+  if (b.notes !== undefined && (typeof b.notes !== 'string' || b.notes.length > 300)) return 'Notes too long (max 300 characters)';
   return null;
 }
 
@@ -141,6 +142,7 @@ export async function POST(req: NextRequest) {
       shippingCity,
       shippingZip,
       shippingState,
+      notes: typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null,
       status: 'DRAFT',
       items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge } },
     },
