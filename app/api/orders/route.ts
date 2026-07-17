@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
       status: 'DRAFT',
       items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge } },
     },
-    include: { customer: true, items: { include: { designAsset: true } } },
+    select: { id: true, total: true, status: true, createdAt: true },
   });
 
   if (coupon) await consumeCoupon(coupon.code);
