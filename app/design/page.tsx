@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
-import { PRODUCT_BASE_PRICE, PRODUCT_TYPE_LABELS, STUDIO_PRODUCTS, type ProductType } from '@/lib/productTypes';
+import { PRODUCT_BASE_PRICE, PRODUCT_TYPE_LABELS, STUDIO_PRODUCTS, buildProductSvg, type ProductType } from '@/lib/productTypes';
 import { encodeDesignShare, decodeDesignShare } from '@/lib/studio/shareCode';
 import { quoteOrder, type PrintSide } from '@/lib/pricing';
 import { track } from '@/lib/track';
@@ -29,9 +29,10 @@ import dynamic from 'next/dynamic';
 import type { Layer, ImagePos, UploadSlot, Session, ActiveTool, DesignSlot, GarmentView, DesignDocument } from "@/lib/studio/types";
 import {
   SVG_W, SVG_H, PRINT, FONTS,
-  SIDE_TOOLS,
+  SIDE_TOOLS, GRADIENT_PRESETS,
 } from "@/lib/studio/constants";
 import { uid, mkLayer, TEMPLATES, recommendShirtSize } from "@/lib/studio/helpers";
+import { LOOKS, buildLookLayers, restyleLayers, pickShuffleLook, type Look } from "@/lib/studio/looks";
 
 // Checkout UI is heavy and only needed once the user finishes designing.
 const OrderRequestModal = dynamic(()=>import('@/components/design/OrderRequestModal'),{ssr:false});
@@ -118,6 +119,7 @@ function DesignStudio() {
   const printAreaRef = useRef(PRINT);
   useEffect(()=>{ printAreaRef.current=printArea; },[printArea]);
   const [designSlots, setDesignSlots] = useState<DesignSlot[]>([]);
+  const [lastLookId, setLastLookId] = useState<string|null>(null);
 
   // Active tool + shapes tab
   // Land on ready designs so a new user always has an obvious first step.
@@ -456,6 +458,26 @@ function DesignStudio() {
   function applyTemplate(tpl: typeof TEMPLATES[0]) {
     const newLayers=tpl.build(color.textColor);
     setLayersWithHistory(newLayers); setSelected(null);
+  }
+  // Starter looks: finished template + shirt color + styling in one click.
+  function applyLook(look: Look){
+    const c=SHIRT_COLORS.find(x=>x.id===look.colorId)??color;
+    setColor(c); setTextColor(c.textColor);
+    setLayersWithHistory(buildLookLayers(look,c.textColor));
+    setSelected(null); setLastLookId(look.id);
+    track('studio_start',{category:'starter-look'});
+    showToast(`${look.name} applied - now make it yours`,'success');
+  }
+  // Shuffle: restyle the current design (or apply a fresh look on an empty
+  // canvas) with a random curated combo. Fully undo-safe via history.
+  function shuffleLook(){
+    const look=pickShuffleLook(lastLookId??undefined);
+    const c=SHIRT_COLORS.find(x=>x.id===look.colorId)??color;
+    setColor(c); setTextColor(c.textColor);
+    const hasText=layers.some(l=>l.type==='text');
+    setLayersWithHistory(hasText?restyleLayers(layers,look,c.textColor):buildLookLayers(look,c.textColor));
+    setSelected(null); setLastLookId(look.id);
+    showToast(`Shuffled: ${look.name}`,'success');
   }
 
   // My Designs (saved slots, localStorage)
@@ -1079,6 +1101,7 @@ function DesignStudio() {
             <button onClick={redo} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.035)',color:'rgba(255,255,255,0.7)',fontSize:'0.78rem',fontWeight:800,cursor:'pointer'}}>Redo</button>
             <span title={'Shortcuts: Ctrl+Z undo | Ctrl+Y redo | Ctrl+D duplicate | Del delete | Arrows nudge (Shift = x5) | Double-click text to edit | Esc close'} style={{width:26,height:26,borderRadius:8,border:'1px solid rgba(255,255,255,0.09)',background:'rgba(255,255,255,0.03)',color:'rgba(255,255,255,0.4)',fontSize:'0.72rem',fontWeight:900,display:'inline-flex',alignItems:'center',justifyContent:'center',cursor:'help'}}>?</span>
             {layers.some(l=>!l.collarMode)&&<button onClick={smartFitDesign} style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.045)',color:'rgba(255,255,255,0.78)',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Smart fit</button>}
+            <button onClick={shuffleLook} title="Restyle with a random curated look - undo anytime" style={{padding:'9px 12px',borderRadius:9,border:'1px solid rgba(123,97,255,0.3)',background:'rgba(123,97,255,0.08)',color:'#a794ff',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Shuffle</button>
             <div style={{position:'relative',display:'inline-flex'}}>
               <button aria-haspopup="menu" onClick={()=>setShareFanOpen(true)} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(0,229,200,0.2)',background:'rgba(0,229,200,0.06)',color:'#00E5C8',fontSize:'0.78rem',fontWeight:900,cursor:'pointer'}}>Share</button>
               <ShareFan open={shareFanOpen} onClose={()=>setShareFanOpen(false)} onShare={shareTo}/>
@@ -1328,7 +1351,37 @@ function DesignStudio() {
                     </div>
                   )}
                 </div>
-                <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.62)',marginBottom:12,lineHeight:1.5}}>Start with a pre-built design, then customize it.</div>
+                {/* Starter looks - finished designs, one click to apply */}
+                <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.62)',marginBottom:10,lineHeight:1.5}}>Pick a finished look - shirt color and styling included - then make it yours.</div>
+                <div className="starter-looks" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginBottom:8}}>
+                  {LOOKS.map(look=>{
+                    const tpl=TEMPLATES.find(t=>t.id===look.templateId);
+                    const lc=SHIRT_COLORS.find(c=>c.id===look.colorId);
+                    if(!tpl||!lc) return null;
+                    const grad=look.gradient?GRADIENT_PRESETS[look.gradient]:null;
+                    return (
+                      <button key={look.id} onClick={()=>{applyLook(look);activateTool('text');}} aria-label={`Apply look ${look.name}`}
+                        style={{padding:'8px 4px 7px',borderRadius:11,border:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:5,transition:'all 0.15s'}}
+                        onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.06)');(e.currentTarget.style.borderColor='rgba(0,229,200,0.25)');}}
+                        onMouseLeave={e=>{(e.currentTarget.style.background='rgba(255,255,255,0.02)');(e.currentTarget.style.borderColor='rgba(255,255,255,0.07)');}}>
+                        <span style={{position:'relative',width:52,height:52,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          <span aria-hidden="true" dangerouslySetInnerHTML={{__html:buildProductSvg('TSHIRT',{fill:lc.hex,size:52})}}/>
+                          <span aria-hidden="true" style={{position:'absolute',top:'54%',left:'50%',transform:'translate(-50%,-50%)',display:'flex',flexDirection:'column',alignItems:'center',lineHeight:1,pointerEvents:'none'}}>
+                            {tpl.preview.slice(0,2).map((p,i)=>(
+                              <span key={i} style={{fontSize:p.length<=2?'0.62rem':'0.4rem',fontWeight:900,fontFamily:'"Impact","Arial Black",sans-serif',letterSpacing:'0.02em',
+                                ...(i===0&&grad?{background:`linear-gradient(135deg,${grad.stops.join(',')})`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}:{color:lc.textColor,opacity:i===0?0.95:0.6})}}>{p}</span>
+                            ))}
+                          </span>
+                        </span>
+                        <span style={{fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.7)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%'}}>{look.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <button onClick={shuffleLook} style={{width:'100%',padding:'9px',borderRadius:10,border:'1px solid rgba(123,97,255,0.3)',background:'rgba(123,97,255,0.07)',color:'#a794ff',fontSize:'0.68rem',fontWeight:800,cursor:'pointer',letterSpacing:'0.04em',marginBottom:14}}>
+                  Shuffle - surprise me
+                </button>
+                <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.62)',marginBottom:12,lineHeight:1.5}}>Or start from a plain template:</div>
                 <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:14}}>
                   {TEMPLATES.map(tpl=>(
                     <button key={tpl.id} onClick={()=>{applyTemplate(tpl);activateTool('text');}}

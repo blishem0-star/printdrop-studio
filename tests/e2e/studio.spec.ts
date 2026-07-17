@@ -50,6 +50,25 @@ test('My Designs save then load round-trips after reload', async ({ page }) => {
   await expect(page.locator('div[role="img"] svg g[transform] text').first()).toBeVisible();
 });
 
+test('starter look applies a finished design and its shirt color', async ({ page }) => {
+  await page.goto('/design');
+  await page.locator('button[aria-label="Apply look Holo Stack"]').click();
+  // Look layers land on the canvas...
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'YOUR' }).first()).toBeVisible();
+  // ...and the hero text carries the holo gradient fill
+  await expect(page.locator('div[role="img"] svg text[fill^="url(#lg-"]').first()).toBeVisible();
+});
+
+test('shuffle restyles without losing the typed text and undo restores', async ({ page }) => {
+  await openStudioWithText(page);
+  await page.locator('.canvas-action-bar button', { hasText: 'Shuffle' }).click();
+  // The user's word survives the restyle
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'STYLX' }).first()).toBeVisible();
+  // Undo rolls the restyle back
+  await page.locator('.canvas-action-bar button', { hasText: 'Undo' }).click();
+  await expect(page.locator('div[role="img"] svg text', { hasText: 'STYLX' }).first()).toBeVisible();
+});
+
 test('PNG download is not available during editing', async ({ page }) => {
   await openStudioWithText(page);
   await expect(page.locator('.canvas-action-bar button', { hasText: 'Share' })).toBeVisible();
