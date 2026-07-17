@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/rateLimit';
 // Anonymous usage signals (no user id, no cookie) that power the
 // category-demand dashboard in admin. Fire-and-forget from the client.
 
-const VALID_TYPES = ['favorite', 'remix', 'order', 'filter', 'studio_start'] as const;
+const VALID_TYPES = ['favorite', 'remix', 'order', 'filter', 'studio_start', 'first_layer', 'size_picked'] as const;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';

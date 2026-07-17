@@ -77,9 +77,20 @@ Payments (Paddle/LemonSqueezy/PayPal — no Stripe for IL bank; wallets via prov
 RESEND_API_KEY + EMAIL_FROM, domain, Printify fulfillment, deploy (Vercel+Turso),
 Redis rate-limit if multi-instance, real analytics baseline.
 
+## Progress log
+- 2026-07-17: Full-site audit shipped (25 findings, artifact report). Fixed all 5
+  criticals: price display = server charge (displayPrice), password-hash leak,
+  guest-locked storefront, fake AI landing demo, duplicate pine-forest id. Plus:
+  delivery-notes pipeline bug, artist one-click upgrade, garment previews on
+  home/SEO/detail, content-page footers, a11y (axe clean on landing/catalog/faq).
+- 2026-07-17: A1+A2 DONE - starter looks gallery (12 curated looks) + Shuffle,
+  lib/studio/looks.ts, 5 unit + 2 e2e tests.
+- 2026-07-17: G1 DONE - funnel events (studio_start/first_layer+time-bucket/
+  size_picked/order) + admin "Studio funnel" panel with time-to-first-layer chart.
+
 ## Execution order (each step ships verified: tsc/lint/test/build/e2e/screenshots)
-1. A1+A2 (starter gallery + shuffle) — conversion + fun, ~2 sessions
-2. G1 (funnel metrics) — so every later change is measurable
+1. ~~A1+A2 (starter gallery + shuffle)~~ DONE 2026-07-17
+2. ~~G1 (funnel metrics)~~ DONE 2026-07-17
 3. A3 (layout reset) then A4 (direct manipulation) — the "real software" feel
 4. C2 (group orders) + B3 (occasions entry) — AOV jump
 5. D1 (dynamic OG) + D3 (matching sets) — viral loop

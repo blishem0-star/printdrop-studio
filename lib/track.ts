@@ -1,5 +1,5 @@
 // Fire-and-forget usage tracking. Never blocks or breaks the UI.
-export type TrackType = 'favorite' | 'remix' | 'order' | 'filter' | 'studio_start';
+export type TrackType = 'favorite' | 'remix' | 'order' | 'filter' | 'studio_start' | 'first_layer' | 'size_picked';
 
 export function track(type: TrackType, data?: { category?: string; designId?: string }) {
   try {

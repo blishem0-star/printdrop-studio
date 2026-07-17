@@ -121,6 +121,28 @@ function DesignStudio() {
   const [designSlots, setDesignSlots] = useState<DesignSlot[]>([]);
   const [lastLookId, setLastLookId] = useState<string|null>(null);
 
+  // Funnel instrumentation (G1): studio_start -> first_layer -> size_picked -> order.
+  // first_layer carries a time-to-first-layer bucket; layers restored from
+  // persistence within the first moments of mount are not user actions and
+  // are excluded so the metric stays honest.
+  const studioOpenedAt = useRef(0);
+  const firstLayerTracked = useRef(false);
+  const sizeTracked = useRef(false);
+  useEffect(()=>{ studioOpenedAt.current=Date.now(); track('studio_start',{category:'open'}); },[]);
+  useEffect(()=>{
+    if(firstLayerTracked.current||layers.length===0) return;
+    const elapsed=Date.now()-studioOpenedAt.current;
+    firstLayerTracked.current=true;
+    if(elapsed<1500) return; // restored session, not a user action
+    const bucket=elapsed<10_000?'0-10s':elapsed<30_000?'10-30s':elapsed<60_000?'30-60s':elapsed<180_000?'1-3m':'3m+';
+    track('first_layer',{category:bucket});
+  },[layers.length]);
+  useEffect(()=>{
+    if(sizeTracked.current||!size) return;
+    sizeTracked.current=true;
+    track('size_picked',{category:size});
+  },[size]);
+
   // Active tool + shapes tab
   // Land on ready designs so a new user always has an obvious first step.
   const [activeTool, setActiveTool] = useState<ActiveTool|null>('templates');

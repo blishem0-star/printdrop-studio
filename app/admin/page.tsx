@@ -65,6 +65,29 @@ export default async function AdminOverview() {
   }
   const demandTop = [...demand.entries()].sort((a, b) => b[1].score - a[1].score).slice(0, 8);
   const demandMax = demandTop[0]?.[1].score ?? 1;
+
+  // Studio funnel (last 30 days): studio_start -> first_layer -> size_picked -> order.
+  const [studioOpens, firstLayers, sizesPicked, funnelOrders, ttflRaw] = await Promise.all([
+    prisma.usageEvent.count({ where: { createdAt: { gte: since }, type: 'studio_start', category: 'open' } }),
+    prisma.usageEvent.count({ where: { createdAt: { gte: since }, type: 'first_layer' } }),
+    prisma.usageEvent.count({ where: { createdAt: { gte: since }, type: 'size_picked' } }),
+    prisma.usageEvent.count({ where: { createdAt: { gte: since }, type: 'order' } }),
+    prisma.usageEvent.groupBy({
+      by: ['category'],
+      where: { createdAt: { gte: since }, type: 'first_layer', category: { not: null } },
+      _count: { _all: true },
+    }).catch(() => [] as { category: string | null; _count: { _all: number } }[]),
+  ]);
+  const funnelSteps = [
+    { label: 'Studio opened', n: studioOpens },
+    { label: 'First layer added', n: firstLayers },
+    { label: 'Size picked', n: sizesPicked },
+    { label: 'Order submitted', n: funnelOrders },
+  ];
+  const funnelMax = Math.max(1, studioOpens);
+  const TTFL_ORDER = ['0-10s', '10-30s', '30-60s', '1-3m', '3m+'];
+  const ttfl = TTFL_ORDER.map(b => ({ bucket: b, n: ttflRaw.find(r => r.category === b)?._count._all ?? 0 }));
+  const ttflMax = Math.max(1, ...ttfl.map(t => t.n));
   const integrations = getIntegrations();
   const readiness = integrationScore(integrations);
   const plannedIntegrations = integrations.filter(i => i.status === 'missing');
@@ -290,6 +313,50 @@ export default async function AdminOverview() {
             </div>
           )}
           <p style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.35)', margin: '12px 0 0', lineHeight: 1.5 }}>Add new designs to the top categories first - that is where customer intent already is.</p>
+        </div>
+
+        {/* Studio funnel - where visitors drop off on the way to an order (last 30 days) */}
+        <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(123,97,255,0.18)', borderRadius: 16, padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+            <h2 style={{ fontSize: '0.8rem', fontWeight: 800, margin: 0, color: '#a794ff', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Studio funnel - 30 days</h2>
+            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)' }}>anonymous events, no user ids</span>
+          </div>
+          {studioOpens === 0 ? (
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: '10px 0 2px' }}>No studio visits recorded yet - the funnel fills in as visitors open the design studio.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              {funnelSteps.map((s, i) => {
+                const prev = i === 0 ? s.n : funnelSteps[i - 1].n;
+                const pct = i === 0 ? null : prev > 0 ? Math.round((s.n / prev) * 100) : 0;
+                return (
+                  <div key={s.label} style={{ display: 'grid', gridTemplateColumns: '150px 1fr auto', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'rgba(255,255,255,0.8)' }}>{s.label}</span>
+                    <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.max(2, Math.round((s.n / funnelMax) * 100))}%`, borderRadius: 999, background: 'linear-gradient(90deg,#7B61FF,#0099FF)' }} />
+                    </div>
+                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{s.n}{pct !== null ? ` - ${pct}% of prev` : ''}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {firstLayers > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Time to first layer</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {ttfl.map(t => (
+                  <div key={t.bucket} style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ height: 34, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                      <div style={{ width: '70%', height: `${Math.max(6, Math.round((t.n / ttflMax) * 100))}%`, borderRadius: '4px 4px 0 0', background: t.n > 0 ? 'rgba(123,97,255,0.55)' : 'rgba(255,255,255,0.06)' }} />
+                    </div>
+                    <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>{t.bucket}</div>
+                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.7)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{t.n}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <p style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.35)', margin: '12px 0 0', lineHeight: 1.5 }}>The biggest drop between steps is the next thing to fix. Fast first layers mean the starter gallery is doing its job.</p>
         </div>
       </div>
     </div>
