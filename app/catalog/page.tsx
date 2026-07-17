@@ -370,7 +370,7 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <div className="cat-shell" style={{ display: 'grid', gridTemplateColumns: '230px 1fr', alignItems: 'start', position: 'relative', zIndex: 1 }}>
+      <main className="cat-shell" style={{ display: 'grid', gridTemplateColumns: '230px 1fr', alignItems: 'start', position: 'relative', zIndex: 1 }}>
         <aside className="cat-side" style={{ position: 'sticky', top: 72, padding: '2rem 0 2rem 2rem', display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div className="cat-side-group">
             <div className="cat-side-title" style={{ fontSize: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Categories</div>
@@ -443,7 +443,7 @@ export default function CatalogPage() {
           </div>
         )}
       </div>
-      </div>
+      </main>
 
       <style>{`
         @media(max-width:920px){

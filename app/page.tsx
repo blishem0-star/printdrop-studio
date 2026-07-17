@@ -330,7 +330,7 @@ export default function LandingPage() {
   const msgIdx = Math.min(Math.floor((mainPct / 100) * MAIN_MSGS.length), MAIN_MSGS.length - 1);
 
   return (
-    <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #050507 0%, #060610 100%)', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #050507 0%, #060610 100%)', overflowX: 'hidden' }}>
 
       {/* ── Background ── */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
@@ -362,6 +362,7 @@ export default function LandingPage() {
         </div>
       </header>
 
+      <main>
       {/* ── Hero ── */}
       <section style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '7rem 1.5rem 5rem', textAlign: 'center' }}>
 
@@ -605,6 +606,8 @@ export default function LandingPage() {
         </section>
       )}
 
+      </main>
+
       <footer role="contentinfo" style={{ position: 'relative', zIndex: 1, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1.75rem 1.5rem', textAlign: 'center' }}>
         <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.15rem', letterSpacing: '0.05em', color: '#fff', marginBottom: '0.4rem' }}>STYLX<span style={{ color: '#00E5C8' }}>.</span></div>
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.74rem', margin: '0 0 10px' }}>New designs drop weekly - get launch offers first.</p>
@@ -626,6 +629,6 @@ export default function LandingPage() {
           div[style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
-    </main>
+    </div>
   );
 }
