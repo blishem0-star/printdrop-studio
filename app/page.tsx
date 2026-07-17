@@ -22,13 +22,15 @@ const SHIRTS = [
   { id: 'c', base: '#0e1929', dark: '#090f18', accent: '#8b5cf6', label: 'Night Wave', style: 'wave' },
 ];
 
+// A short, honest transition while the three preview templates render -
+// no fake "AI is working" theater.
 const CARD_MSGS = [
-  ['Setting up the shirt...', 'Placing the artwork...', 'Fitting your text...', 'Adjusting colors...', 'Almost there...'],
-  ['Picking the fabric color...', 'Laying out the print...', 'Sizing the design...', 'Fine-tuning...', 'Almost there...'],
-  ['Reading your idea...', 'Matching a style...', 'Building the mockup...', 'Polishing...', 'Almost there...'],
+  ['Styling your preview...'],
+  ['Styling your preview...'],
+  ['Styling your preview...'],
 ];
 
-const MAIN_MSGS = ['Reading your idea...','Building shirt previews...','Placing the design...','Adjusting the fit...','Almost ready...'];
+const MAIN_MSGS = ['Styling your previews...'];
 
 function eased(elapsed: number, total: number) {
   const t = Math.min(elapsed / total, 1);
@@ -170,14 +172,6 @@ function LiquidCard({
           pointerEvents: 'none',
         }}>
           <div style={{
-            fontSize: '3.8rem', fontWeight: 900, lineHeight: 1,
-            letterSpacing: '-0.05em', fontVariantNumeric: 'tabular-nums',
-            color: '#fff',
-            textShadow: `0 0 40px ${ac}cc, 0 2px 20px rgba(0,0,0,0.9)`,
-          }}>
-            {Math.round(progress)}<span style={{ fontSize: '1.4rem', opacity: 0.6 }}>%</span>
-          </div>
-          <div style={{
             fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)',
             letterSpacing: '0.05em', fontWeight: 600,
             textShadow: '0 1px 8px rgba(0,0,0,0.9)',
@@ -277,7 +271,7 @@ export default function LandingPage() {
     setPhase('generating');
     setMainPct(0); setCardPct([0, 0, 0]); setCardReady([false, false, false]);
     startRef.current = performance.now();
-    const TOTAL = 3400;
+    const TOTAL = 900;
     const THRESHOLDS = [80, 91, 100];
 
     function tick(now: number) {
@@ -403,14 +397,14 @@ export default function LandingPage() {
             {prompt.length > 160 && <span aria-live="polite" style={{ fontSize: '0.6rem', color: prompt.length > 190 ? '#f87171' : 'rgba(255,255,255,0.3)', alignSelf: 'center', paddingRight: 8, flexShrink: 0 }}>{200 - prompt.length}</span>}
             <button
               onClick={generate}
-              aria-label={phase === 'generating' ? `Generating - ${Math.round(mainPct)}%` : 'Generate shirt designs'}
+              aria-label={phase === 'generating' ? 'Styling your previews' : 'Preview your shirt designs'}
               disabled={phase !== 'hero' || !prompt.trim()}
               className={phase === 'hero' && prompt.trim() ? 'btn-holo' : ''}
               style={{ margin: '6px', padding: '0 1.4rem', borderRadius: 10, border: 'none', background: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.06)', color: phase === 'hero' && prompt.trim() ? undefined : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.9rem', cursor: phase === 'hero' && prompt.trim() ? 'pointer' : 'default', transition: 'all 0.2s', minWidth: 120 }}
             >
               {phase === 'generating'
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><svg viewBox="0 0 16 16" width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }}><path d="M8 1.5a6.5 6.5 0 1 1-6.4 5.4" /></svg>{Math.round(mainPct)}%</span>
-                : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Generate<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
+                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><svg viewBox="0 0 16 16" width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }}><path d="M8 1.5a6.5 6.5 0 1 1-6.4 5.4" /></svg>Styling</span>
+                : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Preview<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
             </button>
           </div>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.68rem', marginTop: '0.6rem' }}>No account needed &mdash; free previews, no payment until you approve your design</p>
@@ -434,10 +428,7 @@ export default function LandingPage() {
           {/* Main progress bar */}
           {phase === 'generating' && (
             <div style={{ marginBottom: '2.5rem', textAlign: 'center', animation: 'up 0.4s ease both' }}>
-              <div style={{ fontSize: 'clamp(3rem,8vw,5.5rem)', fontWeight: 900, letterSpacing: '-0.06em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}>
-                {Math.round(mainPct)}<span style={{ fontSize: '38%', WebkitTextFillColor: 'rgba(0,200,180,0.65)', opacity: 0.8 }}>%</span>
-              </div>
-              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.78rem', marginBottom: '1.25rem', letterSpacing: '0.04em' }}>{MAIN_MSGS[msgIdx]}</div>
+              <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', marginBottom: '1.25rem', letterSpacing: '0.04em' }}>{MAIN_MSGS[msgIdx]}</div>
               <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden', maxWidth: 500, margin: '0 auto 1.25rem' }}>
                 <div style={{ height: '100%', width: `${mainPct}%`, background: 'linear-gradient(90deg,#00E5C8,#0099FF,#7B61FF)', borderRadius: 999, transition: 'width 0.15s ease-out', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)', animation: 'shimBar 1.2s linear infinite' }} />
@@ -447,7 +438,7 @@ export default function LandingPage() {
                 {SHIRTS.map((s, i) => (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: cardReady[i] ? s.accent : 'rgba(255,255,255,0.28)', transition: 'color 0.3s' }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: cardReady[i] ? s.accent : 'rgba(255,255,255,0.12)', boxShadow: cardReady[i] ? `0 0 10px ${s.accent}` : 'none', transition: 'all 0.4s' }} />
-                    {s.label} {cardReady[i] ? <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke={s.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline', verticalAlign: 'middle' }}><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg> : `${Math.round(cardPct[i])}%`}
+                    {s.label} {cardReady[i] && <svg viewBox="0 0 12 12" width={10} height={10} fill="none" stroke={s.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'inline', verticalAlign: 'middle' }}><path d="M2.5 6.5l2.5 2.5L9.5 3.5" /></svg>}
                   </div>
                 ))}
               </div>
@@ -458,7 +449,7 @@ export default function LandingPage() {
           {(phase === 'results' || phase === 'auth') && (
             <div style={{ textAlign: 'center', marginBottom: '2rem', animation: 'up 0.4s ease both' }}>
               <div style={{ display: 'inline-block', padding: '7px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>
-                Generated for: <strong style={{ color: '#fff' }}>&ldquo;{prompt}&rdquo;</strong>
+                Styled for: <strong style={{ color: '#fff' }}>&ldquo;{prompt}&rdquo;</strong>
               </div>
             </div>
           )}
@@ -586,8 +577,8 @@ export default function LandingPage() {
           {/* Steps */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {[
-              { n: '01', t: 'Describe', b: 'Type a vibe, a concept, a feeling. AI understands context and nuance.', accent: '#00E5C8' },
-              { n: '02', t: 'Generate', b: 'Watch 3 unique shirt designs appear in real-time, tailored to your prompt.', accent: '#0099FF' },
+              { n: '01', t: 'Describe', b: 'Type your idea - a name, a phrase, a vibe. It becomes the print.', accent: '#00E5C8' },
+              { n: '02', t: 'Preview', b: 'See your idea styled on three shirt looks, instantly. Pick the one that feels right.', accent: '#0099FF' },
               { n: '03', t: 'Customize', b: 'Fine-tune size, color, and layout in our design studio.', accent: '#7B61FF' },
               { n: '04', t: 'Request', b: 'Submit a clean order request with your artwork, size, color, and delivery details.', accent: '#00E5C8' },
             ].map((s, i) => (
