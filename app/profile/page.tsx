@@ -58,6 +58,7 @@ export default function ProfilePage() {
   const [addrZip, setAddrZip]       = useState('');
   const [addrSaving, setAddrSaving] = useState(false);
   const [addrSaved, setAddrSaved]   = useState(false);
+  const [artistUpgrading, setArtistUpgrading] = useState(false);
 
   useEffect(() => {
     if (session === undefined) return; // not hydrated yet
@@ -139,6 +140,23 @@ export default function ProfilePage() {
   function signOut() {
     setLocalSession(null);
     fetch('/api/auth/logout', { method: 'POST' }).finally(() => router.replace('/'));
+  }
+
+  async function becomeArtist() {
+    if (!session) return;
+    setArtistUpgrading(true);
+    try {
+      const res = await fetch('/api/user/become-artist', { method: 'POST' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => null);
+        showToast(d?.error ?? 'Could not set up the artist account.', 'error');
+        return;
+      }
+      setLocalSession({ ...session, role: 'ARTIST' });
+      showToast('Artist account ready - welcome!', 'success');
+      router.push('/artist');
+    } catch { showToast('Network error.', 'error'); }
+    finally { setArtistUpgrading(false); }
   }
 
   const inp: React.CSSProperties = {
@@ -357,9 +375,9 @@ export default function ProfilePage() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '0.88rem', marginBottom: 3 }}>Are you a designer?</div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Artists can upload their designs to our catalog and earn 50% on every sale. Register a new artist account to get started.</div>
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Upload your designs to our catalog and earn 50% on every sale. One click turns this account into an artist account - your orders and saved designs stay.</div>
               </div>
-              <button onClick={() => router.push('/')} style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.07)', color: '#00E5C8', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0 }}>Learn More</button>
+              <button onClick={becomeArtist} disabled={artistUpgrading} style={{ padding: '0.6rem 1.25rem', borderRadius: 10, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.07)', color: '#00E5C8', fontWeight: 700, fontSize: '0.78rem', cursor: artistUpgrading ? 'default' : 'pointer', flexShrink: 0, opacity: artistUpgrading ? 0.6 : 1 }}>{artistUpgrading ? 'Setting up...' : 'Start selling'}</button>
             </div>
           </div>
         )}
