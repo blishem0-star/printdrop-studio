@@ -8,6 +8,7 @@ import { PRODUCT_TYPE_LABELS, PRODUCT_BASE_PRICE, displayPrice } from '@/lib/pro
 import type { ProductType } from '@/lib/productTypes';
 import { useLocalSession, setLocalSession } from '@/lib/useLocalSession';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import ShirtMockup from '@/components/ShirtMockup';
 
 type SubStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 type Subscription = { id: string; status: SubStatus; stylePrefs: string; nextShipmentAt: string };
@@ -257,7 +258,12 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10 }}>
             {CATALOG_DESIGNS.filter(d => d.badge === 'bestseller' || d.badge === 'new').slice(0, 4).map(d => (
               <Link key={d.id} href={`/catalog/${d.id}`} style={{ display: 'block', padding: '1rem', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', color: 'inherit', textAlign: 'center', transition: 'border-color 0.15s' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.75)').replace('<svg ', '<svg width="52" height="52" ') }} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                  <div style={{ position: 'relative', width: 96, height: 110 }}>
+                    <ShirtMockup colorHex="#2a2a2a" size={96} />
+                    <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.75)').replace('<svg ', '<svg width="38" height="38" ') }} />
+                  </div>
+                </div>
                 <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00E5C8', marginTop: 3 }}>${displayPrice(d.price).toFixed(2)}</div>
               </Link>

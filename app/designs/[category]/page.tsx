@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
-import { displayPrice } from '@/lib/productTypes';
+import { displayPrice, buildGarmentPreviewSvg } from '@/lib/productTypes';
 
 export const revalidate = 3600; // fresh generated designs appear within the hour
 
@@ -88,7 +88,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
           {designs.map(d => (
             <Link key={d.id} href={`/catalog/${d.id}`} style={{ display: 'block', padding: '1.4rem 1rem 1rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', color: 'inherit', textAlign: 'center', position: 'relative' }}>
               {d.badge && <span style={{ position: 'absolute', top: 10, left: 10, fontSize: '0.5rem', fontWeight: 800, padding: '2px 7px', borderRadius: 999, background: d.badge === 'bestseller' ? '#FF4D1C' : d.badge === 'new' ? '#10B981' : '#8B5CF6', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{d.badge}</span>}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 64 }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.8)').replace('<svg ', '<svg width="64" height="64" ') }} />
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, minHeight: 110 }} dangerouslySetInnerHTML={{ __html: buildGarmentPreviewSvg(d.svg, { size: 110 }) }} />
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
               {d.artistName && <div style={{ fontSize: '0.6rem', color: 'rgba(0,153,255,0.7)', marginTop: 2 }}>by {d.artistName}</div>}
               <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#00E5C8', marginTop: 4 }}>${displayPrice(d.price).toFixed(2)}</div>

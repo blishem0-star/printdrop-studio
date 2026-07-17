@@ -122,6 +122,17 @@ export const PRODUCT_PATHS: Record<ProductType, {
   },
 };
 
+// Renders a design's SVG markup printed on a garment - one SVG string,
+// safe for server components (no hooks, no client mockup component).
+// The design svg is nested into the chest print zone of the garment body.
+export function buildGarmentPreviewSvg(designSvg: string, opts: { type?: ProductType; fill?: string; size?: number; artColor?: string } = {}): string {
+  const { type = 'TSHIRT', fill = '#2a2a2a', size = 200, artColor = 'rgba(255,255,255,0.8)' } = opts;
+  const nested = designSvg
+    .replace(/currentColor/g, artColor)
+    .replace('<svg ', '<svg x="62" y="52" width="76" height="76" ');
+  return buildProductSvg(type, { fill, size, designContent: nested });
+}
+
 // Returns the complete SVG string for a product type preview
 export function buildProductSvg(
   type: ProductType,

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
-import { displayPrice } from '@/lib/productTypes';
+import { displayPrice, buildGarmentPreviewSvg } from '@/lib/productTypes';
 
 export const revalidate = 300; // ISR: artist designs refresh every 5 minutes
 
@@ -87,7 +87,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
         <div style={{ position: 'relative', width: 'min(380px, 80vw)', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 24, padding: '2.5rem' }}>
           <div aria-hidden="true" style={{ position: 'absolute', top: 8, left: 14, fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '5rem', color: 'rgba(0,229,200,0.05)', letterSpacing: '0.05em', pointerEvents: 'none' }}>{design.category.toUpperCase()}</div>
           {isSvgMarkup ? (
-            <div style={{ width: '70%', color: 'rgba(255,255,255,0.85)' }} dangerouslySetInnerHTML={{ __html: design.svg.replace(/currentColor/g, 'rgba(255,255,255,0.85)') }} />
+            <div style={{ width: '92%' }} dangerouslySetInnerHTML={{ __html: buildGarmentPreviewSvg(design.svg, { size: 320, artColor: 'rgba(255,255,255,0.85)' }).replace('width="320" height="320"', 'width="100%" height="100%"') }} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element -- user-generated data URL
             <img src={design.svg} alt={design.title} style={{ width: '70%', objectFit: 'contain' }} />
@@ -105,9 +105,14 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
             ${displayPrice(design.price).toFixed(2)}
             <span style={{ fontFamily: 'inherit', fontSize: '0.95rem', color: 'rgba(255,255,255,0.4)', marginLeft: 10 }}>on a t-shirt</span>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: 24 }}>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.65, marginBottom: 16 }}>
             A premium print on a soft cotton tee. Pick your color and size, then send your order for review - you only pay once it is approved.
           </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+            {['8 shirt colors', 'Sizes XS-XXL', 'Also on hoodies & long sleeves', '2+ shirts save 5-15%'].map(t => (
+              <span key={t} style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.55)', padding: '4px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>{t}</span>
+            ))}
+          </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link href={`/catalog?design=${encodeURIComponent(design.id)}`} style={{ display: 'inline-block', padding: '0.8rem 2rem', borderRadius: 10, background: '#00E5C8', color: '#03241F', fontWeight: 800, fontSize: '0.85rem', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Order as-is
