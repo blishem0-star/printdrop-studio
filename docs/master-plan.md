@@ -87,6 +87,12 @@ Redis rate-limit if multi-instance, real analytics baseline.
   lib/studio/looks.ts, 5 unit + 2 e2e tests.
 - 2026-07-17: G1 DONE - funnel events (studio_start/first_layer+time-bucket/
   size_picked/order) + admin "Studio funnel" panel with time-to-first-layer chart.
+- 2026-07-17: A3 first slice - one primary CTA, quickstart off the garment,
+  empty panels removed, fullscreen hidden on mobile. Full 75% layout still open.
+- 2026-07-18: D1 DONE - dynamic OG image per design (catalog/[id]/opengraph-image,
+  artwork + real from-price; additive, no existing flow touched).
+- 2026-07-18: D2 DONE - shared links show a persistent "friend sent you this"
+  remix banner + share-link arrivals now tracked (remix/share-link).
 
 ## Execution order (each step ships verified: tsc/lint/test/build/e2e/screenshots)
 1. ~~A1+A2 (starter gallery + shuffle)~~ DONE 2026-07-17
