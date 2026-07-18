@@ -4,6 +4,9 @@ import { SHIPPING_PRICE } from './mockData';
 // and by /api/orders - the server never trusts a client-computed total.
 
 export const MAX_ORDER_QTY = 10;
+// Group orders (one design, size/qty matrix) may go larger - teams,
+// bachelorette parties, family reunions.
+export const MAX_GROUP_QTY = 30;
 
 // Volume discount tiers: buy more shirts, save more. Sorted by minQty desc.
 export const QTY_DISCOUNTS: { minQty: number; pct: number }[] = [
@@ -50,8 +53,8 @@ export type OrderQuote = {
   total: number;
 };
 
-export function quoteOrder(unitPrice: number, qty: number, sides: PrintSide[] = [], couponPct = 0): OrderQuote {
-  const q = Math.max(1, Math.min(MAX_ORDER_QTY, Math.floor(qty) || 1));
+export function quoteOrder(unitPrice: number, qty: number, sides: PrintSide[] = [], couponPct = 0, maxQty = MAX_ORDER_QTY): OrderQuote {
+  const q = Math.max(1, Math.min(maxQty, Math.floor(qty) || 1));
   const sideSurcharge = sidesSurcharge(sides);
   const subtotal = (unitPrice + sideSurcharge) * q;
   const discountPct = qtyDiscountPct(q);

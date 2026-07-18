@@ -34,6 +34,18 @@ test('unknown artist design is 404', async ({ request }) => {
   expect(res.status()).toBe(404);
 });
 
+test('group order matrix quotes the volume discount', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })));
+  await page.goto('/catalog');
+  await page.locator('button[aria-label^="Select Mountain Peaks"]').first().click();
+  await page.locator('button', { hasText: 'Ordering for a group?' }).click();
+  for (let i = 0; i < 2; i++) await page.locator('button[aria-label="More S"]').click();
+  for (let i = 0; i < 5; i++) await page.locator('button[aria-label="More M"]').click();
+  // 7 shirts at $24.99 = 174.93, minus the 15% tier, plus $4.99 shipping
+  await expect(page.getByText('15% volume discount')).toBeVisible();
+  await expect(page.getByText('$153.68')).toBeVisible();
+});
+
 test('order tracking shows the guest email gate', async ({ page }) => {
   await page.goto('/orders/unknown-order-id');
   await expect(page.locator('form input[name="email"]')).toBeVisible();

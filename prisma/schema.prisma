@@ -163,6 +163,8 @@ model OrderItem {
   designAssetId String
   qty           Int         @default(1)
   unitPrice     Float
+  // Group orders: per-row size (falls back to designAsset.size when null)
+  size          String?
 }
 
 // Immutable audit trail of privileged admin operations

@@ -10,6 +10,7 @@ import { CATALOG_DESIGNS, CATALOG_CATEGORIES, type CatalogDesign } from '@/lib/c
 import { PRODUCT_TYPE_LABELS, PRODUCT_PATHS, PRODUCT_BASE_PRICE, displayPrice } from '@/lib/productTypes';
 import type { ProductType } from '@/lib/productTypes';
 import { SHIRT_COLORS, SHIRT_SIZES, SHIPPING_PRICE } from '@/lib/mockData';
+import { quoteOrder, MAX_GROUP_QTY } from '@/lib/pricing';
 import type { TShirtColor, TShirtSize } from '@/lib/mockData';
 import { submitOrder } from '@/lib/exportDesign';
 import { useToast } from '@/components/Toast';
@@ -184,6 +185,9 @@ export default function CatalogPage() {
 
   const [color, setColor] = useState<TShirtColor | null>(null);
   const [size, setSize] = useState<TShirtSize | null>(null);
+  // Group orders: one design, a size/qty matrix (teams, parties, events)
+  const [groupMode, setGroupMode] = useState(false);
+  const [groupSizes, setGroupSizes] = useState<Partial<Record<TShirtSize, number>>>({});
   const [showBack, setShowBack] = useState(false);
   const [frontText, setFrontText] = useState('');
   const [backText, setBackText] = useState('');
@@ -248,7 +252,7 @@ export default function CatalogPage() {
   }, [selected]);
 
   function openDesign(d: CatalogDesign) {
-    setSelected(d); setColor(null); setSize(null);
+    setSelected(d); setColor(null); setSize(null); setGroupMode(false); setGroupSizes({});
     setFrontText(''); setBackText(''); setShowBack(false);
     setDrawerStep('customize'); setOrdered(false);
     setDrawerProductType('TSHIRT');
@@ -277,13 +281,16 @@ export default function CatalogPage() {
   // Mirrors the server's pricing: garment base + any artist premium above the t-shirt base.
   const designPremium = selected ? Math.max(0, selected.price - PRODUCT_BASE_PRICE.TSHIRT) : 0;
   const unitPrice = PRODUCT_BASE_PRICE[drawerProductType] + designPremium;
-  const total = unitPrice + SHIPPING_PRICE;
-  const customizeDone = color !== null && size !== null;
+  const groupRows = SHIRT_SIZES.map(s => ({ size: s, qty: groupSizes[s] ?? 0 })).filter(r => r.qty > 0);
+  const groupQty = groupRows.reduce((s, r) => s + r.qty, 0);
+  const groupQuote = groupMode && groupQty > 0 ? quoteOrder(unitPrice, groupQty, [], 0, MAX_GROUP_QTY) : null;
+  const total = groupQuote ? groupQuote.total : unitPrice + SHIPPING_PRICE;
+  const customizeDone = color !== null && (groupMode ? groupQty > 0 : size !== null);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipEmail);
   const deliveryDone = shipName.trim().length > 1 && emailValid && shipStreet.trim().length > 3 && shipCity.trim().length > 1 && /^\d{5}$/.test(shipZip) && shipState !== '';
 
   async function handleOrder() {
-    if (!selected || !color || !size) return;
+    if (!selected || !color || (groupMode ? groupQty === 0 : !size)) return;
     setSubmitting(true);
     try {
       const svgDataUrl = svgToDataUrl(selected.svg.replace(/currentColor/g, color.textColor));
@@ -291,10 +298,11 @@ export default function CatalogPage() {
         customerName: shipName, customerEmail: shipEmail,
         shippingName: shipName, shippingAddr: shipStreet,
         shippingCity: shipCity, shippingZip: shipZip, shippingState: shipState, total,
+        sizes: groupMode ? groupRows : undefined,
         design: {
           title: selected.title, emoji: '',
           customText: [frontText, backText].filter(Boolean).join(' | ') || undefined,
-          colorHex: color.hex, colorName: color.name, size, productType: drawerProductType, price: unitPrice, svgDataUrl,
+          colorHex: color.hex, colorName: color.name, size: groupMode ? groupRows[0].size : size!, productType: drawerProductType, price: unitPrice, svgDataUrl,
           artistDesignId: selected.originalId ?? undefined,
         },
       });
@@ -340,7 +348,7 @@ export default function CatalogPage() {
 
 
       {/* ── Editorial billboard ── */}
-      <section aria-label="Catalog intro" style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <section aria-label="Catalog intro" className="cat-billboard" style={{ position: 'relative', zIndex: 1, overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         {/* Ghost word */}
         <div aria-hidden="true" style={{ position: 'absolute', top: '50%', right: '-2%', transform: 'translateY(-50%)', fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(7rem,22vw,18rem)', color: 'rgba(0,229,200,0.04)', letterSpacing: '0.02em', lineHeight: 0.8, pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}>WEAR IT</div>
         <div className="rsp-pad" style={{ maxWidth: 1100, margin: '0 auto', padding: '3.25rem 2rem 2.5rem', position: 'relative' }}>
@@ -356,7 +364,7 @@ export default function CatalogPage() {
             Every piece begins as a hand-picked design. Choose one, make it yours, and place your order in seconds.
           </p>
           {/* Stat strip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)', marginTop: '2rem', flexWrap: 'wrap' }}>
+          <div className="cat-statstrip" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)', marginTop: '2rem', flexWrap: 'wrap' }}>
             {[[`${allDesigns.length}`, 'Designs'], ['Vector', 'Artwork'], ['Made to', 'Order'], ['50%', 'To Artists']].map(([n, l], i) => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(1.25rem,4vw,2.75rem)' }}>
                 {i > 0 && <span aria-hidden="true" style={{ width: 1, height: 28, background: 'rgba(0,229,200,0.18)' }} />}
@@ -446,6 +454,13 @@ export default function CatalogPage() {
       </main>
 
       <style>{`
+        @media(max-width:640px){
+          /* Mobile: the product grid is the point - keep the intro short */
+          .cat-billboard .rsp-pad{padding:1.5rem 1.25rem 1.1rem!important;}
+          .cat-billboard h2{font-size:clamp(2rem,9vw,2.8rem)!important;}
+          .cat-billboard p{display:none!important;}
+          .cat-statstrip{display:none!important;}
+        }
         @media(max-width:920px){
           .cat-shell{display:block!important;}
           .cat-side{position:static!important;padding:1rem 1.25rem 0!important;flex-direction:row!important;flex-wrap:wrap;gap:18px!important;}
@@ -519,12 +534,43 @@ export default function CatalogPage() {
                       {SHIRT_COLORS.map(c => <ColorSwatch key={c.id} c={c} selected={color?.id === c.id} onClick={() => setColor(c)} />)}
                     </div>
                   </div>
-                  {/* Size */}
+                  {/* Size - single pick, or a per-size matrix for group orders */}
                   <div style={{ marginBottom: '1.15rem' }}>
-                    <div style={lbl}>Size {size && <span style={{ fontWeight: 500, textTransform: 'none' }}>- {size}</span>}</div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {SHIRT_SIZES.map(s => <button key={s} aria-pressed={size === s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={lbl}>Size {!groupMode && size && <span style={{ fontWeight: 500, textTransform: 'none' }}>- {size}</span>}</div>
+                      <button onClick={() => setGroupMode(v => !v)} aria-pressed={groupMode} style={{ padding: '3px 10px', borderRadius: 999, border: `1px solid ${groupMode ? 'rgba(123,97,255,0.5)' : 'rgba(255,255,255,0.12)'}`, background: groupMode ? 'rgba(123,97,255,0.12)' : 'transparent', color: groupMode ? '#a794ff' : 'rgba(255,255,255,0.45)', fontSize: '0.6rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                        {groupMode ? 'Group order' : 'Ordering for a group?'}
+                      </button>
                     </div>
+                    {!groupMode ? (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {SHIRT_SIZES.map(s => <button key={s} aria-pressed={size === s} onClick={() => setSize(s)} style={{ width: 42, height: 42, borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${size === s ? 'rgba(0,229,200,0.5)' : 'rgba(255,255,255,0.08)'}`, background: size === s ? 'rgba(0,229,200,0.1)' : 'rgba(255,255,255,0.02)', color: size === s ? '#00E5C8' : 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s', boxShadow: size === s ? '0 0 12px rgba(0,229,200,0.15)' : 'none' }}>{s}</button>)}
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                          {SHIRT_SIZES.map(s => {
+                            const q = groupSizes[s] ?? 0;
+                            const setQ = (n: number) => setGroupSizes(prev => ({ ...prev, [s]: Math.max(0, Math.min(MAX_GROUP_QTY, n)) }));
+                            return (
+                              <div key={s} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, padding: '5px 7px', borderRadius: 10, border: `1.5px solid ${q > 0 ? 'rgba(123,97,255,0.45)' : 'rgba(255,255,255,0.08)'}`, background: q > 0 ? 'rgba(123,97,255,0.08)' : 'rgba(255,255,255,0.02)' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: q > 0 ? '#a794ff' : 'rgba(255,255,255,0.45)', width: 26 }}>{s}</span>
+                                <button aria-label={`Fewer ${s}`} onClick={() => setQ(q - 1)} style={{ width: 20, height: 20, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', lineHeight: 1 }}>-</button>
+                                <span aria-label={`${s} quantity`} style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', minWidth: 16, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{q}</span>
+                                <button aria-label={`More ${s}`} onClick={() => setQ(q + 1)} style={{ width: 20, height: 20, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', lineHeight: 1 }}>+</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: '0.64rem', color: groupQuote && groupQuote.discountPct > 0 ? '#34d399' : 'rgba(255,255,255,0.4)', fontWeight: 700 }}>
+                          {groupQty === 0
+                            ? `One design, many sizes - up to ${MAX_GROUP_QTY} shirts. 2+ save 5%, 3+ save 10%, 5+ save 15%.`
+                            : groupQuote && groupQuote.discountPct > 0
+                              ? `${groupQty} shirts - ${groupQuote.discountPct}% volume discount saves you $${(groupQuote.discount).toFixed(2)}`
+                              : `${groupQty} shirt - add one more to unlock 5% off`}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {/* Text */}
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
@@ -560,12 +606,12 @@ export default function CatalogPage() {
                 </div>
 
                 <div style={{ flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1rem 1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>Total</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>Total{groupQuote ? ` - ${groupQty} shirts incl. shipping` : ''}</span>
                     <span style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontWeight: 400, fontSize: '1.3rem', letterSpacing: '0.04em', background: 'linear-gradient(135deg,#00E5C8,#0099FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>${total.toFixed(2)}</span>
                   </div>
                   <button aria-describedby={!customizeDone ? 'customize-hint' : undefined} disabled={!customizeDone} onClick={() => setDrawerStep('delivery')} style={{ width: '100%', height: 46, borderRadius: 12, border: 'none', background: customizeDone ? 'linear-gradient(135deg,#00E5C8,#0099FF)' : 'rgba(255,255,255,0.05)', color: customizeDone ? '#050507' : 'rgba(255,255,255,0.2)', fontWeight: 800, fontSize: '0.88rem', cursor: customizeDone ? 'pointer' : 'default', boxShadow: customizeDone ? '0 6px 20px rgba(0,229,200,0.3)' : 'none', transition: 'all 0.2s' }}>
-                    {!color || !size ? <span id="customize-hint">Pick color & size</span> : 'Continue to delivery'}
+                    {!customizeDone ? <span id="customize-hint">{groupMode ? 'Pick color & quantities' : 'Pick color & size'}</span> : 'Continue to delivery'}
                   </button>
                 </div>
               </>

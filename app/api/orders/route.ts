@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { getSession } from '@/lib/session';
 import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
-import { quoteOrder, sanitizeSides, MAX_ORDER_QTY } from '@/lib/pricing';
+import { quoteOrder, sanitizeSides, MAX_ORDER_QTY, MAX_GROUP_QTY } from '@/lib/pricing';
 import { validCouponPct, consumeCoupon } from '@/lib/coupons';
 import { PRODUCT_BASE_PRICE, isProductType, type ProductType } from '@/lib/productTypes';
 
@@ -33,6 +33,21 @@ function validateBody(b: Record<string, unknown>): string | null {
     if (!Number.isInteger(q) || q < 1 || q > MAX_ORDER_QTY) return `Invalid quantity (1-${MAX_ORDER_QTY})`;
   }
   if (b.notes !== undefined && (typeof b.notes !== 'string' || b.notes.length > 300)) return 'Notes too long (max 300 characters)';
+  if (b.sizes !== undefined) {
+    if (!Array.isArray(b.sizes) || b.sizes.length === 0 || b.sizes.length > VALID_SIZES.length) return 'Invalid size breakdown';
+    let totalQty = 0;
+    const seen = new Set<string>();
+    for (const row of b.sizes as unknown[]) {
+      const r = row as { size?: unknown; qty?: unknown };
+      if (typeof r.size !== 'string' || !VALID_SIZES.includes(r.size)) return 'Invalid size in breakdown';
+      if (seen.has(r.size)) return 'Duplicate size in breakdown';
+      seen.add(r.size);
+      const q = Number(r.qty);
+      if (!Number.isInteger(q) || q < 1 || q > MAX_GROUP_QTY) return 'Invalid quantity in breakdown';
+      totalQty += q;
+    }
+    if (totalQty > MAX_GROUP_QTY) return `Group orders are capped at ${MAX_GROUP_QTY} shirts - contact us for larger runs`;
+  }
   return null;
 }
 
@@ -76,12 +91,15 @@ export async function POST(req: NextRequest) {
     artistRoyaltyBase = artistDesign.price;
     authorizedPrice += Math.max(0, artistDesign.price - PRODUCT_BASE_PRICE.TSHIRT);
   }
-  const qty = Number((body as { qty?: unknown }).qty) || 1;
+  // Group orders send a per-size breakdown; single orders send qty. The
+  // breakdown wins when present, and its summed qty drives the volume tier.
+  const sizeRows = (body as { sizes?: { size: string; qty: number }[] }).sizes;
+  const qty = sizeRows ? sizeRows.reduce((s, r) => s + r.qty, 0) : (Number((body as { qty?: unknown }).qty) || 1);
   // Sleeve print locations only exist on the t-shirt.
   const sides = sanitizeSides((body as { printSides?: unknown }).printSides)
     .filter(s => productType === 'TSHIRT' || s === 'back');
   const coupon = await validCouponPct((body as { couponCode?: unknown }).couponCode);
-  const quote = quoteOrder(authorizedPrice, qty, sides, coupon?.pct ?? 0);
+  const quote = quoteOrder(authorizedPrice, qty, sides, coupon?.pct ?? 0, sizeRows ? MAX_GROUP_QTY : MAX_ORDER_QTY);
   const total = quote.total;
 
   // Reject unsafe data URLs (only raster/svg images may be stored) and cap size
@@ -144,7 +162,11 @@ export async function POST(req: NextRequest) {
       shippingState,
       notes: typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null,
       status: 'DRAFT',
-      items: { create: { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge } },
+      items: {
+        create: sizeRows
+          ? sizeRows.map(r => ({ designAssetId: designAsset.id, qty: r.qty, size: r.size, unitPrice: authorizedPrice + quote.sideSurcharge }))
+          : { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge },
+      },
     },
     select: { id: true, total: true, status: true, createdAt: true },
   });

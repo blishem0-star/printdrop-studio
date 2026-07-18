@@ -100,7 +100,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem' }}>Summary</div>
             {order.items.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.8rem' }}>
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>× {item.qty} shirt</span>
+                <span style={{ color: 'rgba(255,255,255,0.45)' }}>× {item.qty} {item.size ?? item.designAsset?.size ?? ''} shirt{item.qty > 1 ? 's' : ''}</span>
                 <span>${item.unitPrice.toFixed(2)}</span>
               </div>
             ))}

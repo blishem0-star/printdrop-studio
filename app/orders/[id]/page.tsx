@@ -28,7 +28,7 @@ export default async function OrderTrackingPage(
       id: true, status: true, total: true, createdAt: true, updatedAt: true,
       shippingCity: true, shippingState: true,
       customerId: true, customer: { select: { email: true } },
-      items: { select: { unitPrice: true, qty: true, designAsset: { select: { title: true, colorName: true, size: true, productType: true } } } },
+      items: { select: { unitPrice: true, qty: true, size: true, designAsset: { select: { title: true, colorName: true, size: true, productType: true } } } },
     },
   });
 
@@ -104,7 +104,7 @@ export default async function OrderTrackingPage(
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: i < order.items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{it.designAsset?.title ?? 'Custom design'}</div>
-                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)' }}>{isProductType(it.designAsset?.productType) ? `${PRODUCT_TYPE_LABELS[it.designAsset.productType]} - ` : ''}{it.designAsset?.colorName} - {it.designAsset?.size}{it.qty > 1 ? ` - x${it.qty}` : ''}</div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)' }}>{isProductType(it.designAsset?.productType) ? `${PRODUCT_TYPE_LABELS[it.designAsset.productType]} - ` : ''}{it.designAsset?.colorName} - {it.size ?? it.designAsset?.size}{it.qty > 1 ? ` - x${it.qty}` : ''}</div>
               </div>
               <div style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: '1.1rem' }}>${(it.unitPrice * it.qty).toFixed(2)}</div>
             </div>

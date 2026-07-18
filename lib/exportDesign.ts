@@ -71,6 +71,8 @@ export async function submitOrder(payload: {
   printSides?: string[];
   couponCode?: string;
   notes?: string;
+  /** Group orders: per-size quantity breakdown (one design, many sizes). */
+  sizes?: { size: string; qty: number }[];
   design: {
     title: string;
     emoji?: string;
