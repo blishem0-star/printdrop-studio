@@ -93,6 +93,14 @@ Redis rate-limit if multi-instance, real analytics baseline.
   artwork + real from-price; additive, no existing flow touched).
 - 2026-07-18: D2 DONE - shared links show a persistent "friend sent you this"
   remix banner + share-link arrivals now tracked (remix/share-link).
+- 2026-07-18: C2 DONE - group orders: size/qty matrix in the catalog drawer
+  (up to 30 shirts, live volume-discount line), backward-compatible sizes[]
+  API + OrderItem.size, per-size rows on tracking/admin pages. Share fan got
+  copy-link; mobile catalog hero compacted.
+- 2026-07-18: Follow-up full-site audit - zero console errors on 24 page
+  loads, axe clean on landing/catalog/faq (one moderate note left in studio),
+  pricing verified consistent end to end. Remaining work is planned features
+  (A3 full/A4, B1-B3, E1-E3, C3), not defects.
 
 ## Execution order (each step ships verified: tsc/lint/test/build/e2e/screenshots)
 1. ~~A1+A2 (starter gallery + shuffle)~~ DONE 2026-07-17
