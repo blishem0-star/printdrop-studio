@@ -981,7 +981,7 @@ function DesignStudio() {
       </header>
 
       {/* Section */}
-      <div className="studio-commerce-bar" style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(90deg,rgba(0,229,200,0.055),rgba(6,6,9,0.98) 28%,rgba(0,153,255,0.045))',display:'grid',gridTemplateColumns:'auto 1fr auto',alignItems:'center',gap:12,padding:'0 14px',position:'relative',zIndex:13}}>
+      <section aria-label="Price and order status" className="studio-commerce-bar" style={{height:52,flexShrink:0,borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(90deg,rgba(0,229,200,0.055),rgba(6,6,9,0.98) 28%,rgba(0,153,255,0.045))',display:'grid',gridTemplateColumns:'auto 1fr auto',alignItems:'center',gap:12,padding:'0 14px',position:'relative',zIndex:13}}>
         <div style={{minWidth:0}}>
           <div style={{fontSize:'0.58rem',fontWeight:900,color:'#00E5C8',letterSpacing:'0.14em',textTransform:'uppercase'}}>Your custom shirt</div>
           <div style={{fontSize:'0.72rem',color:'rgba(255,255,255,0.72)',fontWeight:900,marginTop:2,whiteSpace:'nowrap'}}>${shirtPrice.toFixed(2)}<span style={{color:'rgba(255,255,255,0.38)',fontWeight:700,fontSize:'0.6rem'}}> + ${SHIPPING_PRICE.toFixed(2)} shipping{qty>1?` - qty ${qty}`:''}</span></div>
@@ -996,7 +996,7 @@ function DesignStudio() {
           ))}
         </div>
         <div style={{fontSize:'0.6rem',fontWeight:800,color:'rgba(255,255,255,0.35)',whiteSpace:'nowrap'}} title={nextStep.sub}>{nextStep.sub}</div>
-      </div>
+      </section>
 
       <main className="studio-shell" style={{flex:1,display:'grid',gridTemplateColumns:'280px minmax(420px,1fr) 390px',overflow:'hidden',minHeight:0}}>
 

@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ShirtMockup from '@/components/ShirtMockup';
 import { NewsletterForm } from '@/components/NewsletterForm';
+import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import { displayPrice } from '@/lib/productTypes';
 
 type Phase = 'hero' | 'generating' | 'results' | 'auth';
 type AuthMode = 'signup' | 'signin';
@@ -539,9 +541,9 @@ export default function LandingPage() {
                   {loading ? 'Loading...' : authMode === 'signup' ? 'Create Account & Order' : 'Sign In'}
                 </button>
               </form>
-              <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                <button onClick={enterGuest} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.45)', fontSize:'0.7rem', cursor:'pointer' }}>Skip &mdash; continue as guest</button>
-              </div>
+              <button onClick={enterGuest} style={{ width: '100%', height: 42, marginTop: 10, borderRadius: 11, border: '1px solid rgba(0,229,200,0.3)', background: 'rgba(0,229,200,0.06)', color: '#00E5C8', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
+                Continue as guest &mdash; no account needed
+              </button>
             </div>
           </div>
         </section>
@@ -563,6 +565,30 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── Real product strip - the store, not just the pitch ── */}
+      {phase === 'hero' && (
+        <section aria-label="Popular designs" style={{ position: 'relative', zIndex: 1, padding: '3.5rem 1.5rem 0', maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 'clamp(1.8rem,4vw,2.6rem)', fontWeight: 400, letterSpacing: '0.03em', margin: 0 }}>Straight from the catalog</h2>
+            <button onClick={() => { try { localStorage.setItem('pd_session', JSON.stringify({ type: 'guest', name: 'Guest' })); } catch { /**/ } router.push('/catalog'); }} style={{ background: 'none', border: 'none', color: '#00E5C8', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>View all &rarr;</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 12 }}>
+            {CATALOG_DESIGNS.filter(d => d.badge === 'bestseller' || d.badge === 'new').slice(0, 4).map(d => (
+              <a key={d.id} href={`/catalog/${d.id}`} style={{ display: 'block', padding: '1rem', borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', textDecoration: 'none', color: 'inherit', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                  <div style={{ position: 'relative', width: 104, height: 118 }}>
+                    <ShirtMockup colorHex="#2a2a2a" size={104} />
+                    <div style={{ position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%,-50%)' }} dangerouslySetInnerHTML={{ __html: d.svg.replace(/currentColor/g, 'rgba(255,255,255,0.78)').replace('<svg ', '<svg width="40" height="40" ') }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.title}</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00E5C8', marginTop: 3 }}>${displayPrice(d.price).toFixed(2)}</div>
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ── How it works ── */}
