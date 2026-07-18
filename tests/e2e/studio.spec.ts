@@ -52,10 +52,13 @@ test('My Designs save then load round-trips after reload', async ({ page }) => {
 
 test('starter look applies a finished design and its shirt color', async ({ page }) => {
   await page.goto('/design');
-  await page.locator('button[aria-label="Apply look Holo Stack"]').click();
-  // Look layers land on the canvas...
-  await expect(page.locator('div[role="img"] svg text', { hasText: 'YOUR' }).first()).toBeVisible();
-  // ...and the hero text carries the holo gradient fill
+  // First interaction on the page - retry the click until hydration has
+  // attached the handler and the look's layers land on the canvas.
+  await expect(async () => {
+    await page.locator('button[aria-label="Apply look Holo Stack"]').click();
+    await expect(page.locator('div[role="img"] svg text', { hasText: 'YOUR' }).first()).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 15000 });
+  // The hero text carries the holo gradient fill
   await expect(page.locator('div[role="img"] svg text[fill^="url(#lg-"]').first()).toBeVisible();
 });
 

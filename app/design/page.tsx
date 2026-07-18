@@ -120,6 +120,7 @@ function DesignStudio() {
   useEffect(()=>{ printAreaRef.current=printArea; },[printArea]);
   const [designSlots, setDesignSlots] = useState<DesignSlot[]>([]);
   const [lastLookId, setLastLookId] = useState<string|null>(null);
+  const [sharedArrival, setSharedArrival] = useState(false);
 
   // Funnel instrumentation (G1): studio_start -> first_layer -> size_picked -> order.
   // first_layer carries a time-to-first-layer bucket; layers restored from
@@ -647,6 +648,8 @@ function DesignStudio() {
         const doc=decodeDesignShare(sharedCode);
         if(doc){
           restoreDesignDocument(doc);
+          setSharedArrival(true);
+          track('remix',{category:'share-link'});
           showToast('Shared design loaded - make it yours!','success');
         }
       } else if(remixId){
@@ -1048,6 +1051,12 @@ function DesignStudio() {
             ))}
           </div>
 
+          {sharedArrival&&(
+            <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:14,left:'50%',transform:'translateX(-50%)',zIndex:6,display:'flex',alignItems:'center',gap:10,padding:'7px 8px 7px 14px',borderRadius:999,border:'1px solid rgba(0,229,200,0.3)',background:'rgba(5,5,8,0.92)',backdropFilter:'blur(12px)',maxWidth:'92%'}}>
+              <span style={{fontSize:'0.68rem',fontWeight:800,color:'#00E5C8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>A friend sent you this design - remix it and share your version back</span>
+              <button aria-label="Dismiss" onClick={()=>setSharedArrival(false)} style={{width:22,height:22,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.5)',fontSize:'0.62rem',fontWeight:900,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>x</button>
+            </div>
+          )}
           <button className="studio-fullscreen-btn" onClick={e=>{e.stopPropagation();setFullscreen(true);}} style={{position:'absolute',top:14,right:14,background:'rgba(5,5,8,0.9)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:11,padding:'5px 13px',color:'rgba(255,255,255,0.35)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',backdropFilter:'blur(14px)',letterSpacing:'0.06em',transition:'all 0.15s',zIndex:5}}
             onMouseEnter={e=>{(e.currentTarget.style.background='rgba(0,229,200,0.1)');(e.currentTarget.style.color='#00E5C8');}}
             onMouseLeave={e=>{(e.currentTarget.style.background='rgba(5,5,8,0.9)');(e.currentTarget.style.color='rgba(255,255,255,0.35)');}}>
