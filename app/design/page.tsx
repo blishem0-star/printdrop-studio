@@ -764,7 +764,7 @@ function DesignStudio() {
     }catch{setOrderError('Network error.');showToast('Network error.','error');}finally{setSubmitting(false);}
   }
 
-  async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'){
+  async function shareTo(channel:'instagram'|'facebook'|'x'|'whatsapp'|'copy'){
     // Share links carry the design itself so friends open a live remix, not a blank studio.
     const shareCode = !ordered && layers.length>0
       ? encodeDesignShare({version:1,productType,colorId:color.id,size,activeView:garmentView,layers,printArea,printBg})
@@ -784,6 +784,13 @@ function DesignStudio() {
     const shareUrl=encodeURIComponent(url);
     const shareText=encodeURIComponent(`${text} ${url}`);
     setShareFanOpen(false);
+    if(channel==='copy'){
+      try{
+        await navigator.clipboard.writeText(url);
+        showToast('Design link copied - paste it anywhere','success');
+      }catch{ showToast('Could not copy - long-press the address bar instead','error'); }
+      return;
+    }
     if(channel==='whatsapp'){
       window.open(`https://wa.me/?text=${shareText}`,'_blank','noopener,noreferrer');
       return;

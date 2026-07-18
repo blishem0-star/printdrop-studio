@@ -1,6 +1,6 @@
 'use client';
 
-type ShareChannel = 'instagram' | 'facebook' | 'x' | 'whatsapp';
+type ShareChannel = 'instagram' | 'facebook' | 'x' | 'whatsapp' | 'copy';
 
 type ShareFanProps = {
   open: boolean;
@@ -43,7 +43,7 @@ export function ShareFan({ open, onClose, onShare }: ShareFanProps) {
           <div style={{position:'absolute',right:'17%',top:'24%',width:6,height:6,borderRadius:'50%',background:'rgba(52,211,153,0.62)',boxShadow:'0 0 18px rgba(52,211,153,0.72)'}}/>
         </div>
         <div style={{position:'absolute',left:'50%',bottom:-4,width:72,height:72,transform:'translateX(-50%)',borderRadius:'50%',background:'linear-gradient(145deg,rgba(0,229,200,0.26),rgba(5,5,8,0.96))',border:'1px solid rgba(0,229,200,0.32)',boxShadow:'0 14px 42px rgba(0,0,0,0.55),0 0 34px rgba(0,229,200,0.28)',pointerEvents:'none'}}/>
-        <div style={{position:'absolute',left:'50%',bottom:28,transform:'translateX(-50%)',padding:'8px 16px',borderRadius:999,background:'rgba(5,5,8,0.78)',border:'1px solid rgba(255,255,255,0.14)',fontSize:'0.72rem',fontWeight:950,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.82)',whiteSpace:'nowrap',boxShadow:'0 12px 34px rgba(0,0,0,0.38)'}}>Share your design</div>
+        <button role="menuitem" onClick={()=>onShare('copy')} style={{position:'absolute',left:'50%',bottom:28,transform:'translateX(-50%)',padding:'8px 16px',borderRadius:999,background:'rgba(5,5,8,0.86)',border:'1px solid rgba(0,229,200,0.35)',fontSize:'0.72rem',fontWeight:950,letterSpacing:'0.14em',textTransform:'uppercase',color:'#00E5C8',whiteSpace:'nowrap',boxShadow:'0 12px 34px rgba(0,0,0,0.38)',cursor:'pointer',pointerEvents:'auto'}}>Copy design link</button>
         {options.map((opt, i) => {
           const rad = (opt.angle * Math.PI) / 180;
           const x = Math.cos(rad) * opt.distance;
