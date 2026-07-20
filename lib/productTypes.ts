@@ -45,6 +45,9 @@ export type ProductMockup = {
   front: string;
   back?: string;
   side?: string;
+  /** 128px version for switcher chips - the full mockup is ~150KB and
+   *  must never be downloaded just to draw a 46px icon. */
+  thumb: string;
   canvas: { x: number; y: number; width: number; height: number };
 };
 
@@ -53,18 +56,22 @@ export const PRODUCT_MOCKUPS: Partial<Record<ProductType, ProductMockup>> = {
     front: '/mockups/tshirt-front.png',
     back: '/mockups/tshirt-back.png',
     side: '/mockups/tshirt-side.png',
+    thumb: '/mockups/tshirt-front-thumb.png',
     canvas: { x: 2, y: 14, width: 196, height: 196 },
   },
   LONG_SLEEVE: {
     front: '/mockups/long-sleeve-front.png',
+    thumb: '/mockups/long-sleeve-front-thumb.png',
     canvas: { x: 2, y: 17, width: 196, height: 200 },
   },
   HOODIE: {
     front: '/mockups/hoodie-front.png',
+    thumb: '/mockups/hoodie-front-thumb.png',
     canvas: { x: 17, y: 13, width: 166, height: 200 },
   },
   HOODIE_VEST: {
     front: '/mockups/sleeveless-hoodie-front.png',
+    thumb: '/mockups/sleeveless-hoodie-front-thumb.png',
     canvas: { x: 38, y: 11, width: 124, height: 204 },
   },
 };

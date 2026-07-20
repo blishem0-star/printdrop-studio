@@ -13,7 +13,8 @@ type ProductHologramProps = {
 export function ProductHologram({ type, active = false, colorHex = '#f7f7f7', size = 46 }: ProductHologramProps) {
   const shineId = useId().replace(/:/g, '');
   const p = PRODUCT_PATHS[type];
-  const mockup = PRODUCT_MOCKUPS[type]?.front;
+  // Chips are ~46px - use the thumbnail, never the full-size mockup.
+  const mockup = PRODUCT_MOCKUPS[type]?.thumb;
   const glow = active ? 'rgba(0,229,200,0.42)' : 'rgba(255,255,255,0.16)';
   const stroke = active ? '#00E5C8' : 'rgba(255,255,255,0.24)';
 
