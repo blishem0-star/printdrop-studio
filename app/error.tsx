@@ -1,8 +1,22 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 
-export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  // Report the error so the owner sees production breakage in the admin panel.
+  useEffect(() => {
+    try {
+      const payload = JSON.stringify({
+        message: error.message || String(error),
+        digest: error.digest,
+        path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      });
+      if (navigator.sendBeacon) navigator.sendBeacon('/api/log-error', new Blob([payload], { type: 'application/json' }));
+      else fetch('/api/log-error', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+    } catch { /* logging must never break the error page */ }
+  }, [error]);
+
   return (
     <main style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',

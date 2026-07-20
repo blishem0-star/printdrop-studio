@@ -5,6 +5,7 @@ import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
 import { displayPrice, buildGarmentPreviewSvg } from '@/lib/productTypes';
+import { SITE_URL } from '@/lib/site';
 
 export const revalidate = 3600; // fresh generated designs appear within the hour
 
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
   return {
     title: copy.title,
     description: copy.blurb,
-    alternates: { canonical: `https://stylx.ai/designs/${copy.slug}` },
+    alternates: { canonical: `${SITE_URL}/designs/${copy.slug}` },
     openGraph: { title: `${copy.title} - STYLX`, description: copy.blurb, type: 'website' },
   };
 }
@@ -63,7 +64,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     name: copy.title,
     numberOfItems: designs.length,
     itemListElement: designs.slice(0, 20).map((d, i) => ({
-      '@type': 'ListItem', position: i + 1, name: d.title, url: `https://stylx.ai/catalog/${d.id}`,
+      '@type': 'ListItem', position: i + 1, name: d.title, url: `${SITE_URL}/catalog/${d.id}`,
     })),
   };
 

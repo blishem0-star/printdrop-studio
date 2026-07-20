@@ -6,6 +6,7 @@ import { sendEmail, orderReceivedEmail, siteUrl } from '@/lib/email';
 import { quoteOrder, sanitizeSides, MAX_ORDER_QTY, MAX_GROUP_QTY } from '@/lib/pricing';
 import { validCouponPct, consumeCoupon } from '@/lib/coupons';
 import { PRODUCT_BASE_PRICE, isProductType, type ProductType } from '@/lib/productTypes';
+import { logServerError } from '@/lib/logError';
 
 const US_STATE_RE  = /^[A-Z]{2}$/;
 const EMAIL_RE     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -151,25 +152,31 @@ export async function POST(req: NextRequest) {
     }).catch(() => null);
   }
 
-  const order = await prisma.order.create({
-    data: {
-      customerId: customer.id,
-      total,
-      shippingName,
-      shippingAddr,
-      shippingCity,
-      shippingZip,
-      shippingState,
-      notes: typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null,
-      status: 'DRAFT',
-      items: {
-        create: sizeRows
-          ? sizeRows.map(r => ({ designAssetId: designAsset.id, qty: r.qty, size: r.size, unitPrice: authorizedPrice + quote.sideSurcharge }))
-          : { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge },
+  let order;
+  try {
+    order = await prisma.order.create({
+      data: {
+        customerId: customer.id,
+        total,
+        shippingName,
+        shippingAddr,
+        shippingCity,
+        shippingZip,
+        shippingState,
+        notes: typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null,
+        status: 'DRAFT',
+        items: {
+          create: sizeRows
+            ? sizeRows.map(r => ({ designAssetId: designAsset.id, qty: r.qty, size: r.size, unitPrice: authorizedPrice + quote.sideSurcharge }))
+            : { designAssetId: designAsset.id, qty: quote.qty, unitPrice: authorizedPrice + quote.sideSurcharge },
+        },
       },
-    },
-    select: { id: true, total: true, status: true, createdAt: true },
-  });
+      select: { id: true, total: true, status: true, createdAt: true },
+    });
+  } catch (e) {
+    logServerError(`order create failed: ${e instanceof Error ? e.message : String(e)}`, '/api/orders');
+    return NextResponse.json({ error: 'Could not save your order. Please try again.' }, { status: 500 });
+  }
 
   if (coupon) await consumeCoupon(coupon.code);
 

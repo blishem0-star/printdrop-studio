@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -13,15 +14,15 @@ export const metadata: Metadata = {
   title: { default: "STYLX - Describe it. Wear it.", template: "%s | STYLX" },
   description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
   keywords: ["custom shirt design", "custom t-shirts", "design your own shirt", "print on demand", "personalized shirts", "custom apparel"],
-  metadataBase: new URL("https://stylx.ai"),
-  alternates: { canonical: "https://stylx.ai" },
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: SITE_URL },
   icons: { icon: '/favicon.ico', shortcut: '/favicon.ico' },
   openGraph: {
     title: "STYLX - Describe it. Wear it.",
     description: "Create custom apparel from an idea, personalize the design, and submit an order request in minutes.",
     type: "website",
     siteName: "STYLX",
-    url: "https://stylx.ai",
+    url: SITE_URL,
     images: [
       {
         url: "/opengraph-image",
@@ -49,29 +50,29 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://stylx.ai/#org",
+      "@id": `${SITE_URL}/#org`,
       name: "STYLX",
-      url: "https://stylx.ai",
-      logo: "https://stylx.ai/opengraph-image",
+      url: SITE_URL,
+      logo: `${SITE_URL}/opengraph-image`,
       description: "Custom shirt design and printing, made to order.",
       sameAs: [],
     },
     {
       "@type": "WebSite",
-      "@id": "https://stylx.ai/#website",
-      url: "https://stylx.ai",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
       name: "STYLX",
-      publisher: { "@id": "https://stylx.ai/#org" },
+      publisher: { "@id": `${SITE_URL}/#org` },
       potentialAction: {
         "@type": "SearchAction",
-        target: { "@type": "EntryPoint", urlTemplate: "https://stylx.ai/catalog?q={search_term_string}" },
+        target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/catalog?q={search_term_string}` },
         "query-input": "required name=search_term_string",
       },
     },
     {
       "@type": "Service",
-      name: "AI Custom Shirt Printing",
-      provider: { "@id": "https://stylx.ai/#org" },
+      name: "Custom Shirt Printing",
+      provider: { "@id": `${SITE_URL}/#org` },
       description: "Describe any apparel idea, personalize the design, and submit it as a custom order request.",
       offers: {
         "@type": "Offer",

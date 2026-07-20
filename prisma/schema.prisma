@@ -203,6 +203,20 @@ model UsageEvent {
   @@index([createdAt])
 }
 
+// Runtime error log. Captures unhandled UI/API errors so the owner sees
+// production breakage from the admin panel instead of learning from a
+// lost customer. Best-effort: writing a log never blocks the request.
+model ErrorLog {
+  id        String   @id @default(cuid())
+  source    String   // "ui" | "api"
+  message   String
+  digest    String?  // Next.js error digest (links UI error to server log)
+  path      String?  // route where it happened
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 // One-time password-reset tokens; emailed as a link, valid for 1 hour.
 model PasswordReset {
   token      String   @id @default(cuid())

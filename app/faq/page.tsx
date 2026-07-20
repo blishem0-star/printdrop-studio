@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteFooter } from '@/components/SiteFooter';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'FAQ',
   description: 'How STYLX works: ordering, payment, printing, shipping, sizing, and cancellations.',
-  alternates: { canonical: 'https://stylx.ai/faq' },
+  alternates: { canonical: `${SITE_URL}/faq` },
 };
 
 const FAQS: [string, string][] = [

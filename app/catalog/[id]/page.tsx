@@ -5,6 +5,7 @@ import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
 import { prisma } from '@/lib/prisma';
 import { sanitizeSvg } from '@/lib/sanitizeSvg';
 import { displayPrice, buildGarmentPreviewSvg } from '@/lib/productTypes';
+import { SITE_URL } from '@/lib/site';
 
 export const revalidate = 300; // ISR: artist designs refresh every 5 minutes
 
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: design.title,
     description: desc,
-    alternates: { canonical: `https://stylx.ai/catalog/${design.id}` },
+    alternates: { canonical: `${SITE_URL}/catalog/${design.id}` },
     openGraph: { title: `${design.title} | STYLX`, description: desc, type: 'website' },
   };
 }
@@ -68,7 +69,7 @@ export default async function DesignPage({ params }: { params: Promise<{ id: str
       priceCurrency: 'USD',
       price: displayPrice(design.price).toFixed(2),
       availability: 'https://schema.org/InStock',
-      url: `https://stylx.ai/catalog/${design.id}`,
+      url: `${SITE_URL}/catalog/${design.id}`,
     },
   };
 

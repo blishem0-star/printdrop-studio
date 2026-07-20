@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { CATALOG_DESIGNS } from '@/lib/catalogDesigns';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Browse Designs',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://stylx.ai/catalog',
+    canonical: `${SITE_URL}/catalog`,
   },
 };
 
@@ -24,7 +25,7 @@ const itemListJsonLd = {
   itemListElement: CATALOG_DESIGNS.slice(0, 20).map((d, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    url: `https://stylx.ai/catalog/${d.id}`,
+    url: `${SITE_URL}/catalog/${d.id}`,
     name: d.title,
   })),
 };

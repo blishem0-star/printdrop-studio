@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteFooter } from '@/components/SiteFooter';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Size Guide',
   description: 'STYLX unisex t-shirt size chart - chest and length in inches, with simple fit advice.',
-  alternates: { canonical: 'https://stylx.ai/size-guide' },
+  alternates: { canonical: `${SITE_URL}/size-guide` },
 };
 
 // Standard US unisex tee measurements (garment, laid flat).

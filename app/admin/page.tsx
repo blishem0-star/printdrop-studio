@@ -30,17 +30,20 @@ export default async function AdminOverview() {
 
   // Owner attention queue + 7-day pulse
   const weekAgo = new Date(demandWindowStart().getTime() + 23 * 24 * 3600 * 1000); // 30d window start + 23d = 7 days ago
-  const [draftOrders, pendingArtistDesigns, weekOrders, weekOrderValue, weekCustomers, weekGenerated] = await Promise.all([
+  const [draftOrders, pendingArtistDesigns, weekOrders, weekOrderValue, weekCustomers, weekGenerated, errorCount, recentErrors] = await Promise.all([
     prisma.order.count({ where: { status: 'DRAFT' } }),
     prisma.artistDesign.count({ where: { status: 'PENDING' } }),
     prisma.order.count({ where: { createdAt: { gte: weekAgo } } }),
     prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: weekAgo }, status: { not: 'CANCELLED' } } }),
     prisma.customer.count({ where: { createdAt: { gte: weekAgo }, password: { not: null } } }),
     prisma.adminAction.count({ where: { action: 'DESIGNS_GENERATED', createdAt: { gte: weekAgo } } }),
+    prisma.errorLog.count({ where: { createdAt: { gte: weekAgo } } }).catch(() => 0),
+    prisma.errorLog.findMany({ where: { createdAt: { gte: weekAgo } }, orderBy: { createdAt: 'desc' }, take: 6 }).catch(() => []),
   ]);
   const attention = [
     draftOrders > 0 ? { label: `${draftOrders} order request${draftOrders > 1 ? 's' : ''} waiting for review`, href: '/admin/orders' } : null,
     pendingArtistDesigns > 0 ? { label: `${pendingArtistDesigns} artist design${pendingArtistDesigns > 1 ? 's' : ''} awaiting approval`, href: '/admin/artists' } : null,
+    errorCount > 0 ? { label: `${errorCount} runtime error${errorCount > 1 ? 's' : ''} in the last 7 days`, href: '#errors' } : null,
   ].filter(Boolean) as { label: string; href: string }[];
 
   // Category demand (last 30 days) - drives which categories get new designs
@@ -88,6 +91,7 @@ export default async function AdminOverview() {
   const TTFL_ORDER = ['0-10s', '10-30s', '30-60s', '1-3m', '3m+'];
   const ttfl = TTFL_ORDER.map(b => ({ bucket: b, n: ttflRaw.find(r => r.category === b)?._count._all ?? 0 }));
   const ttflMax = Math.max(1, ...ttfl.map(t => t.n));
+
   const integrations = getIntegrations();
   const readiness = integrationScore(integrations);
   const plannedIntegrations = integrations.filter(i => i.status === 'missing');
@@ -357,6 +361,29 @@ export default async function AdminOverview() {
             </div>
           )}
           <p style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.35)', margin: '12px 0 0', lineHeight: 1.5 }}>The biggest drop between steps is the next thing to fix. Fast first layers mean the starter gallery is doing its job.</p>
+        </div>
+
+        {/* Runtime errors - production breakage surfaced from the error log */}
+        <div id="errors" style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: `1px solid ${errorCount > 0 ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 16, padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+            <h2 style={{ fontSize: '0.8rem', fontWeight: 800, margin: 0, color: errorCount > 0 ? '#f87171' : '#10B981', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Runtime errors - 7 days</h2>
+            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)' }}>unhandled UI errors, most recent first</span>
+          </div>
+          {recentErrors.length === 0 ? (
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: '10px 0 2px' }}>No errors logged - the site is running clean.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              {recentErrors.map(e => (
+                <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'baseline', paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.message}</div>
+                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)' }}>{e.path ?? 'unknown route'}{e.digest ? ` - ${e.digest}` : ''}</div>
+                  </div>
+                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap' }}>{new Date(e.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
